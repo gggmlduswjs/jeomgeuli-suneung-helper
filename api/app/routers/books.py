@@ -26,6 +26,8 @@ from app.services.hwp_extract import (
     extract_lesson_info_from_filename,
     extract_structure_from_hwp
 )
+from app.services.lecture_script_parser import LectureScriptParser
+from app.db.models import Lesson
 
 router = APIRouter()
 
@@ -242,14 +244,71 @@ async def upload_hwp_book(
         title=title,
         subject=Subject(subject),
         year=year,
-        parse_status=ParseStatus.DONE if text else ParseStatus.FAILED,
+        parse_status=ParseStatus.PROCESSING,
         file_path=str(file_path),
     )
     db.add(book)
     db.commit()
     db.refresh(book)
     
-    # TODO: 구조화된 데이터를 Lesson/Unit으로 변환하여 저장
+    # 강의 대본 파서로 구조화된 데이터 추출
+    lesson_count = 0
+    if text:
+        try:
+            # 과목에 맞는 파서 생성
+            subject_str = subject.lower()
+            if subject_str == 'korean':
+                subject_str = 'literature'
+            elif subject_str == 'math':
+                subject_str = 'math1'
+            
+            parser = LectureScriptParser(subject=subject_str)
+            parsed = parser.parse(text)
+            
+            # Lesson 생성
+            lesson_id = f"ls_{uuid.uuid4().hex[:12]}"
+            lesson_number = parsed.get('lesson_number', 0)
+            if lesson_number == 0 and lesson_info.get('lesson_number'):
+                lesson_number = lesson_info['lesson_number']
+            
+            lesson_title = lesson_info.get('title') or f"{lesson_number}강"
+            if not lesson_title or lesson_title == '0강':
+                # 파싱 결과에서 제목 추출 시도
+                sections = parsed.get('sections', [])
+                if sections:
+                    first_section = sections[0]
+                    if first_section.get('type') == 'ot':
+                        content = first_section.get('content', '')
+                        # "수능특강 문학" 같은 패턴 찾기
+                        import re
+                        title_match = re.search(r'수능특강\s*([가-힣]+)', content)
+                        if title_match:
+                            lesson_title = f"{lesson_number}강 {title_match.group(1)}"
+                        else:
+                            lesson_title = f"{lesson_number}강"
+            
+            lesson = Lesson(
+                lesson_id=lesson_id,
+                book_id=book_id,
+                index=lesson_number,
+                title=lesson_title,
+            )
+            db.add(lesson)
+            db.commit()
+            lesson_count = 1
+            
+            # 파싱 성공
+            book.parse_status = ParseStatus.DONE
+        except Exception as e:
+            print(f"[books] Error parsing HWP: {e}")
+            import traceback
+            traceback.print_exc()
+            book.parse_status = ParseStatus.FAILED
+    else:
+        book.parse_status = ParseStatus.FAILED
+    
+    db.commit()
+    db.refresh(book)
     
     return BookResponse(
         book_id=book.book_id,
@@ -257,7 +316,7 @@ async def upload_hwp_book(
         subject=book.subject,
         year=book.year,
         parse_status=book.parse_status,
-        lesson_count=len(structure.get("problems", [])),
+        lesson_count=lesson_count,
     )
 
 

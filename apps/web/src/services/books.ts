@@ -52,4 +52,24 @@ export const booksAPI = {
   async reparse(bookId: string): Promise<{ ok: boolean; message: string; status: string }> {
     return api.post<{ ok: boolean; message: string; status: string }>(`/books/${bookId}/reparse`);
   },
+
+  /**
+   * HWP 파일 업로드 및 교재 생성
+   */
+  async uploadHWP(
+    file: File,
+    title: string,
+    subject: Subject,
+    year?: number
+  ): Promise<Book> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', title);
+    formData.append('subject', subject);
+    if (year) {
+      formData.append('year', year.toString());
+    }
+    
+    return api.postFormData<Book>('/books/upload-hwp', formData);
+  },
 };

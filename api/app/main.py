@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db.session import init_db
-from app.routers import health, books, lessons, units, progress, answers, review, syncpoints, pdf, lecture_scripts
+from app.routers import health, books, lessons, units, progress, answers, review, syncpoints, pdf, lecture_scripts, curriculum, content, lesson_blocks
 
 # 데이터베이스 초기화
 init_db()
@@ -36,6 +36,9 @@ app.include_router(review.router, prefix="/api/v1", tags=["review"])
 app.include_router(syncpoints.router, prefix="/api/v1", tags=["syncpoints"])
 app.include_router(pdf.router, prefix="/api/v1", tags=["pdf"])
 app.include_router(lecture_scripts.router, tags=["lecture-scripts"])
+app.include_router(curriculum.router, prefix="/api/v1", tags=["curriculum"])
+app.include_router(content.router, prefix="/api/v1", tags=["content"])
+app.include_router(lesson_blocks.router, prefix="/api/v1", tags=["lesson-blocks"])
 
 
 @app.get("/")

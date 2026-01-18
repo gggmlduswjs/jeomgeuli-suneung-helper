@@ -15,6 +15,7 @@
 9. [API 사용법](#api-사용법)
 10. [터미널 명령어 요약](#터미널-명령어-요약)
 11. [테스트](#테스트)
+12. [PDF 추출 테스트 가이드](#pdf-추출-테스트-가이드)
 
 ---
 
@@ -1093,7 +1094,6 @@ print(f"파싱된 단위 수: {len(result.get('units', []))}")
 
 ## 관련 문서
 
-- [PDF_EXTRACTION_TEST.md](./PDF_EXTRACTION_TEST.md) - 테스트 가이드
 - [PDF_PROCESSING_PIPELINE.md](./PDF_PROCESSING_PIPELINE.md) - 파이프라인 설계 문서
 - [AI_ML_PDF_EXTRACTION.md](./AI_ML_PDF_EXTRACTION.md) - AI/ML 기능 상세 설명
 - [MATH1_EXTRACTION_PROMPTS.md](./MATH1_EXTRACTION_PROMPTS.md) - 수학Ⅰ 추출 프롬프트

@@ -11,6 +11,12 @@ pdf2image>=1.16.0
 Pillow>=10.0.0
 olefile>=0.46
 
+# LangChain 및 LLM 통합
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-community>=0.0.20
+pymongo>=4.6.0
+
 # AI/ML PDF 추출 기능 (선택적)
 # Enhanced OCR
 pytesseract>=0.3.10

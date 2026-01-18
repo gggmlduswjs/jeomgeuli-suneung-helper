@@ -1,107 +1,72 @@
-# 테스트 파일 구조
+# 테스트 파일 정리
 
-## 📁 테스트 파일 구성
+## 테스트 파일 위치
 
-### 핵심 테스트
+모든 테스트 파일은 `api/tests/` 디렉토리에 있습니다.
 
-- **`test_pdf_extract.py`** - PDF 추출 기능 테스트
-  - 기본 PDF 추출 (PDFPlumber)
-  - 문학 PDF 추출
-  - Enhanced OCR (선택적)
-  - AI 텍스트 후처리 (선택적)
+## 주요 테스트 파일 (유지)
 
-- **`test_parsers.py`** - 과목별 파서 테스트 (통합)
-  - 수학Ⅰ 파서
-  - 문학 파서
-  - 영어 파서
-  - 사용법: `python tests/test_parsers.py --subject all` 또는 `--subject math1`
+### 통합 테스트
+- `test_api_simple.py`: 기본 API 통합 테스트 (헬스 체크, 커리큘럼 목록, 콘텐츠 검증, HWP 업로드)
+- `test_lesson_blocks_api.py`: 레슨 블록 생성 API 테스트
+- `test_langchain_flow.py`: LangChain Flow 테스트 (LLM 통합)
 
-- **`test_pdf_api.py`** - PDF API 엔드포인트 테스트
-  - 헬스 체크
-  - PDF 구조화 추출 API
-  - PDF 이미지 추출 API
-  - ⚠️ 서버가 실행 중이어야 함
+### 기능별 테스트
+- `test_block_decomposition.py`: 레슨 블록 분해 테스트 (규칙 기반)
+- `test_hwp_extraction.py`: HWP 파일 추출 테스트
 
-### HWP 관련 테스트
+### 검증 도구
+- `validate_json_output.py`: JSON 파일 품질 검증
 
-- **`test_hwp_extract.py`** - 한글 파일 추출 테스트
-  - HWP 텍스트 추출
-  - 구조 추출
-  - 레슨 정보 추출
+## 임시 테스트 파일 (삭제 예정)
 
-- **`test_content_generator.py`** - 콘텐츠 자동 생성 테스트
-  - HWP 파일 기반 자동 생성
-  - 점자 변환
+다음 파일들은 개발 중 특정 기능을 테스트하기 위한 임시 파일입니다:
 
-### 헬퍼 파일
+### 커리큘럼 관련 (임시)
+- `test_curriculum_analysis.py`
+- `test_curriculum_detail.py`
+- `test_curriculum_generate.py`
+- `test_curriculum_structure.py`
+- `test_full_literature_curriculum.py`
+- `test_improved_curriculum.py`
+- `test_new_curriculum.py`
 
-- **`test_helpers.py`** - 테스트 공통 헬퍼 함수
-  - PDF 파일 찾기
-  - 블록 미리보기 포맷팅
-  - 블록 타입별 개수 세기
-  - 파일 크기 포맷팅
+### 레슨 1 관련 (임시)
+- `test_lesson_1_detail.py`
+- `test_lesson_1_full_content.py`
+- `test_lesson_1_json.py`
+- `test_lesson_1_summary.py`
 
-## 🚀 실행 방법
+### 기타 (임시)
+- `test_hwp_structure.py`
+- `test_json_structure.py`
+- `test_pipeline_single.py`
+- `test_pipeline_with_text.py`
 
-### 개별 테스트 실행
+### PowerShell 스크립트 (중복)
+- `test_curriculum_api.ps1` (Python 버전과 중복)
+- `test_hwp_upload.ps1` (Python 버전과 중복)
 
-```powershell
-# PDF 추출 테스트
-python tests/test_pdf_extract.py
+## 테스트 실행 방법
 
-# 파서 테스트 (전체)
-python tests/test_parsers.py --subject all
-
-# 파서 테스트 (수학Ⅰ만)
-python tests/test_parsers.py --subject math1
-
-# API 테스트 (서버 필요)
-python tests/test_pdf_api.py
-
-# HWP 추출 테스트
-python tests/test_hwp_extract.py
-
-# 콘텐츠 생성 테스트
-python tests/test_content_generator.py
+### 기본 API 테스트
+```bash
+cd api
+python tests/test_api_simple.py
 ```
 
-### 전체 테스트 실행 (예정)
-
-```powershell
-# pytest 사용 (향후 지원)
-pytest tests/
+### 레슨 블록 분해 테스트
+```bash
+python tests/test_block_decomposition.py
 ```
 
-## 📝 테스트 파일 정리
+### LangChain Flow 테스트
+```bash
+# OPENAI_API_KEY 환경변수 설정 필요
+python tests/test_langchain_flow.py
+```
 
-### 삭제된 파일 (통합됨)
-
-다음 파일들은 `test_parsers.py`로 통합되었습니다:
-- ~~`test_math1_parser.py`~~ → `test_parsers.py --subject math1`
-- ~~`test_literature_parser.py`~~ → `test_parsers.py --subject literature`
-- ~~`test_english_parser.py`~~ → `test_parsers.py --subject english`
-
-### 유지되는 파일
-
-- `test_pdf_extract.py` - PDF 추출 단위 테스트
-- `test_parsers.py` - 과목별 파서 통합 테스트
-- `test_pdf_api.py` - PDF API 통합 테스트
-- `test_hwp_extract.py` - HWP 추출 테스트
-- `test_content_generator.py` - 콘텐츠 생성 테스트
-- `test_helpers.py` - 테스트 헬퍼 함수
-
-## 🔄 통합 계획
-
-### Phase 1: 파서 테스트 통합 ✅
-- [x] `test_parsers.py` 생성
-- [x] 기존 파서 테스트 파일 통합
-
-### Phase 2: 선택적 통합 (제안)
-- [ ] `test_pdf.py`로 PDF 관련 테스트 통합 (선택적)
-  - `test_pdf_extract.py` + `test_pdf_api.py`
-- [ ] `test_hwp.py`로 HWP 관련 테스트 통합 (선택적)
-  - `test_hwp_extract.py` + `test_content_generator.py`
-
----
-
-**마지막 업데이트**: 2025-01-XX
+### JSON 검증
+```bash
+python tests/validate_json_output.py
+```

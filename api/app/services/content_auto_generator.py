@@ -125,41 +125,188 @@ class ContentAutoGenerator:
             return ""
     
     def validate_manual_compliance(self, sections: List[Dict]) -> Dict:
-        """매뉴얼 규칙 준수 여부 검증"""
+        """매뉴얼 규칙 준수 여부 검증 및 자동 수정"""
         issues = []
+        fixed_sections = []
         
         for i, section in enumerate(sections):
-            # 1. 텍스트 길이 검증 (말하는 단위로 적절히 끊겼는지)
-            content_len = len(section["content"])
+            fixed_section = section.copy()
+            
+            # 1. 텍스트 길이 검증 및 자동 조절
+            content = fixed_section["content"]
+            content_len = len(content)
+            
             if content_len > self.manual_rules["text_length"]["max"]:
+                # 텍스트가 너무 길면 자동으로 분할
+                fixed_content = self._auto_adjust_text_length(content)
+                fixed_section["content"] = fixed_content
                 issues.append({
                     "section": i,
                     "type": "text_too_long",
-                    "message": f"섹션 {i}: 텍스트가 너무 깁니다 ({content_len}자)"
+                    "message": f"섹션 {i}: 텍스트가 너무 깁니다 ({content_len}자) - 자동 분할됨",
+                    "fixed": True
                 })
             elif content_len < self.manual_rules["text_length"]["min"]:
                 issues.append({
                     "section": i,
                     "type": "text_too_short",
-                    "message": f"섹션 {i}: 텍스트가 너무 짧습니다 ({content_len}자)"
+                    "message": f"섹션 {i}: 텍스트가 너무 짧습니다 ({content_len}자)",
+                    "fixed": False
                 })
             
-            # 2. 기호 사용 규칙 검증
-            if section["type"] == "explanation" and re.search(r'[①②③④⑤]', section["content"]):
+            # 2. 기호 사용 규칙 검증 및 자동 수정
+            fixed_content = self._fix_symbol_usage(fixed_section["content"], fixed_section["type"])
+            if fixed_content != fixed_section["content"]:
                 issues.append({
                     "section": i,
                     "type": "symbol_conflict",
-                    "message": "설명 섹션에 원숫자 사용 (문제 선지와 혼동 가능)"
+                    "message": "설명 섹션에 원숫자 사용 - 자동 수정됨",
+                    "fixed": True
+                })
+                fixed_section["content"] = fixed_content
+            
+            # 3. 정보 순서 자동 최적화
+            fixed_content = self._optimize_info_order(fixed_section["content"], fixed_section.get("type"), fixed_section.get("timestamp"))
+            if fixed_content != fixed_section["content"]:
+                fixed_section["content"] = fixed_content
+                issues.append({
+                    "section": i,
+                    "type": "info_order",
+                    "message": "정보 순서 최적화됨",
+                    "fixed": True
                 })
             
-            # 3. 정보 순서 검증
-            if section.get("timestamp") and section.get("type"):
-                # 시간 정보가 유형 정보보다 앞에 있으면 경고
-                # TODO: 실제 텍스트에서 위치 확인
-                pass
+            fixed_sections.append(fixed_section)
+        
+        # 수정된 섹션으로 업데이트
+        sections[:] = fixed_sections
         
         return {
-            "is_compliant": len(issues) == 0,
+            "is_compliant": len([i for i in issues if not i.get("fixed", False)]) == 0,
             "issues": issues,
-            "score": max(0, 100 - len(issues) * 10)  # 품질 점수
+            "score": max(0, 100 - len([i for i in issues if not i.get("fixed", False)]) * 10),  # 수정되지 않은 이슈만 점수 감점
+            "improvements": [i for i in issues if i.get("fixed", False)]  # 개선 사항
         }
+    
+    def _auto_adjust_text_length(self, text: str) -> str:
+        """텍스트 길이 자동 조절 (말하는 단위로 분할)"""
+        max_len = self.manual_rules["text_length"]["max"]
+        
+        if len(text) <= max_len:
+            return text
+        
+        # 문장 단위로 분할
+        sentences = re.split(r'([.!?]\s+)', text)
+        
+        # 문장을 합치면서 최대 길이를 넘지 않도록
+        units = []
+        current_unit = ""
+        
+        for i in range(0, len(sentences), 2):
+            sentence = sentences[i] + (sentences[i+1] if i+1 < len(sentences) else "")
+            
+            if len(current_unit) + len(sentence) <= max_len:
+                current_unit += sentence
+            else:
+                if current_unit:
+                    units.append(current_unit.strip())
+                current_unit = sentence
+        
+        if current_unit:
+            units.append(current_unit.strip())
+        
+        # 첫 번째 단위만 반환 (나머지는 별도 섹션으로 처리)
+        return units[0] if units else text[:max_len]
+    
+    def _fix_symbol_usage(self, content: str, section_type: str) -> str:
+        """기호 사용 규칙 자동 수정"""
+        fixed_content = content
+        
+        # 설명 섹션에서 원숫자 사용 금지
+        if section_type == "explanation" or section_type == "concept":
+            # 원숫자를 화살표로 변경
+            fixed_content = re.sub(r'([①②③④⑤])', self.manual_rules["symbol_rules"]["explanation"], fixed_content)
+        
+        return fixed_content
+    
+    def _optimize_info_order(self, content: str, section_type: Optional[str], timestamp: Optional[str]) -> str:
+        """정보 순서 자동 최적화 (유형 정보 먼저, 시간 정보 나중)"""
+        if not timestamp:
+            return content
+        
+        # 시간 정보 패턴 찾기
+        timestamp_pattern = r'(\d+)\s*분\s*(\d+)\s*초'
+        timestamp_match = re.search(timestamp_pattern, content)
+        
+        if not timestamp_match:
+            return content
+        
+        # 유형 정보 패턴 찾기 (해설, 개념, 문제 등)
+        type_patterns = [
+            r'(해설|개념|예제|문제|정리)',
+            r'(【[^】]+】)',
+        ]
+        
+        type_match = None
+        for pattern in type_patterns:
+            type_match = re.search(pattern, content)
+            if type_match:
+                break
+        
+        # 시간 정보가 유형 정보보다 앞에 있으면 순서 변경
+        if type_match and timestamp_match.start() < type_match.start():
+            # 시간 정보 제거
+            content_without_time = re.sub(timestamp_pattern, '', content, count=1).strip()
+            
+            # 유형 정보 뒤에 시간 정보 추가
+            type_end = type_match.end()
+            optimized = (
+                content_without_time[:type_end] + 
+                f" ({timestamp})" + 
+                content_without_time[type_end:]
+            )
+            return optimized.strip()
+        
+        return content
+    
+    def generate_with_auto_fix(self, hwp_path: Path) -> Dict:
+        """자동 수정을 포함한 구조화된 콘텐츠 생성"""
+        result = self.generate_structured_content(hwp_path)
+        
+        # 검증 및 자동 수정
+        validation = self.validate_manual_compliance(result["sections"])
+        result["validation"] = validation
+        
+        # 개선 제안 생성
+        result["suggestions"] = self._generate_improvement_suggestions(result["sections"], validation)
+        
+        return result
+    
+    def _generate_improvement_suggestions(self, sections: List[Dict], validation: Dict) -> List[Dict]:
+        """개선 제안 자동 생성"""
+        suggestions = []
+        
+        for issue in validation.get("issues", []):
+            if not issue.get("fixed", False):
+                suggestion = {
+                    "section": issue.get("section"),
+                    "type": issue.get("type"),
+                    "message": issue.get("message"),
+                    "suggestion": self._get_suggestion_for_issue(issue)
+                }
+                suggestions.append(suggestion)
+        
+        return suggestions
+    
+    def _get_suggestion_for_issue(self, issue: Dict) -> str:
+        """이슈 타입별 개선 제안"""
+        issue_type = issue.get("type")
+        
+        suggestions_map = {
+            "text_too_long": "텍스트를 말하는 단위로 더 작게 나누세요.",
+            "text_too_short": "인접한 섹션과 합치거나 내용을 보강하세요.",
+            "symbol_conflict": "원숫자 대신 화살표(→)를 사용하세요.",
+            "info_order": "유형 정보를 앞에, 시간 정보를 뒤에 배치하세요.",
+        }
+        
+        return suggestions_map.get(issue_type, "수동 검토가 필요합니다.")

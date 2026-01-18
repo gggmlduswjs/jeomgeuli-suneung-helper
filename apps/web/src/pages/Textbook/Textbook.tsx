@@ -12,6 +12,9 @@ import TextbookList from './components/TextbookList';
 import UnitList from './components/UnitList';
 import UnitContent from './components/UnitContent';
 import PDFUpload from './components/PDFUpload';
+import HWPUpload from './components/HWPUpload';
+import { booksAPI } from '../../services/books';
+import type { Book } from '../../types/book';
 
 type ViewMode = 'textbooks' | 'units' | 'content';
 type ReadingMode = 'braille-only' | 'audio-first' | 'mixed';
@@ -32,6 +35,8 @@ export default function Textbook() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPDFUpload, setShowPDFUpload] = useState(false);
+  const [showHWPUpload, setShowHWPUpload] = useState(false);
+  const [uploadMode, setUploadMode] = useState<'pdf' | 'hwp'>('pdf');
   
   // URL 파라미터에서 읽기 모드 확인
   const readingModeParam = searchParams.get('mode');
@@ -110,6 +115,20 @@ export default function Textbook() {
     const uploadedTextbook = textbooks.find(t => t.id === textbookId);
     if (uploadedTextbook) {
       await handleTextbookSelect(uploadedTextbook);
+    }
+  };
+
+  const handleHWPUploadComplete = async (book: Book) => {
+    setShowHWPUpload(false);
+    // 새로 업로드된 교재 선택
+    await loadTextbooks();
+    // Book 타입에 따라 처리
+    const uploadedTextbook = textbooks.find(t => t.id.toString() === book.book_id || t.title === book.title);
+    if (uploadedTextbook) {
+      await handleTextbookSelect(uploadedTextbook);
+    } else {
+      // 새로고침 후 다시 찾기
+      await loadTextbooks();
     }
   };
 
@@ -262,22 +281,85 @@ export default function Textbook() {
           <>
             {viewMode === 'textbooks' && (
               <div className="space-y-4">
-                {showPDFUpload ? (
-                  <PDFUpload
-                    onUploadComplete={handlePDFUploadComplete}
-                    onSpeak={speak}
-                  />
-                ) : (
-                  <>
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-lg font-semibold">교재 목록</h2>
+                {showPDFUpload || showHWPUpload ? (
+                  <div className="space-y-4">
+                    <div className="flex gap-2 mb-4">
                       <button
-                        onClick={() => setShowPDFUpload(true)}
-                        className="btn-primary text-sm"
+                        onClick={() => {
+                          setUploadMode('pdf');
+                          setShowPDFUpload(true);
+                          setShowHWPUpload(false);
+                        }}
+                        className={`flex-1 py-2 px-4 rounded-lg ${
+                          uploadMode === 'pdf' ? 'btn-primary' : 'btn-ghost'
+                        }`}
                         aria-label="PDF 업로드"
                       >
                         PDF 업로드
                       </button>
+                      <button
+                        onClick={() => {
+                          setUploadMode('hwp');
+                          setShowHWPUpload(true);
+                          setShowPDFUpload(false);
+                        }}
+                        className={`flex-1 py-2 px-4 rounded-lg ${
+                          uploadMode === 'hwp' ? 'btn-primary' : 'btn-ghost'
+                        }`}
+                        aria-label="한글 파일 업로드"
+                      >
+                        한글 파일
+                      </button>
+                    </div>
+                    {showPDFUpload && (
+                      <PDFUpload
+                        onUploadComplete={handlePDFUploadComplete}
+                        onSpeak={speak}
+                      />
+                    )}
+                    {showHWPUpload && (
+                      <HWPUpload
+                        onUploadComplete={handleHWPUploadComplete}
+                        onSpeak={speak}
+                      />
+                    )}
+                    <button
+                      onClick={() => {
+                        setShowPDFUpload(false);
+                        setShowHWPUpload(false);
+                      }}
+                      className="btn-ghost w-full"
+                      aria-label="취소"
+                    >
+                      취소
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-lg font-semibold">교재 목록</h2>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setUploadMode('pdf');
+                            setShowPDFUpload(true);
+                          }}
+                          className="btn-primary text-sm"
+                          aria-label="PDF 업로드"
+                        >
+                          PDF
+                        </button>
+                        <button
+                          onClick={() => {
+                            setUploadMode('hwp');
+                            setShowHWPUpload(true);
+                          }}
+                          className="btn-primary text-sm"
+                          aria-label="한글 파일 업로드"
+                        >
+                          HWP
+                        </button>
+                      </div>
                     </div>
                     <TextbookList
                       textbooks={textbooks}

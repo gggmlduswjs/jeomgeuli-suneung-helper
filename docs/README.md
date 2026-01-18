@@ -2,33 +2,37 @@
 
 이 폴더는 프로젝트의 모든 문서를 포함합니다.
 
-## 📚 문서 목록
+## 📚 빠른 시작
 
-### 프로젝트 구조
-- **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - 프로젝트의 전체 폴더 구조와 각 디렉토리의 역할을 설명합니다.
+**전체 문서 인덱스**: [DOCS_INDEX.md](./DOCS_INDEX.md)를 참고하세요.
 
-### 리팩토링 가이드
-- **[REFACTORING_RECOMMENDATIONS.md](./REFACTORING_RECOMMENDATIONS.md)** - 프로젝트 구조 개선을 위한 리팩토링 권장 사항과 체크리스트를 제공합니다.
+## 📋 핵심 문서
 
-### AI/ML 구현 제안
-- **[AI_ML_IMPLEMENTATION_PROPOSAL.md](./AI_ML_IMPLEMENTATION_PROPOSAL.md)** - 머신러닝, 딥러닝, 생성형 AI 기능 구현을 위한 상세 제안서입니다.
+### 프로젝트 개요
+- **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - 프로젝트 전체 구조
+- **[DEVELOPMENT_SPECIFICATION.md](./DEVELOPMENT_SPECIFICATION.md)** - 개발 명세서
+- **[DEVELOPMENT_ROADMAP.md](./DEVELOPMENT_ROADMAP.md)** - 개발 로드맵
+- **[WBS.md](./WBS.md)** - 작업 분해 구조
 
-## 📝 문서 작성 가이드
+### UI/UX 설계
+- **[SCREEN_SPECIFICATION.md](./SCREEN_SPECIFICATION.md)** - 화면 정의서
+- **[MENU_FLOW.md](./MENU_FLOW.md)** - 메뉴 흐름도
 
-### 문서 위치
-- 모든 프로젝트 문서는 `docs/` 폴더에 생성됩니다.
-- 각 문서는 명확한 제목과 목적을 가져야 합니다.
-- 문서명은 PascalCase 또는 kebab-case를 사용합니다.
+### 핵심 기능
+- **[CURRICULUM_AUTO_GENERATION.md](./CURRICULUM_AUTO_GENERATION.md)** - 커리큘럼 자동 생성
+- **[LESSON_BLOCK_ARCHITECTURE.md](./LESSON_BLOCK_ARCHITECTURE.md)** - 레슨 블록 아키텍처
+- **[PDF_EXTRACTION_GUIDE.md](./PDF_EXTRACTION_GUIDE.md)** - PDF 추출 가이드
 
-### 문서 형식
-- Markdown (`.md`) 형식을 사용합니다.
-- 적절한 헤딩 구조를 사용하여 가독성을 높입니다.
-- 코드 블록에는 언어를 명시합니다.
+### AI/ML
+- **[AI_ML_IMPLEMENTATION_IDEAS.md](./AI_ML_IMPLEMENTATION_IDEAS.md)** - AI/ML 구현 아이디어 (우선순위별)
+- **[AI_ML_IMPLEMENTATION_PROPOSAL.md](./AI_ML_IMPLEMENTATION_PROPOSAL.md)** - AI/ML 상세 제안서 (참고용)
 
-### 문서 업데이트
-- 프로젝트 구조가 변경되면 관련 문서를 즉시 업데이트합니다.
-- 리팩토링이 완료되면 체크리스트를 업데이트합니다.
+### 테스트
+- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - 테스트 가이드
+- **[TEST_COMMANDS.md](./TEST_COMMANDS.md)** - 테스트 명령어 (빠른 참조)
 
 ---
 
-*마지막 업데이트: 2024년*
+**전체 문서 목록**: [DOCS_INDEX.md](./DOCS_INDEX.md) 참고
+
+*마지막 업데이트: 2026-01-16*

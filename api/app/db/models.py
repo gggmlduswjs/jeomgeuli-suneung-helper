@@ -144,3 +144,54 @@ class SyncLog(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     syncpoint = relationship("Syncpoint", back_populates="logs")
+
+
+class CurriculumStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    GENERATING = "GENERATING"
+    DONE = "DONE"
+    FAILED = "FAILED"
+
+
+class Curriculum(Base):
+    __tablename__ = "curricula"
+    
+    curriculum_id = Column(String, primary_key=True)
+    book_id = Column(String, ForeignKey("books.book_id", ondelete="SET NULL"), nullable=True)
+    subject = Column(Enum(Subject), nullable=False)
+    title = Column(String, nullable=False)
+    status = Column(Enum(CurriculumStatus), default=CurriculumStatus.PENDING)
+    lesson_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    learning_units = relationship("LearningUnit", back_populates="curriculum", cascade="all, delete-orphan")
+    book = relationship("Book")
+
+
+class LearningUnit(Base):
+    __tablename__ = "learning_units"
+    
+    unit_id = Column(String, primary_key=True)
+    curriculum_id = Column(String, ForeignKey("curricula.curriculum_id", ondelete="CASCADE"), nullable=False)
+    lesson_id = Column(String, ForeignKey("lessons.lesson_id", ondelete="SET NULL"), nullable=True)
+    section_type = Column(String, nullable=False)  # "ot", "concept", "example", "summary" 등
+    content = Column(Text, nullable=False)
+    order = Column(Integer, nullable=False)
+    break_points = Column(Text)  # JSON: ["자, 그다음에...", "먼저..."] - 말하는 단위 분할 지점
+    pdf_references = Column(Text)  # JSON: [{"type": "problem", "number": 1}, ...]
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    curriculum = relationship("Curriculum", back_populates="learning_units")
+    lesson = relationship("Lesson")
+
+
+class CurriculumTemplate(Base):
+    __tablename__ = "curriculum_templates"
+    
+    template_id = Column(String, primary_key=True)
+    subject = Column(Enum(Subject), nullable=False, unique=True)
+    structure = Column(Text, nullable=False)  # JSON: 교재 구조 정의
+    dependency_rules = Column(Text)  # JSON: 의존성 규칙 정의
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

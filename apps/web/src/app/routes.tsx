@@ -22,6 +22,9 @@ const Vocab = lazy(() => import('../pages/Vocab/Vocab'));
 const BrailleSpeed = lazy(() => import('../pages/BrailleSpeed/BrailleSpeed'));
 const ExamMode = lazy(() => import('../pages/ExamMode/ExamMode'));
 const ExamTimer = lazy(() => import('../pages/ExamTimer/ExamTimer'));
+const Curriculum = lazy(() => import('../pages/Curriculum/Curriculum'));
+const CurriculumCreate = lazy(() => import('../pages/Curriculum/CurriculumCreate'));
+const CurriculumDetail = lazy(() => import('../pages/Curriculum/CurriculumDetail'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
 // 레거시 페이지 (제거 예정)
@@ -53,6 +56,9 @@ export const routes = [
   { path: '/braille-speed', element: BrailleSpeed },
   { path: '/exam-mode', element: ExamMode },
   { path: '/exam-timer', element: ExamTimer },
+  { path: '/curriculum', element: Curriculum },
+  { path: '/curriculum/create', element: CurriculumCreate },
+  { path: '/curriculum/:id', element: CurriculumDetail },
 ];
 
 /**
