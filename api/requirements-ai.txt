@@ -1,0 +1,25 @@
+# AI/ML PDF 추출 기능 의존성 (선택적)
+
+# Enhanced OCR (필수: requirements.txt에 이미 포함)
+# pytesseract>=0.3.10
+# opencv-python>=4.8.0
+
+# AI Text Postprocessor
+openai>=1.0.0
+langchain>=0.1.0
+
+# AI Structure Classifier
+transformers>=4.35.0
+torch>=2.1.0
+
+# Math OCR
+# MathPix (상용, 선택적)
+# mathpix-python>=3.7.0
+
+# PaddleOCR (오픈소스, 무료)
+paddleocr>=2.7.0
+
+# 참고:
+# 1. Tesseract OCR은 별도 설치 필요 (Windows: https://github.com/UB-Mannheim/tesseract/wiki)
+# 2. OpenAI API 키는 환경변수(OPENAI_API_KEY) 또는 .env 파일에 설정 필요
+# 3. MathPix API는 app_id와 app_key 필요 (https://mathpix.com/)

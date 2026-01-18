@@ -1,0 +1,12 @@
+.btn{ @apply rounded-xl px-4 py-3 bg-gray-200 hover:bg-gray-300; }
+.btn-primary{ @apply rounded-xl px-4 py-3 bg-blue-600 text-white hover:bg-blue-700; }
+.input{ @apply rounded-xl px-4 py-3 border w-full; }
+.card{ @apply rounded-2xl border bg-white shadow-sm; }
+
+/* 텍스트 줄 제한 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

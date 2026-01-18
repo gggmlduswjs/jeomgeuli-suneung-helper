@@ -1,0 +1,29 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+sqlalchemy==2.0.23
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+python-dotenv==1.0.0
+pdfplumber==0.10.3
+PyPDF2==3.0.1
+pdf2image>=1.16.0
+Pillow>=10.0.0
+olefile>=0.46
+
+# AI/ML PDF 추출 기능 (선택적)
+# Enhanced OCR
+pytesseract>=0.3.10
+opencv-python>=4.8.0
+
+# AI Text Postprocessor (선택적)
+# openai>=1.0.0
+# langchain>=0.1.0
+
+# AI Structure Classifier (선택적)
+# transformers>=4.35.0
+# torch>=2.1.0
+
+# Math OCR (선택적)
+# mathpix-python>=3.7.0
+# paddleocr>=2.7.0

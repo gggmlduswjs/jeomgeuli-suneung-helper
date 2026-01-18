@@ -1,0 +1,209 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 최소 가시성 보장 */
+html, body, #root { 
+  height: 100%; 
+  margin: 0;
+  padding: 0;
+}
+body { 
+  background: #ffffff; 
+  color: #1e1e1e; 
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* 토스 스타일 라이트 테마 (기본) */
+:root {
+  --bg: #ffffff;
+  --fg: #1e1e1e;
+  --muted: #6b7280;
+  --primary: #3182f6;
+  --accent: #2ac1bc;
+  --sky: #6ccaff;
+  --danger: #e5484d;
+  --success: #22c55e;
+  --card: #f9fafb;
+  --border: #e5e7eb;
+  
+  font-family: "SF Pro Display", "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.theme-dark {
+  /* 고대비 다크 테마 */
+  --bg: #000000;
+  --fg: #FFFFFF;
+  --muted: #B3B3B3;
+  --primary: #00E0FF;
+  --accent: #FFD60A;
+  --sky: #00E0FF;
+  --danger: #FF453A;
+  --success: #34C759;
+  --card: #0A0A0A;
+  --border: #2C2C2E;
+}
+
+/* Reduce Motion 지원 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    @apply bg-bg text-fg antialiased;
+    line-height: 1.6;
+    font-size: 16px; /* 라이트 테마에서 조금 작게 */
+    /* 텍스트 선택 방지 (입력 필드 제외) */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    /* 터치 제스처 방지 */
+    -webkit-touch-callout: none;
+    touch-action: pan-y; /* 세로 스크롤만 허용 */
+  }
+  
+  /* 입력 필드는 텍스트 선택 허용 */
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+  
+  /* 포커스 링 스타일 */
+  *:focus-visible {
+    outline: 4px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+}
+
+@layer components {
+  /* 공용 버튼 베이스 */
+  .btn {
+    @apply inline-flex items-center justify-center select-none
+           rounded-2xl px-4 py-3 font-medium
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2
+           disabled:opacity-60 disabled:cursor-not-allowed;
+    min-width: 48px; /* 최소 터치 타겟 */
+    min-height: 48px;
+  }
+
+  /* 프라이머리 버튼: hover:bg-primary/90 사용 가능(위 config 반영됨) */
+  .btn-primary {
+    @apply btn bg-primary text-white shadow-lg hover:bg-primary/90;
+  }
+
+  .btn-accent {
+    @apply btn bg-accent text-white shadow-lg hover:bg-accent/90;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger text-white shadow-lg hover:bg-danger/90;
+  }
+
+  .btn-success {
+    @apply btn bg-success text-white shadow-lg hover:bg-success/90;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent border-2 border-border text-fg hover:bg-card;
+  }
+  
+  /* 라이트 카드 */
+  .card {
+    @apply bg-card shadow-card rounded-2xl border border-border;
+  }
+
+  /* 칩 */
+  .chip {
+    @apply inline-flex items-center rounded-xl px-3 py-1 text-sm bg-card border border-border;
+  }
+
+  /* 화면 레이아웃 */
+  .screen {
+    @apply min-h-screen bg-bg text-fg;
+  }
+  
+  .container-phone {
+    @apply max-w-md mx-auto px-4;
+  }
+  
+  /* 타이포그래피 */
+  .h1 {
+    @apply text-3xl font-extrabold text-fg;
+  }
+  
+  .h2 {
+    @apply text-2xl font-bold text-fg;
+  }
+  
+  .h3 {
+    @apply text-xl font-semibold text-fg;
+  }
+  
+  .text-primary {
+    @apply text-fg;
+  }
+  
+  .text-secondary {
+    @apply text-muted;
+  }
+  
+  .text-accent {
+    @apply text-primary;
+  }
+}
+
+@layer utilities {
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2;
+  }
+}
+  
+  /* 점자 그리드 스타일 */
+  .braille-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 32px);
+    grid-template-rows: repeat(3, 32px);
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    margin: 1rem 0;
+  }
+  
+  .braille-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--muted);
+    border: 2px solid var(--border);
+    transition: all 0.2s ease;
+  }
+  
+  .braille-dot.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 0 12px var(--primary);
+  }
+  
+  .braille-grid.large {
+    grid-template-columns: repeat(2, 48px);
+    grid-template-rows: repeat(3, 48px);
+    gap: 12px;
+  }
+  
+  .braille-grid.large .braille-dot {
+    width: 48px;
+    height: 48px;
+  }
