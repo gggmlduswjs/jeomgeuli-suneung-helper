@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useVoiceStore } from '../../store/voice';
 import VoiceEventBus, { VoiceEventType, onMicMode, onMicIntent, onTranscript, onCommand, onError } from '../../lib/voice/VoiceEventBus';
-import VoiceService from '../../services/VoiceService';
+import VoiceService from '../../services/voice';
 import micMode from '../../lib/voice/MicMode';
 
 interface EventLog {
