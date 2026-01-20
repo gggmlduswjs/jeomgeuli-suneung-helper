@@ -15,8 +15,8 @@ export default function BrailleStrip({ text, size = "normal" }: BrailleStripProp
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // 크기별 스타일
-  const sizeClass = useMemo(() => (size === "large" ? "scale-125 gap-7" : "scale-100 gap-6"), [size]);
+  // 크기별 스타일 (기본 크기 축소)
+  const sizeClass = useMemo(() => (size === "large" ? "gap-3" : "gap-2"), [size]);
 
   useEffect(() => {
     let cancelled = false;

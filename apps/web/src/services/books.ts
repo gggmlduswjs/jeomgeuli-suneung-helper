@@ -28,8 +28,18 @@ export const booksAPI = {
   /**
    * 교재 목록 조회
    */
-  async list(): Promise<Book[]> {
-    return api.get<Book[]>('/books');
+  async list(subject?: Subject): Promise<Book[]> {
+    const params = subject ? `?subject=${subject}` : '';
+    const url = `/books${params}`;
+    console.log('[booksAPI] 교재 목록 요청:', { subject, url });
+    try {
+      const data = await api.get<Book[]>(url);
+      console.log('[booksAPI] 교재 목록 응답:', data);
+      return data;
+    } catch (error) {
+      console.error('[booksAPI] 교재 목록 요청 실패:', error);
+      throw error;
+    }
   },
 
   /**
@@ -51,6 +61,15 @@ export const booksAPI = {
    */
   async reparse(bookId: string): Promise<{ ok: boolean; message: string; status: string }> {
     return api.post<{ ok: boolean; message: string; status: string }>(`/books/${bookId}/reparse`);
+  },
+
+  /**
+   * 기존 파이프라인 데이터로부터 커리큘럼 생성/재생성
+   */
+  async createCurriculumFromData(bookId: string): Promise<{ ok: boolean; message: string; curriculum_id?: string }> {
+    return api.post<{ ok: boolean; message: string; curriculum_id?: string }>(
+      `/books/${bookId}/create-curriculum-from-data`
+    );
   },
 
   /**

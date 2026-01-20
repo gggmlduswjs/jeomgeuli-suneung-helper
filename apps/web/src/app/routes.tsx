@@ -10,32 +10,30 @@ const Main = lazy(() => import('../pages/Main'));
 const Book = lazy(() => import('../pages/Book'));
 const Lesson = lazy(() => import('../pages/Lesson'));
 const Unit = lazy(() => import('../pages/Unit'));
-const Review = lazy(() => import('../pages/Review'));
+// Review 페이지는 삭제됨 - Question 페이지로 리다이렉트
+// const Review = lazy(() => import('../pages/Review'));
 
-// 레거시 페이지 (호환성 유지)
-const Home = lazy(() => import('../pages/Home'));
-const Textbook = lazy(() => import('../pages/Textbook/Textbook'));
-const Passage = lazy(() => import('../pages/Passage/Passage'));
-const GraphTable = lazy(() => import('../pages/GraphTable/GraphTable'));
-const Question = lazy(() => import('../pages/Question/Question'));
-const Vocab = lazy(() => import('../pages/Vocab/Vocab'));
-const BrailleSpeed = lazy(() => import('../pages/BrailleSpeed/BrailleSpeed'));
-const ExamMode = lazy(() => import('../pages/ExamMode/ExamMode'));
-const ExamTimer = lazy(() => import('../pages/ExamTimer/ExamTimer'));
-const Curriculum = lazy(() => import('../pages/Curriculum/Curriculum'));
-const CurriculumCreate = lazy(() => import('../pages/Curriculum/CurriculumCreate'));
-const CurriculumDetail = lazy(() => import('../pages/Curriculum/CurriculumDetail'));
+// 레거시 페이지 (호환성 유지) - 존재하는 페이지만 import
+const Textbook = lazy(() => import('../pages/Textbook'));
+const Question = lazy(() => import('../pages/Question'));
+const Curriculum = lazy(() => import('../pages/Curriculum'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
-// 레거시 페이지 (제거 예정)
-const Explore = lazy(() => import('../pages/Explore'));
-const LearnIndex = lazy(() => import('../pages/LearnIndex'));
-const LearnStep = lazy(() => import('../pages/LearnStep'));
-const FreeConvert = lazy(() => import('../pages/FreeConvert'));
-const Quiz = lazy(() => import('../pages/Quiz'));
-const TextbookConverter = lazy(() => import('../pages/exam/TextbookConverter'));
-const TextCompress = lazy(() => import('../pages/exam/TextCompress'));
-const SentenceRepeat = lazy(() => import('../pages/exam/SentenceRepeat'));
+// 삭제된 페이지들 (주석 처리)
+// const Passage = lazy(() => import('../pages/Passage/Passage'));
+// const GraphTable = lazy(() => import('../pages/GraphTable/GraphTable'));
+// const Vocab = lazy(() => import('../pages/Vocab/Vocab'));
+// const BrailleSpeed = lazy(() => import('../pages/BrailleSpeed/BrailleSpeed'));
+// const ExamMode = lazy(() => import('../pages/ExamMode/ExamMode'));
+// const ExamTimer = lazy(() => import('../pages/ExamTimer/ExamTimer'));
+// const Explore = lazy(() => import('../pages/Explore'));
+// const LearnIndex = lazy(() => import('../pages/LearnIndex'));
+// const LearnStep = lazy(() => import('../pages/LearnStep'));
+// const FreeConvert = lazy(() => import('../pages/FreeConvert'));
+// const Quiz = lazy(() => import('../pages/Quiz'));
+// const TextbookConverter = lazy(() => import('../pages/exam/TextbookConverter'));
+// const TextCompress = lazy(() => import('../pages/exam/TextCompress'));
+// const SentenceRepeat = lazy(() => import('../pages/exam/SentenceRepeat'));
 
 /**
  * 메인 라우트 정의 (MVP 2.0)
@@ -46,19 +44,19 @@ export const routes = [
   { path: '/book/:bookId', element: Book },
   { path: '/lesson/:lessonId', element: Lesson },
   { path: '/unit/:unitId', element: Unit },
-  { path: '/review', element: Review },
-  // 레거시 라우트 (호환성 유지)
+  // Review는 Question으로 리다이렉트
+  // { path: '/review', element: Review },
+  // 레거시 라우트 (호환성 유지) - 존재하는 페이지만
   { path: '/textbook', element: Textbook },
-  { path: '/passage', element: Passage },
-  { path: '/graph-table', element: GraphTable },
   { path: '/question', element: Question },
-  { path: '/vocab', element: Vocab },
-  { path: '/braille-speed', element: BrailleSpeed },
-  { path: '/exam-mode', element: ExamMode },
-  { path: '/exam-timer', element: ExamTimer },
   { path: '/curriculum', element: Curriculum },
-  { path: '/curriculum/create', element: CurriculumCreate },
-  { path: '/curriculum/:id', element: CurriculumDetail },
+  // 삭제된 페이지 라우트 (주석 처리)
+  // { path: '/passage', element: Passage },
+  // { path: '/graph-table', element: GraphTable },
+  // { path: '/vocab', element: Vocab },
+  // { path: '/braille-speed', element: BrailleSpeed },
+  // { path: '/exam-mode', element: ExamMode },
+  // { path: '/exam-timer', element: ExamTimer },
 ];
 
 /**
@@ -75,20 +73,21 @@ export const legacyRedirects = [
 /**
  * 레거시 라우트 (제거 예정)
  * 호환성 유지가 필요 없는 경우 제거 가능
+ * 현재는 모든 레거시 페이지가 삭제되어 빈 배열
  */
-export const legacyRoutes = [
-  { path: '/explore', element: Explore },
-  { path: '/learn', element: LearnIndex },
-  { path: '/learn/char', element: LearnStep },
-  { path: '/learn/word', element: LearnStep },
-  { path: '/learn/sentence', element: LearnStep },
-  { path: '/learn/free', element: FreeConvert },
-  { path: '/quiz', element: Quiz },
-  { path: '/learn/quiz', element: Quiz },
-  { path: '/review', element: Review },
-  { path: '/exam/textbook', element: TextbookConverter },
-  { path: '/exam/compress', element: TextCompress },
-  { path: '/exam/repeat', element: SentenceRepeat },
+export const legacyRoutes: Array<{ path: string; element: any }> = [
+  // 삭제된 레거시 페이지들
+  // { path: '/explore', element: Explore },
+  // { path: '/learn', element: LearnIndex },
+  // { path: '/learn/char', element: LearnStep },
+  // { path: '/learn/word', element: LearnStep },
+  // { path: '/learn/sentence', element: LearnStep },
+  // { path: '/learn/free', element: FreeConvert },
+  // { path: '/quiz', element: Quiz },
+  // { path: '/learn/quiz', element: Quiz },
+  // { path: '/exam/textbook', element: TextbookConverter },
+  // { path: '/exam/compress', element: TextCompress },
+  // { path: '/exam/repeat', element: SentenceRepeat },
 ];
 
 /**

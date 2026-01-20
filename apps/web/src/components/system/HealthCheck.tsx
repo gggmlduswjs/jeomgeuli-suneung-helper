@@ -12,7 +12,7 @@ export default function HealthCheck({ children }: HealthCheckProps) {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const result = await http.get('/v1/health');
+        const result = await http.get('/health');
         setIsHealthy(result?.ok === true || result?.status === 'healthy');
         setError(null);
       } catch (e: any) {

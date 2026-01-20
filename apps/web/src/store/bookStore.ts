@@ -11,6 +11,7 @@ interface BookState {
   setBook: (book: Book | null) => void;
   addBook: (book: Book) => void;
   updateBook: (bookId: string, updates: Partial<Book>) => void;
+  clearBooks: () => void;
 }
 
 export const useBookStore = create<BookState>((set) => ({
@@ -27,4 +28,5 @@ export const useBookStore = create<BookState>((set) => ({
           ? { ...state.selectedBook, ...updates }
           : state.selectedBook,
     })),
+  clearBooks: () => set({ books: [], selectedBook: null }),
 }));

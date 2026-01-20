@@ -64,6 +64,7 @@ export interface TTSOptions {
   volume?: number;
   lang?: string;
   voiceName?: string;
+  onEnd?: () => void; // TTS 재생 완료 시 콜백
 }
 
 export interface TTSHookReturn {

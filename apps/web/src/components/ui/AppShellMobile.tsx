@@ -189,8 +189,8 @@ export default function AppShellMobile({
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="flex-1 overflow-y-auto bg-bg">
-        <div className="w-full md:max-w-md md:mx-auto px-4 py-3">{children}</div>
+      <main className="flex-1 overflow-hidden bg-bg">
+        <div className="w-full md:max-w-md md:mx-auto h-full flex flex-col">{children}</div>
       </main>
 
       {/* 하단 탭 네비게이션 - 모던 스타일 */}

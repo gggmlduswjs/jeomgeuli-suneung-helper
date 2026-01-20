@@ -6,6 +6,7 @@
 // Exam API Types
 export interface Textbook {
   id: number;
+  book_id?: string; // 커리큘럼 매칭용 book_id
   title: string;
   publisher?: string;
   year?: number;
@@ -18,6 +19,17 @@ export interface Unit {
   order: number;
   content: string;
   textbook_id: number;
+  textbook_title?: string;
+  image_path?: string;
+  textbook?: {
+    subject?: string;
+  };
+  problem_metadata?: {
+    problem_id?: string;
+    choices?: string[];
+    answer?: number;
+    question_text?: string;
+  } | null;
 }
 
 export interface Question {

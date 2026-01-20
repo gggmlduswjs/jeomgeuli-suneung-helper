@@ -45,16 +45,16 @@ export function BrailleCell({
 
   return (
     <div className={`flex flex-col items-center space-y-2 ${className}`}>
-      {/* 점자 셀 시각화 (표준 2x3, column-major) */}
+      {/* 점자 셀 시각화 (표준 2x3, column-major) - 크기 축소 */}
       <div
-        className="grid grid-cols-2 grid-rows-3 grid-flow-col gap-1 p-3 bg-white border-2 border-slate-300 rounded-lg shadow-sm"
+        className="grid grid-cols-2 grid-rows-3 grid-flow-col gap-0.5 p-1.5 bg-white border border-slate-300 rounded shadow-sm"
         role="group"
         aria-label={keyword ? `점자 셀: ${keyword}` : "점자 셀"}
       >
         {braillePattern.map((dot, index) => (
           <div
             key={index}
-            className={`w-4 h-4 rounded-full border border-slate-400 ${
+            className={`w-2 h-2 rounded-full border border-slate-400 ${
               dot ? "bg-slate-800" : "bg-white"
             }`}
             aria-hidden={true}

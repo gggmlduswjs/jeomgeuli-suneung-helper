@@ -1,5 +1,6 @@
-import { route, type CommandHandlers } from '../lib/voice/CommandRouter';
+import { routeCommand } from '../lib/voice/CommandRouter';
 import { compareTwoStrings } from 'string-similarity';
+import type { CommandHandlers } from '../hooks/useVoiceCommands';
 
 /**
  * CommandService - 명령 처리 로직 분리 및 성능 최적화
@@ -36,7 +37,9 @@ class CommandServiceClass {
     }
 
     // CommandRouter를 통한 명령 처리
-    const handled = route(text, handlers);
+    // Note: routeCommand doesn't accept handlers directly, 
+    // so we'll need to match commands manually
+    const handled = this.matchAndExecuteCommand(text, handlers);
     
     if (handled) {
       this.cacheMissCount++;
@@ -107,6 +110,53 @@ class CommandServiceClass {
         return true;
       }
     }
+    return false;
+  }
+
+  /**
+   * 텍스트를 명령 핸들러와 매칭하여 실행
+   */
+  private matchAndExecuteCommand(text: string, handlers: CommandHandlers): boolean {
+    const normalized = text.toLowerCase().trim();
+    
+    // 간단한 키워드 매칭
+    const commandMap: Record<string, keyof CommandHandlers> = {
+      '홈': 'home',
+      '뒤로': 'back',
+      '메뉴': 'menu',
+      '다음': 'next',
+      '이전': 'prev',
+      '반복': 'repeat',
+      '일시정지': 'pause',
+      '시작': 'start',
+      '중지': 'stop',
+      '이어하기': 'continue',
+      '학습': 'learn',
+      '퀴즈': 'quiz',
+      '복습': 'review',
+      '탐색': 'explore',
+      '뉴스': 'news',
+      '날씨': 'weather',
+      '교과서': 'textbook',
+      '지문': 'passage',
+      '문제': 'question',
+      '단어': 'vocab',
+    };
+
+    for (const [keyword, command] of Object.entries(commandMap)) {
+      if (normalized.includes(keyword)) {
+        const handler = handlers[command];
+        if (handler) {
+          try {
+            handler();
+            return true;
+          } catch (error) {
+            console.error(`[CommandService] 핸들러 실행 오류 (${command}):`, error);
+          }
+        }
+      }
+    }
+
     return false;
   }
 

@@ -40,7 +40,7 @@ export class BrailleDeviceFactory {
       case 'auto':
       default:
         // 자동 감지: 환경 변수나 설정에서 확인
-        const envType = process.env.REACT_APP_BRAILLE_DEVICE_TYPE as BrailleDeviceType;
+        const envType = (import.meta.env?.VITE_BRAILLE_DEVICE_TYPE || import.meta.env?.REACT_APP_BRAILLE_DEVICE_TYPE) as BrailleDeviceType;
         if (envType && envType !== 'auto') {
           return this.create({ ...config, type: envType });
         }

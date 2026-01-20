@@ -33,6 +33,7 @@ interface LearnState {
     attemptedAt: string;
   }) => void;
   clearWrongAnswers: () => void;
+  clearAll: () => void;
 }
 
 export const useLearnStore = create<LearnState>((set) => ({
@@ -56,5 +57,14 @@ export const useLearnStore = create<LearnState>((set) => ({
     wrongAnswers: [...state.wrongAnswers, answer]
   })),
   clearWrongAnswers: () => set({ wrongAnswers: [] }),
+  clearAll: () => set({
+    currentTextbook: null,
+    currentUnit: null,
+    units: [],
+    currentPassage: null,
+    passageStructure: null,
+    currentQuestion: null,
+    wrongAnswers: [],
+  }),
 }));
 

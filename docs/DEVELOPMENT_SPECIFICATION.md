@@ -27,17 +27,16 @@
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
 |------|------|------|----------|------|
 | 백엔드 API | API 라우터 | api/app/routers | health.py | 헬스 체크 API 엔드포인트 |
-| 백엔드 API | API 라우터 | api/app/routers | books.py | 교재 관리 API (PDF 업로드, 목록 조회, 파싱 상태 확인) |
+| 백엔드 API | API 라우터 | api/app/routers | subjects.py | 과목 목록 API (KOREAN, MATH, ENGLISH) |
+| 백엔드 API | API 라우터 | api/app/routers | books.py | 교재 관리 API (PDF 업로드, 목록 조회, 과목별 필터링) |
 | 백엔드 API | API 라우터 | api/app/routers | lessons.py | 레슨 관리 API (레슨 목록, 상세 조회) |
-| 백엔드 API | API 라우터 | api/app/routers | units.py | 단원 관리 API (단원 목록, 콘텐츠 조회) |
-| 백엔드 API | API 라우터 | api/app/routers | progress.py | 학습 진행 상황 API (진행률 조회, 업데이트) |
+| 백엔드 API | API 라우터 | api/app/routers | units.py | 학습 단위 관리 API (단원 목록, 콘텐츠 조회) |
+| 백엔드 API | API 라우터 | api/app/routers | progress.py | 학습 진행 상황 API (진행률 조회, 업데이트, 오늘 학습 이어하기) |
 | 백엔드 API | API 라우터 | api/app/routers | answers.py | 답안 관리 API (답안 제출, 정답 확인) |
-| 백엔드 API | API 라우터 | api/app/routers | review.py | 복습 관리 API (복습 큐 조회, 복습 항목 관리) |
-| 백엔드 API | API 라우터 | api/app/routers | syncpoints.py | 동기화 포인트 API (오디오-텍스트 동기화 포인트 관리) |
-| 백엔드 API | API 라우터 | api/app/routers | pdf.py | PDF 처리 API (PDF 추출, 파싱) |
-| 백엔드 API | API 라우터 | api/app/routers | lecture_scripts.py | 강의 대본 파싱 API (HWP 파일 파싱, 구조 추출) |
-| 백엔드 API | API 라우터 | api/app/routers | curriculum.py | 커리큘럼 자동 생성 API (커리큘럼 생성, 조회, 수정) |
-| 백엔드 API | API 라우터 | api/app/routers | recommendations.py | 추천 시스템 API (다음 레슨 추천, 복습 추천) |
+| 백엔드 API | API 라우터 | api/app/routers | curriculum.py | 커리큘럼 관리 API (관리자용 생성, 사용자용 조회, 레슨 목록, 특정 레슨 조회) |
+| 백엔드 API | API 라우터 | api/app/routers | ai.py | AI 강의 교사 API (레슨 설명 생성, 문제 해설 생성) |
+| 백엔드 API | API 라우터 | api/app/routers | literature.py | 문학 학습 API (강의 목록, 문제 목록, 이미지, 본문 콘텐츠 조회) |
+| 백엔드 API | API 라우터 | api/app/routers | literature_ai.py | 문학 AI 설명 API (개념 설명, 작품 설명, 문제 해설 생성) |
 | 백엔드 API | API 라우터 | api/app/routers | __init__.py | 라우터 패키지 초기화 파일 |
 
 ### 1.3 데이터 스키마
@@ -48,11 +47,10 @@
 | 백엔드 API | 데이터 스키마 | api/app/schemas | book.py | 교재 관련 Pydantic 스키마 정의 |
 | 백엔드 API | 데이터 스키마 | api/app/schemas | lesson.py | 레슨 관련 Pydantic 스키마 정의 |
 | 백엔드 API | 데이터 스키마 | api/app/schemas | progress.py | 진행 상황 관련 Pydantic 스키마 정의 |
-| 백엔드 API | 데이터 스키마 | api/app/schemas | review.py | 복습 관련 Pydantic 스키마 정의 |
-| 백엔드 API | 데이터 스키마 | api/app/schemas | syncpoint.py | 동기화 포인트 관련 Pydantic 스키마 정의 |
 | 백엔드 API | 데이터 스키마 | api/app/schemas | unit.py | 단원 관련 Pydantic 스키마 정의 |
 | 백엔드 API | 데이터 스키마 | api/app/schemas | curriculum.py | 커리큘럼 관련 Pydantic 스키마 정의 |
-| 백엔드 API | 데이터 스키마 | api/app/schemas | recommendation.py | 추천 시스템 관련 Pydantic 스키마 정의 |
+| 백엔드 API | 데이터 스키마 | api/app/schemas | review.py | 복습 관련 Pydantic 스키마 정의 (라우터 삭제됨, 스키마만 유지) |
+| 백엔드 API | 데이터 스키마 | api/app/schemas | syncpoint.py | 동기화 포인트 관련 Pydantic 스키마 정의 (라우터 삭제됨, 스키마만 유지) |
 | 백엔드 API | 데이터 스키마 | api/app/schemas | __init__.py | 스키마 패키지 초기화 파일 |
 
 ### 1.4 핵심 서비스
@@ -60,18 +58,14 @@
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
 |------|------|------|----------|------|
 | 백엔드 API | 핵심 서비스 | api/app/services | braille_convert.py | 한글 텍스트를 점자로 변환하는 규칙 기반 변환 서비스 |
-| 백엔드 API | 핵심 서비스 | api/app/services | audio_sync.py | 오디오-텍스트 동기화 서비스 (STT 기반 매칭) |
-| 백엔드 API | 핵심 서비스 | api/app/services | content_auto_generator.py | 콘텐츠 자동 생성 서비스 (매뉴얼 규칙 자동 적용) |
-| 백엔드 API | 핵심 서비스 | api/app/services | hwp_extract.py | 한글 파일(HWP) 텍스트 추출 서비스 |
-| 백엔드 API | 핵심 서비스 | api/app/services | lecture_script_parser.py | 강의 대본 파서 (섹션 분류, 핵심 포인트 추출) |
-| 백엔드 API | 핵심 서비스 | api/app/services | pdf_extract.py | PDF 추출 서비스 (레거시) |
-| 백엔드 API | 핵심 서비스 | api/app/services | pdf_image_extract.py | PDF 이미지 추출 서비스 (레거시) |
-| 백엔드 API | 핵심 서비스 | api/app/services | pdf_structure_extract.py | PDF 구조 추출 서비스 (레거시) |
-| 백엔드 API | 핵심 서비스 | api/app/services | pdf_parse.py | PDF 파싱 서비스 (레거시) |
-| 백엔드 API | 핵심 서비스 | api/app/services | review_logic.py | 복습 로직 서비스 (복습 큐 관리, 복습 스케줄링) |
-| 백엔드 API | 핵심 서비스 | api/app/services | curriculum_generator.py | 커리큘럼 자동 생성 서비스 (강의대본 분석, 학습 단위 생성) |
-| 백엔드 API | 핵심 서비스 | api/app/services | curriculum_template.py | 커리큘럼 템플릿 서비스 (교재별 템플릿 정의, 의존성 규칙) |
-| 백엔드 API | 핵심 서비스 | api/app/services | pdf_script_matcher.py | PDF-강의대본 매칭 서비스 (참조 정보 매칭, 신뢰도 계산) |
+| 백엔드 API | 핵심 서비스 | api/app/services | ai_lecture_generator.py | AI 강의 교사 서비스 (레슨 설명, 문제 해설 생성) |
+| 백엔드 API | 핵심 서비스 | api/app/services | textbook_pipeline.py | 교재 파이프라인 서비스 (과목별 PDF 파싱: 문학, 수학Ⅰ, 영어) |
+| 백엔드 API | 핵심 서비스 | api/app/services | data_file_handler.py | 데이터 파일 핸들러 (JSON 파일 읽기/쓰기) |
+| 백엔드 API | 핵심 서비스 | api/app/services | tts_reader.py | TTS 읽기 서비스 |
+| 백엔드 API | 핵심 서비스 | api/app/services | toc_parser.py | 목차 파서 서비스 |
+| 백엔드 API | 핵심 서비스 | api/app/services | text_extractors.py | 텍스트 추출기 서비스 |
+| 백엔드 API | 핵심 서비스 | api/app/services | pdf_region_capturer.py | PDF 영역 캡처 서비스 |
+| 백엔드 API | 핵심 서비스 | api/app/services | pdf_region_detector.py | PDF 영역 감지 서비스 |
 | 백엔드 API | 핵심 서비스 | api/app/services | __init__.py | 서비스 패키지 초기화 파일 |
 
 ### 1.5 PDF 추출 모듈
@@ -85,40 +79,21 @@
 | 백엔드 API | PDF 추출 모듈 | api/app/services/pdf_extract | enhanced_ocr.py | 향상된 OCR 서비스 (AI 기반 텍스트 인식) |
 | 백엔드 API | PDF 추출 모듈 | api/app/services/pdf_extract | ai_text_postprocessor.py | AI 기반 텍스트 후처리 서비스 |
 | 백엔드 API | PDF 추출 모듈 | api/app/services/pdf_extract | math_ocr.py | 수식 OCR 서비스 (수식 이미지 → LaTeX 변환) |
+| 백엔드 API | PDF 추출 모듈 | api/app/services/pdf_extract | pdf_cropper.py | PDF 영역 자르기 서비스 |
 | 백엔드 API | PDF 추출 모듈 | api/app/services/pdf_extract | utils.py | PDF 추출 유틸리티 함수 |
 | 백엔드 API | PDF 추출 모듈 | api/app/services/pdf_extract | exceptions.py | PDF 추출 예외 정의 |
 | 백엔드 API | PDF 추출 모듈 | api/app/services/pdf_extract | __init__.py | PDF 추출 패키지 초기화 파일 |
 
-### 1.6 PDF 파싱 모듈
+### 1.6 과목별 파이프라인 전략
+
+**참고**: 과목별 파싱 전략은 `textbook_pipeline.py`에 통합되어 있습니다. 각 과목(문학, 수학Ⅰ, 영어)별로 다른 파싱 로직을 사용합니다.
 
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
 |------|------|------|----------|------|
-| 백엔드 API | PDF 파싱 모듈 | api/app/services/pdf_parse | base_parser.py | PDF 파서 베이스 클래스 (인터페이스) |
-| 백엔드 API | PDF 파싱 모듈 | api/app/services/pdf_parse | parse_pipeline.py | PDF 파싱 파이프라인 (추출 → 파싱 → 후처리) |
-| 백엔드 API | PDF 파싱 모듈 | api/app/services/pdf_parse | json_schema.py | 파싱 결과 JSON 스키마 정의 |
-| 백엔드 API | PDF 파싱 모듈 | api/app/services/pdf_parse | ai_structure_classifier.py | AI 기반 블록 구조 분류기 |
-| 백엔드 API | PDF 파싱 모듈 | api/app/services/pdf_parse | __init__.py | PDF 파싱 패키지 초기화 파일 |
-
-### 1.7 과목별 파싱 전략
-
-| 모듈 | 분류 | 경로 | 파일이름 | 설명 |
-|------|------|------|----------|------|
-| 백엔드 API | 과목별 파싱 전략 | api/app/services/subject_strategies | math.py | 수학 과목 일반 파서 |
-| 백엔드 API | 과목별 파싱 전략 | api/app/services/subject_strategies | math1.py | 수학Ⅰ 전용 파서 (개념/예제/유제 구조 파싱) |
-| 백엔드 API | 과목별 파싱 전략 | api/app/services/subject_strategies | math1_schema.py | 수학Ⅰ JSON 스키마 정의 |
-| 백엔드 API | 과목별 파싱 전략 | api/app/services/subject_strategies | english.py | 영어 파서 (지문/문제 분리) |
-| 백엔드 API | 과목별 파싱 전략 | api/app/services/subject_strategies | english_schema.py | 영어 JSON 스키마 정의 |
-| 백엔드 API | 과목별 파싱 전략 | api/app/services/subject_strategies | literature.py | 문학 파서 (지문/문제 분리) |
-| 백엔드 API | 과목별 파싱 전략 | api/app/services/subject_strategies | literature_schema.py | 문학 JSON 스키마 정의 |
-| 백엔드 API | 과목별 파싱 전략 | api/app/services/subject_strategies | korean.py | 국어 파서 |
-| 백엔드 API | 과목별 파싱 전략 | api/app/services/subject_strategies | __init__.py | 과목별 전략 패키지 초기화 파일 |
-| 백엔드 API | AI/ML 서비스 | api/app/services | audio_sync_ml.py | ML 기반 오디오-텍스트 동기화 서비스 (Whisper + Sentence Transformers) |
-| 백엔드 API | AI/ML 서비스 | api/app/services | braille_ml.py | ML 기반 점자 변환 서비스 (KoBERT 기반 Seq2Seq 모델) |
-| 백엔드 API | AI/ML 서비스 | api/app/services | content_generator.py | 생성형 AI 콘텐츠 생성 서비스 (LangChain + GPT-4/Claude) |
-| 백엔드 API | AI/ML 서비스 | api/app/services | content_auto_generator_ml.py | AI 기반 제작 프로세스 자동화 서비스 (LangChain 기반) |
-| 백엔드 API | AI/ML 서비스 | api/app/services | recommendation_engine.py | 학습자 맞춤형 추천 엔진 (콘텐츠 기반 필터링, Sentence Transformers) |
-| 백엔드 API | AI/ML 서비스 | api/app/services | user_behavior_profiler.py | 사용자 행동 프로파일링 서비스 (학습 패턴 분석, 약점 주제 식별) |
-| 백엔드 API | AI/ML 서비스 | api/app/services | pdf_structure_classifier.py | Vision Transformer 기반 PDF 구조 분류 서비스 (LayoutLMv3) |
+| 백엔드 API | 과목별 파이프라인 | api/app/services | textbook_pipeline.py | 교재 파이프라인 (과목별 PDF 파싱 전략 통합) |
+| | | | | - 문학: 강의/본문/문제 구조 파싱 |
+| | | | | - 수학Ⅰ: 개념/예제/유제 구조 파싱 |
+| | | | | - 영어: 단원/지문/문제 구조 파싱 |
 
 ### 1.8 유틸리티 및 기타
 
@@ -127,23 +102,7 @@
 | 백엔드 API | 유틸리티 | api/app/utils | text_utils.py | 텍스트 처리 유틸리티 함수 |
 | 백엔드 API | 유틸리티 | api/app/utils | __init__.py | 유틸리티 패키지 초기화 파일 |
 
-### 1.9 테스트
-
-| 모듈 | 분류 | 경로 | 파일이름 | 설명 |
-|------|------|------|----------|------|
-| 백엔드 API | 테스트 | api/tests | test_content_generator.py | 콘텐츠 생성기 테스트 |
-| 백엔드 API | 테스트 | api/tests | test_english_lecture_script.py | 영어 강의 대본 파서 테스트 |
-| 백엔드 API | 테스트 | api/tests | test_helpers.py | 테스트 헬퍼 함수 |
-| 백엔드 API | 테스트 | api/tests | test_hwp_extract.py | HWP 추출 테스트 |
-| 백엔드 API | 테스트 | api/tests | test_lecture_script_full.py | 강의 대본 파서 전체 테스트 |
-| 백엔드 API | 테스트 | api/tests | test_lecture_script_parser.py | 강의 대본 파서 단위 테스트 |
-| 백엔드 API | 테스트 | api/tests | test_parsers.py | PDF 파서 테스트 |
-| 백엔드 API | 테스트 | api/tests | test_pdf_api.py | PDF API 엔드포인트 테스트 |
-| 백엔드 API | 테스트 | api/tests | test_pdf_extract.py | PDF 추출 테스트 |
-| 백엔드 API | 테스트 | api/tests | __init__.py | 테스트 패키지 초기화 파일 |
-| 백엔드 API | 테스트 | api/tests | README.md | 테스트 가이드 문서 |
-
-### 1.10 스크립트 및 설정
+### 1.9 스크립트 및 설정
 
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
 |------|------|------|----------|------|
@@ -169,22 +128,19 @@
 
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
 |------|------|------|----------|------|
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Home.tsx | 홈 페이지 (메인 대시보드) |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Main.tsx | 메인 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Explore.tsx | 탐색 페이지 (키워드, 뉴스, 채팅) |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Home.tsx | 홈 페이지 (과목 선택, 학습 이어하기) |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Main.tsx | 메인 페이지 (문학 학습 바로가기, 과목 선택) |
 | 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | NotFound.tsx | 404 에러 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Book.tsx | 책 뷰어 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Lesson.tsx | 레슨 페이지 |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Book.tsx | 교재 목록 페이지 (과목별 필터링, 국어 선택 시 문학 강의 목록 표시) |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Lesson.tsx | 레슨 페이지 (학습 화면) |
 | 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Unit.tsx | 단원 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Quiz.tsx | 퀴즈 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Review.tsx | 복습 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | LearnIndex.tsx | 학습 인덱스 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | LearnStep.tsx | 학습 단계 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | TestStep.tsx | 테스트 단계 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | FreeConvert.tsx | 자유 변환 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Curriculum.tsx | 커리큘럼 관리 페이지 (제작자용) |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | CurriculumDetail.tsx | 커리큘럼 상세 페이지 |
-| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | CurriculumCreate.tsx | 커리큘럼 생성 페이지 |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Question.tsx | 문제 풀이 페이지 |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | Textbook.tsx | 교재 관리 페이지 |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages | LiteratureLearning.tsx | 문학 학습 페이지 (강의 목록, 개념/본문/문제 학습, AI 설명) |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages/Curriculum | Curriculum.tsx | 커리큘럼 목록 페이지 (조회만) |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages/Curriculum | CurriculumDetail.tsx | 커리큘럼 상세 페이지 (조회만) |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages/Curriculum | CurriculumLesson.tsx | 커리큘럼 레슨 페이지 |
+| 프론트엔드 웹 | 주요 페이지 | apps/web/src/pages/Learning | LearningScreen.tsx | 학습 화면 메인 컴포넌트 |
 
 ### 2.3 페이지 컴포넌트
 
@@ -205,35 +161,12 @@
 | 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Question | AnswerResult.tsx | 답안 결과 표시 컴포넌트 |
 | 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Question | ChoiceComparison.tsx | 선택지 비교 컴포넌트 |
 | 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Question | WrongAnswerList.tsx | 오답 목록 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Passage | Passage.tsx | 지문 입력 페이지 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Passage | PassageInput.tsx | 지문 입력 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Passage | PassageStructure.tsx | 지문 구조 표시 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Textbook | Textbook.tsx | 교과서 관리 페이지 |
 | 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Textbook | TextbookList.tsx | 교과서 목록 컴포넌트 |
 | 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Textbook | PDFUpload.tsx | PDF 업로드 컴포넌트 |
 | 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Textbook | UnitList.tsx | 단원 목록 컴포넌트 |
 | 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Textbook | UnitContent.tsx | 단원 콘텐츠 표시 컴포넌트 |
+| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Textbook | HWPUpload.tsx | HWP 업로드 컴포넌트 |
 | 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Textbook | PDFStructuredViewer.tsx | PDF 구조화 뷰어 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/GraphTable | GraphTable.tsx | 그래프/표 변환 페이지 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/GraphTable | GraphDualView.tsx | 그래프 이중 뷰 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/GraphTable | GraphPatterns.tsx | 그래프 패턴 표시 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/GraphTable | ImageUpload.tsx | 이미지 업로드 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Explore | useExploreChat.ts | 탐색 채팅 훅 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Explore | useExploreKeywords.ts | 탐색 키워드 훅 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Explore | useExploreNews.ts | 탐색 뉴스 훅 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/exam | SentenceRepeat.tsx | 문장 반복 페이지 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/exam | TextbookConverter.tsx | 교과서 변환 페이지 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/exam | TextCompress.tsx | 텍스트 압축 페이지 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/ExamMode | ExamMode.tsx | 시험 모드 페이지 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/ExamTimer | ExamTimer.tsx | 시험 타이머 페이지 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/BrailleSpeed | BrailleSpeed.tsx | 점자 속도 연습 페이지 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Vocab | Vocab.tsx | 어휘 학습 페이지 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Vocab | VocabCard.tsx | 어휘 카드 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Vocab | SisaWords.tsx | 시사 어휘 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Curriculum | CurriculumList.tsx | 커리큘럼 목록 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Curriculum | CurriculumDetailView.tsx | 커리큘럼 상세 뷰 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Curriculum | LearningPathVisualization.tsx | 학습 경로 시각화 컴포넌트 |
-| 프론트엔드 웹 | 페이지 컴포넌트 | apps/web/src/pages/Curriculum | LessonConnectionView.tsx | 레슨 간 연결 표시 컴포넌트 |
 ### 2.4 재사용 컴포넌트
 
 #### 2.4.1 점자 컴포넌트
@@ -284,10 +217,11 @@
 | 프론트엔드 웹 | 컴포넌트 | apps/web/src/components/textbook | BookUpload.tsx | 책 업로드 컴포넌트 |
 | 프론트엔드 웹 | 컴포넌트 | apps/web/src/components/lesson | LessonList.tsx | 레슨 목록 컴포넌트 |
 | 프론트엔드 웹 | 컴포넌트 | apps/web/src/components/progress | ProgressIndicator.tsx | 진행 상황 표시기 컴포넌트 |
-| 프론트엔드 웹 | 컴포넌트 | apps/web/src/components/review | ReviewQueue.tsx | 복습 큐 컴포넌트 |
 | 프론트엔드 웹 | 컴포넌트 | apps/web/src/components/unit | UnitViewer.tsx | 단원 뷰어 컴포넌트 |
+| 프론트엔드 웹 | 컴포넌트 | apps/web/src/components/unit | ConceptViewer.tsx | 개념 뷰어 컴포넌트 |
+| 프론트엔드 웹 | 컴포넌트 | apps/web/src/components/unit | WorkViewer.tsx | 작품 뷰어 컴포넌트 |
 | 프론트엔드 웹 | 컴포넌트 | apps/web/src/components/pdf | QuestionViewer.tsx | 문제 뷰어 컴포넌트 (PDF 구조화) |
-| 프론트엔드 웹 | 컴포넌트 | apps/web/src/components/pdf | PassageViewer.tsx | 지문 뷰어 컴포넌트 (PDF 구조화) |
+| 프론트엔드 웹 | 컴포넌트 | apps/web/src/components/curriculum | BlockTimestampList.tsx | 블록 타임스탬프 리스트 컴포넌트 |
 ### 2.5 커스텀 훅
 
 #### 2.5.1 핵심 훅
@@ -306,9 +240,7 @@
 | 프론트엔드 웹 | 훅 | apps/web/src/hooks | useTTS.ts | 음성 합성(TTS) 훅 |
 | 프론트엔드 웹 | 훅 | apps/web/src/hooks | useVoiceCommands.ts | 음성 명령 훅 |
 | 프론트엔드 웹 | 훅 | apps/web/src/hooks | useVoiceControl.ts | 음성 제어 훅 |
-| 프론트엔드 웹 | 훅 | apps/web/src/hooks | useAudioSyncML.ts | ML 기반 오디오 동기화 훅 (Whisper + Sentence Transformers) |
-| 프론트엔드 웹 | 훅 | apps/web/src/hooks | useRecommendations.ts | 추천 시스템 훅 (다음 레슨, 복습 추천) |
-| 프론트엔드 웹 | 훅 | apps/web/src/hooks | useCurriculum.ts | 커리큘럼 관리 훅 (생성, 조회, 수정) |
+| 프론트엔드 웹 | 훅 | apps/web/src/hooks | useCurriculum.ts | 커리큘럼 조회 훅 (조회만, 생성은 관리자가 백엔드에서 처리) |
 #### 2.5.2 API 훅
 
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
@@ -318,11 +250,8 @@
 | 프론트엔드 웹 | 훅 | apps/web/src/hooks/api | useContinue.ts | 학습 이어하기 API 훅 |
 | 프론트엔드 웹 | 훅 | apps/web/src/hooks/api | useLessons.ts | 레슨 API 훅 |
 | 프론트엔드 웹 | 훅 | apps/web/src/hooks/api | useProgress.ts | 진행 상황 API 훅 |
-| 프론트엔드 웹 | 훅 | apps/web/src/hooks/api | useReview.ts | 복습 API 훅 |
-| 프론트엔드 웹 | 훅 | apps/web/src/hooks/api | useSyncpoints.ts | 동기화 포인트 API 훅 |
 | 프론트엔드 웹 | 훅 | apps/web/src/hooks/api | useUnits.ts | 단원 API 훅 |
 | 프론트엔드 웹 | API 훅 | apps/web/src/hooks/api | useCurriculum.ts | 커리큘럼 API 훅 |
-| 프론트엔드 웹 | API 훅 | apps/web/src/hooks/api | useRecommendations.ts | 추천 시스템 API 훅 |
 | 프론트엔드 웹 | 훅 | apps/web/src/hooks/braille | BrailleDeviceAdapter.ts | 점자 디바이스 어댑터 인터페이스 |
 | 프론트엔드 웹 | 훅 | apps/web/src/hooks/braille | BrailleDeviceFactory.ts | 점자 디바이스 팩토리 |
 | 프론트엔드 웹 | 훅 | apps/web/src/hooks/braille | GenericBLEAdapter.ts | 범용 BLE 어댑터 |
@@ -342,11 +271,9 @@
 | 프론트엔드 웹 | 서비스 | apps/web/src/services | books.ts | 교재 관리 서비스 |
 | 프론트엔드 웹 | 서비스 | apps/web/src/services | lessons.ts | 레슨 서비스 |
 | 프론트엔드 웹 | 서비스 | apps/web/src/services | progress.ts | 진행 상황 서비스 |
-| 프론트엔드 웹 | 서비스 | apps/web/src/services | review.ts | 복습 서비스 |
-| 프론트엔드 웹 | 서비스 | apps/web/src/services | syncpoints.ts | 동기화 포인트 서비스 |
 | 프론트엔드 웹 | 서비스 | apps/web/src/services | units.ts | 단원 서비스 |
 | 프론트엔드 웹 | 서비스 | apps/web/src/services | curriculum.ts | 커리큘럼 서비스 |
-| 프론트엔드 웹 | 서비스 | apps/web/src/services | recommendations.ts | 추천 시스템 서비스 |
+| 프론트엔드 웹 | 서비스 | apps/web/src/services | literature.ts | 문학 학습 서비스 (강의 목록, 문제 목록, 이미지, 본문 콘텐츠) |
 | 프론트엔드 웹 | 서비스 | apps/web/src/services | VoiceService.ts | 음성 서비스 |
 | 프론트엔드 웹 | 서비스 | apps/web/src/services | CommandService.ts | 명령 서비스 |
 | 프론트엔드 웹 | 서비스 | apps/web/src/services/commands | Command.ts | 명령 인터페이스 |
@@ -373,12 +300,8 @@
 | 프론트엔드 웹 | 상태 관리 | apps/web/src/store | lessonSession.ts | 레슨 세션 상태 |
 | 프론트엔드 웹 | 상태 관리 | apps/web/src/store | lessonStore.ts | 레슨 상태 관리 |
 | 프론트엔드 웹 | 상태 관리 | apps/web/src/store | progressStore.ts | 진행 상황 상태 관리 |
-| 프론트엔드 웹 | 상태 관리 | apps/web/src/store | review.ts | 복습 상태 관리 (ReviewItem) |
-| 프론트엔드 웹 | 상태 관리 | apps/web/src/store | reviewQueueStore.ts | 복습 큐 상태 관리 (ReviewQueueItem) |
-| 프론트엔드 웹 | 상태 관리 | apps/web/src/store | vocabStore.ts | 어휘 상태 관리 |
 | 프론트엔드 웹 | 상태 관리 | apps/web/src/store | voice.ts | 음성 상태 관리 |
 | 프론트엔드 웹 | 상태 관리 | apps/web/src/store | curriculumStore.ts | 커리큘럼 상태 관리 |
-| 프론트엔드 웹 | 상태 관리 | apps/web/src/store | recommendationStore.ts | 추천 시스템 상태 관리 |
 ### 2.8 타입 정의
 
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
@@ -388,17 +311,13 @@
 | 프론트엔드 웹 | 타입 정의 | apps/web/src/types | book.ts | 교재 타입 정의 |
 | 프론트엔드 웹 | 타입 정의 | apps/web/src/types | chat.ts | 채팅 타입 정의 |
 | 프론트엔드 웹 | 타입 정의 | apps/web/src/types | errors.ts | 에러 타입 정의 |
-| 프론트엔드 웹 | 타입 정의 | apps/web/src/types | explore.ts | 탐색 타입 정의 |
 | 프론트엔드 웹 | 타입 정의 | apps/web/src/types | global.d.ts | 전역 타입 정의 |
 | 프론트엔드 웹 | 타입 정의 | apps/web/src/types | index.ts | 타입 인덱스 |
 | 프론트엔드 웹 | 타입 정의 | apps/web/src/types | lesson.ts | 레슨 타입 정의 |
 | 프론트엔드 웹 | 타입 정의 | apps/web/src/types | progress.ts | 진행 상황 타입 정의 |
-| 프론트엔드 웹 | 타입 정의 | apps/web/src/types | review.ts | 복습 타입 정의 |
-| 프론트엔드 웹 | 타입 정의 | apps/web/src/types | syncpoint.ts | 동기화 포인트 타입 정의 |
 | 프론트엔드 웹 | 타입 정의 | apps/web/src/types | unit.ts | 단원 타입 정의 |
 | 프론트엔드 웹 | 타입 정의 | apps/web/src/types | voice.ts | 음성 타입 정의 |
 | 프론트엔드 웹 | 타입 정의 | apps/web/src/types | curriculum.ts | 커리큘럼 타입 정의 |
-| 프론트엔드 웹 | 타입 정의 | apps/web/src/types | recommendation.ts | 추천 시스템 타입 정의 |
 ### 2.9 유틸리티 및 기타
 
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
@@ -412,34 +331,14 @@
 | 프론트엔드 웹 | 스타일 | apps/web/src/styles | tokens.css | 디자인 토큰 CSS |
 | 프론트엔드 웹 | 스타일 | apps/web/src/styles | util.css | 유틸리티 스타일 CSS |
 | 프론트엔드 웹 | 스타일 | apps/web/src | index.css | 전역 스타일 CSS |
-| 프론트엔드 웹 | 테스트 | apps/web/src/__tests__ | api.test.ts | API 통합 테스트 |
 | 프론트엔드 웹 | 설정 | apps/web | index.html | HTML 진입점 |
 | 프론트엔드 웹 | 설정 | apps/web | vite.config.ts | Vite 빌드 설정 |
 | 프론트엔드 웹 | 설정 | apps/web | tailwind.config.js | Tailwind CSS 설정 |
 | 프론트엔드 웹 | 설정 | apps/web | postcss.config.js | PostCSS 설정 |
-| 프론트엔드 웹 | 설정 | apps/web | playwright.config.ts | Playwright E2E 테스트 설정 |
-| 프론트엔드 웹 | E2E 테스트 | apps/web/e2e | accessibility.spec.ts | 접근성 E2E 테스트 |
-| 프론트엔드 웹 | E2E 테스트 | apps/web/e2e | explore.spec.ts | 탐색 E2E 테스트 |
-| 프론트엔드 웹 | E2E 테스트 | apps/web/e2e | home.spec.ts | 홈 E2E 테스트 |
-| 프론트엔드 웹 | E2E 테스트 | apps/web/e2e | voice-control.spec.ts | 음성 제어 E2E 테스트 |
-| 프론트엔드 웹 | 빌드 산출물 | apps/web/dev-dist | registerSW.js | Service Worker 등록 스크립트 |
-| 프론트엔드 웹 | 빌드 산출물 | apps/web/dev-dist | sw.js | Service Worker 스크립트 |
-| 프론트엔드 웹 | 빌드 산출물 | apps/web/dev-dist | workbox-5682fe79.js | Workbox 라이브러리 |
 | 프론트엔드 웹 | 스크립트 | apps/web/scripts | gen-icons.mjs | 아이콘 생성 스크립트 |
 ---
 
-## 3. 확장 프로그램 모듈
-
-| 모듈 | 분류 | 경로 | 파일이름 | 설명 |
-|------|------|------|----------|------|
-| 확장 프로그램 | 메인 | apps/extension/src | background.ts | Chrome 확장 프로그램 백그라운드 스크립트 |
-| 확장 프로그램 | 메인 | apps/extension/src | contentScript.ts | Chrome 확장 프로그램 콘텐츠 스크립트 |
-| 확장 프로그램 | 메인 | apps/extension/src | api.ts | Chrome 확장 프로그램 API 통신 모듈 |
-| 확장 프로그램 | UI | apps/extension/src/popup | Popup.tsx | Chrome 확장 프로그램 팝업 React 컴포넌트 |
-| 확장 프로그램 | UI | apps/extension/src/popup | popup.html | Chrome 확장 프로그램 팝업 HTML |
----
-
-## 4. 하드웨어 모듈
+## 3. 하드웨어 모듈
 
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
 |------|------|------|----------|------|
@@ -455,7 +354,7 @@
 | 하드웨어 | 문서 | arduino | README.md | Arduino 프로젝트 설명 문서 |
 ---
 
-## 5. Raspberry Pi 모듈
+## 4. Raspberry Pi 모듈
 
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
 |------|------|------|----------|------|
@@ -463,21 +362,9 @@
 | Raspberry Pi | 문서 | raspberrypi | README.md | Raspberry Pi 프로젝트 설명 문서 |
 ---
 
-## 6. 인프라 및 기타 모듈
+## 5. 인프라 및 기타 모듈
 
-### 6.1 인프라
-
-| 모듈 | 분류 | 경로 | 파일이름 | 설명 |
-|------|------|------|----------|------|
-| 인프라 | 설정 | infra | docker-compose.yml | Docker Compose 설정 파일 |
-
-### 6.2 스크립트
-
-| 모듈 | 분류 | 경로 | 파일이름 | 설명 |
-|------|------|------|----------|------|
-| 스크립트 | 유틸리티 | scripts | create_data_folders.py | 데이터 폴더 생성 스크립트 |
-
-### 6.3 데이터
+### 5.1 데이터
 
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
 |------|------|------|----------|------|
@@ -486,26 +373,15 @@
 | 데이터 | PDF 파일 | data/pdfs | *.pdf | 수능특강 PDF 파일들 |
 | 데이터 | 업로드 파일 | data/uploads | *.pdf | 업로드된 PDF 파일들 |
 
-### 6.4 문서
+### 5.2 문서
 
 | 모듈 | 분류 | 경로 | 파일이름 | 설명 |
 |------|------|------|----------|------|
+| 문서 | 프로젝트 문서 | docs | DEVELOPMENT_SPECIFICATION.md | 개발명세서 |
 | 문서 | 프로젝트 문서 | docs | WBS.md | 작업 분해 구조 문서 |
-| 문서 | 프로젝트 문서 | docs | PROJECT_STRUCTURE.md | 프로젝트 구조 문서 |
-| 문서 | 프로젝트 문서 | docs | DEVELOPMENT_ROADMAP.md | 개발 로드맵 문서 |
-| 문서 | 프로젝트 문서 | docs | AI_ML_IMPLEMENTATION_PROPOSAL.md | AI/ML 구현 제안서 |
-| 문서 | 프로젝트 문서 | docs | AI_ML_PDF_EXTRACTION.md | AI/ML PDF 추출 문서 |
-| 문서 | 프로젝트 문서 | docs | PDF_EXTRACTION_GUIDE.md | PDF 추출 가이드 |
-| 문서 | 프로젝트 문서 | docs | PDF_PROCESSING_PIPELINE.md | PDF 처리 파이프라인 문서 |
-| 문서 | 프로젝트 문서 | docs | MATH1_EXTRACTION_PROMPTS.md | 수학Ⅰ 추출 프롬프트 |
-| 문서 | 프로젝트 문서 | docs | LITERATURE_EXTRACTION_PROMPTS.md | 문학 추출 프롬프트 |
-| 문서 | 프로젝트 문서 | docs | ENGLISH_EXTRACTION_PROMPTS.md | 영어 추출 프롬프트 |
-| 문서 | 프로젝트 문서 | docs | TEST_COMMANDS.md | 테스트 명령어 문서 |
-| 문서 | 프로젝트 문서 | docs | TESTING_GUIDE.md | 테스트 가이드 문서 |
-| 문서 | 프로젝트 문서 | docs | CURRICULUM_AUTO_GENERATION.md | 커리큘럼 자동 생성 시스템 문서 |
-| 문서 | 프로젝트 문서 | docs | AI_ML_IMPLEMENTATION_IDEAS.md | AI/ML 기능 구현 아이디어 가이드 |
-| 문서 | 프로젝트 문서 | docs | MENU_FLOW.md | 메뉴 흐름도 문서 |
 | 문서 | 프로젝트 문서 | docs | SCREEN_SPECIFICATION.md | 화면 정의서 문서 |
+| 문서 | 프로젝트 문서 | docs | SYSTEM_ARCHITECTURE.md | 시스템 아키텍처 문서 |
+| 문서 | 프로젝트 문서 | docs | MENU_FLOW.md | 메뉴 흐름도 문서 |
 | 문서 | 프로젝트 문서 | docs | README.md | 문서 디렉토리 README |
 | 문서 | 프로젝트 문서 | README.md | 프로젝트 루트 README |
 
@@ -524,20 +400,21 @@
   - `enhanced_ocr.py`: AI 기반 OCR (스캔본 처리)
   - `math_ocr.py`: 수식 이미지 → LaTeX 변환
   - `ai_text_postprocessor.py`: AI 기반 텍스트 후처리
+  - `pdf_cropper.py`: PDF 영역 자르기
 
-- **PDF 파싱 계층** (`api/app/services/pdf_parse/`)
-  - `base_parser.py`: 파서 인터페이스 정의
-  - `parse_pipeline.py`: 전체 파싱 파이프라인 관리
-  - `json_schema.py`: 파싱 결과 JSON 스키마 정의
-  - `ai_structure_classifier.py`: AI 기반 블록 구조 분류
+- **교재 파이프라인** (`api/app/services/textbook_pipeline.py`)
+  - 과목별 PDF 파싱 전략 통합 (문학, 수학Ⅰ, 영어)
+  - 문학: 강의/본문/문제 구조 파싱
+  - 수학Ⅰ: 개념/예제/유제 구조 파싱
+  - 영어: 단원/지문/문제 구조 파싱
 
-- **과목별 파싱 전략** (`api/app/services/subject_strategies/`)
-  - `math1.py`: 수학Ⅰ 파서 (개념/예제/유제 구조 파싱)
-  - `english.py`: 영어 파서 (지문/문제 분리)
-  - `literature.py`: 문학 파서 (지문/문제 분리)
-  - `korean.py`: 국어 파서
+- **기타 PDF 관련 서비스**
+  - `pdf_region_capturer.py`: PDF 영역 캡처
+  - `pdf_region_detector.py`: PDF 영역 감지
+  - `text_extractors.py`: 텍스트 추출기
+  - `toc_parser.py`: 목차 파서
 
-**처리 흐름**: PDF 업로드 → 추출(Extract) → 파싱(Parse) → 후처리(Post-process) → 구조화된 JSON
+**처리 흐름**: PDF 업로드 → 추출(Extract) → 과목별 파싱(textbook_pipeline) → 후처리(Post-process) → 구조화된 JSON
 
 ---
 
@@ -579,23 +456,6 @@
 
 ---
 
-### 4. 복습 시스템 모듈
-
-**목적**: 학습한 내용을 효율적으로 복습할 수 있도록 스케줄링 및 큐 관리
-
-**주요 구성요소**:
-- **백엔드** (`api/app/services/review_logic.py`, `api/app/routers/review.py`)
-  - 복습 큐 관리 (ReviewQueue)
-  - 복습 스케줄링 알고리즘
-  - 복습 항목 생성 및 업데이트
-
-- **프론트엔드** (`apps/web/src/pages/Review.tsx`, `apps/web/src/store/review*.ts`)
-  - 복습 큐 UI
-  - 복습 항목 표시 및 관리
-  - 복습 진행 상황 추적
-
-**기능**: 오답 추적 → 복습 큐 추가 → 스케줄링 → 복습 제공
-
 ---
 
 ### 5. 음성 처리 모듈
@@ -608,33 +468,18 @@
   - 실시간 음성 인식
   - 음성 명령 처리
 
-- **ML 기반 STT** (`api/app/services/audio_sync_ml.py`)
-  - Whisper 모델 통합 (한국어 최적화)
-  - 실시간 오디오 청크 처리
-  - Sentence Transformers 기반 텍스트 임베딩
-  - 코사인 유사도 기반 매칭
-  - 신뢰도 계산
-
 - **TTS (Text-to-Speech)** (`apps/web/src/hooks/useTTS.ts`)
   - Web Speech API 기반 음성 합성
   - 텍스트 읽기 기능
-
-- **오디오 동기화** (`api/app/services/audio_sync.py`, `apps/web/src/hooks/useAudioSync.ts`)
-  - 강의 오디오와 텍스트 자동 동기화
-  - STT 기반 매칭 알고리즘
-  - 실시간 동기화 상태 관리
-
-- **ML 기반 오디오 동기화** (`apps/web/src/hooks/useAudioSyncML.ts`)
-  - Whisper + Sentence Transformers 통합
-  - 실시간 스트리밍 처리
-  - 자동 하이라이트
 
 - **음성 명령** (`apps/web/src/hooks/useVoiceCommands.ts`, `apps/web/src/services/VoiceService.ts`)
   - 음성 명령 인식 및 실행
   - 명령 패턴 매칭
   - 명령 라우팅
 
-**기능**: 음성 입력 → STT → 명령 인식 → 액션 실행 / 오디오 재생 → ML 동기화 → 텍스트 하이라이트
+**기능**: 음성 입력 → STT → 명령 인식 → 액션 실행
+
+**참고**: ML 기반 오디오 동기화는 나중에 구현 예정
 
 ---
 
@@ -662,45 +507,7 @@
 
 ---
 
-### 7. 콘텐츠 자동 생성 모듈
-
-**목적**: 제작 시간 단축을 위한 콘텐츠 자동 생성 및 검증
-
-**주요 구성요소**:
-- **자동 생성** (`api/app/services/content_auto_generator.py`)
-  - 매뉴얼 규칙 자동 적용
-  - 기호 사용 규칙 자동 검증 및 수정
-  - 정보 순서 자동 최적화
-  - 텍스트 길이 자동 조절 (말하는 단위)
-
-- **AI 기반 자동 생성** (`api/app/services/content_auto_generator_ml.py`)
-  - LangChain 기반 제작 프로세스 자동화
-  - 매뉴얼 규칙 자동 적용 (LLM 활용)
-  - 말하는 단위 자동 분할 (문맥 고려)
-  - 정보 순서 최적화
-  - 품질 점수 자동 계산
-
-- **생성형 AI 콘텐츠** (`api/app/services/content_generator.py`)
-  - LangChain + GPT-4/Claude 기반
-  - 문제 해설 자동 생성
-  - 핵심 포인트 요약
-  - 강의 대본 초안 생성
-
-- **강의 대본 파서** (`api/app/services/lecture_script_parser.py`)
-  - HWP 파일에서 강의 대본 추출
-  - 섹션 분류 (OT, Overview, Concept 등)
-  - 핵심 포인트 추출
-  - 수학 표현식 추출
-
-- **HWP 처리** (`api/app/services/hwp_extract.py`)
-  - 한글 파일 텍스트 추출
-  - 파일명에서 강의 정보 추출
-
-**기능**: HWP 업로드 → 텍스트 추출 → 구조 파싱 → 자동 생성 → 검증
-
----
-
-### 8. 문제 풀이 모듈
+### 7. 문제 풀이 모듈
 
 **목적**: 문제 표시, 답안 입력, 정답 확인, 오답 분석
 
@@ -716,24 +523,25 @@
   - `ChoiceComparison.tsx`: 선택지 비교
   - `WrongAnswerList.tsx`: 오답 목록
 
-**기능**: 문제 표시 → 답안 입력 → 정답 확인 → 오답 분석 → 복습 큐 추가
+**기능**: 문제 표시 → 답안 입력 → 정답 확인 → 오답 분석
 
 ---
 
-### 9. UI/UX 모듈
+### 8. UI/UX 모듈
 
 **목적**: 사용자 인터페이스 및 사용자 경험 제공
 
 **주요 구성요소**:
 - **페이지 컴포넌트** (`apps/web/src/pages/`)
-  - 홈, 학습, 문제, 복습, 탐색 등 주요 페이지
-  - 시험 모드, 점자 속도 연습, 어휘 학습 등 특수 페이지
+  - 홈, 학습, 문제, 교재 관리 등 주요 페이지
+  - 문학 학습, 커리큘럼 등 과목별 학습 페이지
 
 - **재사용 컴포넌트** (`apps/web/src/components/`)
   - 점자 컴포넌트 (BrailleCell, BrailleGrid 등)
   - 입력 컴포넌트 (VoiceButton, MicButton 등)
   - UI 컴포넌트 (Card, BottomBar 등)
   - 시스템 컴포넌트 (ErrorBoundary, HealthCheck 등)
+  - AI 컴포넌트 (AIExplanationCard, AIAnswerDisplay 등)
 
 - **레이아웃** (`apps/web/src/components/layout/`)
   - 페이지 레이아웃 관리
@@ -743,7 +551,7 @@
 
 ---
 
-### 10. 상태 관리 모듈
+### 9. 상태 관리 모듈
 
 **목적**: 애플리케이션 전역 상태 관리
 
@@ -752,27 +560,31 @@
   - `bookStore.ts`: 교재 상태
   - `lessonStore.ts`: 레슨 상태
   - `progressStore.ts`: 진행 상황
-  - `review*.ts`: 복습 상태
   - `voice.ts`: 음성 상태
+  - `curriculumStore.ts`: 커리큘럼 상태
+  - `learnStore.ts`: 학습 상태
+  - `home.ts`: 홈 상태
+  - `keywords.ts`: 키워드 상태
   - `examStore.ts`: 시험 상태
-  - `vocabStore.ts`: 어휘 상태
 
 **기능**: 상태 저장 → 상태 업데이트 → 컴포넌트 반영
 
 ---
 
-### 11. 서비스 레이어 모듈
+### 10. 서비스 레이어 모듈
 
 **목적**: 비즈니스 로직 및 API 통신 관리
 
 **주요 구성요소**:
 - **API 클라이언트** (`apps/web/src/services/api.ts`)
-  - Axios 기반 HTTP 클라이언트
-  - 요청/응답 인터셉터
+  - Fetch 기반 HTTP 클라이언트
+  - 재시도 로직 포함
+  - 에러 처리
 
 - **도메인 서비스** (`apps/web/src/services/`)
-  - `books.ts`, `lessons.ts`, `units.ts`: 학습 관련 서비스
-  - `answers.ts`, `review.ts`: 문제/복습 서비스
+  - `books.ts`, `lessons.ts`, `units.ts`, `curriculum.ts`: 학습 관련 서비스
+  - `literature.ts`: 문학 학습 서비스
+  - `answers.ts`: 문제 서비스
   - `VoiceService.ts`: 음성 서비스
   - `CommandService.ts`: 명령 서비스
 
@@ -787,28 +599,14 @@
   - `CommandInvoker.ts`: 명령 실행자
   - `ControlCommand.ts`, `LearningCommand.ts`, `NavigateCommand.ts`: 구체적 명령
 
----
-
-### 12. 확장 프로그램 모듈
-
-**목적**: Chrome 확장 프로그램을 통한 학습 알림 및 동기화
-
-**주요 구성요소**:
-- **백그라운드 스크립트** (`apps/extension/src/background.ts`)
-  - 확장 프로그램 생명주기 관리
-  - 알림 스케줄링
-
-- **콘텐츠 스크립트** (`apps/extension/src/contentScript.ts`)
-  - 웹 페이지와의 상호작용
-  - 동기화 포인트 로깅
-
-- **팝업 UI** (`apps/extension/src/popup/`)
-  - 확장 프로그램 팝업 인터페이스
-  - 학습 알림 설정
+- **기타 서비스**
+  - `passage/PassageService.ts`: 지문 서비스
+  - `question/QuestionService.ts`: 문제 서비스
+  - `textbook/TextbookService.ts`: 교과서 서비스
 
 ---
 
-### 13. 하드웨어 모듈
+### 11. 하드웨어 모듈
 
 **목적**: 점자 디스플레이 하드웨어 제어
 
@@ -824,148 +622,41 @@
 
 ---
 
-### 14. 커리큘럼 자동 생성 모듈
+### 14. 커리큘럼 관리 모듈
 
-**목적**: 강의대본(HWP) 분석을 통한 커리큘럼 자동 생성
+**목적**: 관리자가 AI/ML로 커리큘럼을 자동 생성하고, 사용자가 조회/학습
+
+**역할 분리**:
+- **관리자 (백엔드/인프라)**: EBS 수능특강 PDF 수신 → **AI/ML로 자동 분석** → 커리큘럼 생성 → DB 저장
+  - **AI/ML 기술**: LLM (레슨 블록 생성), LangChain (파이프라인), CNN (PDF 구조 분석)
+- **사용자 (프론트엔드)**: 이미 준비된 커리큘럼 조회 → 학습 시작 → 점자/음성 출력
+
+**참고**: AI/ML 기능은 관리자용과 사용자용으로 분리됨. 자세한 내용은 `docs/AI_ML_ROLE_SEPARATION.md` 참고.
 
 **주요 구성요소**:
-- **커리큘럼 생성기** (`api/app/services/curriculum_generator.py`)
-  - 강의대본 분석 (분할 지점 파악, PDF 참조 정보 추출)
-  - 학습 단위 생성
-  - 의존성 분석
 
-- **커리큘럼 템플릿** (`api/app/services/curriculum_template.py`)
-  - 교재별 템플릿 정의 (문학/수1/영어)
-  - 의존성 규칙 정의
-  - 학습 경로 자동 생성
+#### 관리자용 (백엔드)
+- **관리자용 API** (`api/app/routers/curriculum.py`)
+  - `POST /api/v1/curriculum/generate`: 커리큘럼 생성 (관리자용, HWP + PDF 분석)
+  - 백그라운드 처리로 자동 생성
+  - 생성 완료 후 JSON 저장 (과목별 폴더)
+  - **참고**: HWP 처리, 강의 대본 파싱 등은 `curriculum.py` 내부에서 처리되거나 stub 함수로 처리됨
 
-- **PDF-강의대본 매칭** (`api/app/services/pdf_script_matcher.py`)
-  - 참조 정보 매칭
-  - 신뢰도 계산
-  - 레슨 간 유기적 연결
-
-- **백엔드 API** (`api/app/routers/curriculum.py`)
-  - `POST /api/v1/curriculum/generate`: 커리큘럼 생성
-  - `GET /api/v1/curriculum/{curriculum_id}`: 커리큘럼 조회
-  - `PATCH /api/v1/curriculum/{curriculum_id}`: 커리큘럼 수정
-  - 커리큘럼 생성 완료 후 임시 파일 자동 삭제
+#### 사용자용 (프론트엔드)
+- **조회 API** (`api/app/routers/curriculum.py`)
+  - `GET /api/v1/curriculum`: 커리큘럼 목록 조회 (과목별, 교재별 필터링)
+  - `GET /api/v1/curriculum/{curriculum_id}`: 커리큘럼 상세 조회
+  - `GET /api/v1/curriculum/{curriculum_id}/lessons`: 커리큘럼의 레슨 목록 조회
+  - `GET /api/v1/curriculum/{curriculum_id}/lessons/{lesson_number}`: 특정 레슨 조회
 
 - **프론트엔드** (`apps/web/src/pages/Curriculum/`)
-  - 커리큘럼 목록 화면
-  - 커리큘럼 생성 화면
-  - 커리큘럼 상세 화면
-  - 학습 경로 시각화
-  - 레슨 간 연결 표시
+  - 커리큘럼 목록 화면 (조회만)
+  - 커리큘럼 상세 화면 (조회만)
+  - 커리큘럼 레슨 화면
 
-**기능**: HWP 업로드 → 강의대본 분석 → 학습 단위 생성 → 커리큘럼 자동 생성 → 학습 경로 생성 → JSON 저장 (과목별 폴더)
-
----
-
-### 18. 레슨 블록 시스템 모듈
-
-**목적**: 강의대본을 레슨 블록 단위로 구조화하여 시각장애 학습자에게 최적화된 학습 경험 제공
-
-**주요 구성요소**:
-- **레슨 블록 분해기** (`api/app/services/lesson_block_decomposer.py`)
-  - 규칙 기반 레슨 블록 분해
-  - 과목별 패턴 매칭
-  - 블록 타입 자동 분류
-
-- **LangChain Flow** (`api/app/services/langchain_lesson_flow.py`)
-  - LLM 기반 레슨 블록 자동 생성
-  - 전처리 → LLM 분해 → JSON 파싱 → Pydantic 검증 → MongoDB 저장
-  - 규칙 기반 폴백 지원
-
-- **AI 프롬프트** (`api/app/services/ai_block_decomposer.py`)
-  - 레슨 블록 분해 전용 프롬프트 정의
-  - 과목별 특화 프롬프트
-
-- **MongoDB 모델** (`api/app/db/mongodb_models.py`)
-  - Lesson, LessonBlock Pydantic 모델
-  - 블록 타입별 Content 모델
-  - UI 동작 규칙 정의
-
-- **JSON 변환기** (`api/app/services/json_to_mongodb_converter.py`)
-  - 기존 JSON 커리큘럼 데이터를 MongoDB 형식으로 변환
-
-- **백엔드 API** (`api/app/routers/lesson_blocks.py`)
-  - `POST /api/v1/lesson-blocks/generate`: 레슨 블록 생성 (AI/규칙 기반)
-  - `POST /api/v1/lesson-blocks/generate-batch`: 일괄 생성
-  - `GET /api/v1/lesson-blocks/validate/{lesson_id}`: 레슨 블록 검증
-
-**핵심 설계 원칙**:
-- **점자는 신호등**: 3셀 점자로 현재 학습 상태만 표시
-- **5가지 필수 요소**: 학습 목적, 점자 신호, 음성 범위, 사용자 인지, UI 동작 규칙
-- **Document DB**: MongoDB로 레슨 단위 완결된 문서 저장
-
-**기능**: 강의대본 입력 → 레슨 블록 분해 (AI/규칙) → MongoDB 저장 → UI 전달
-
----
-
-### 15. 추천 시스템 모듈
-
-**목적**: 학습자 맞춤형 추천 제공
-
-**주요 구성요소**:
-- **추천 엔진** (`api/app/services/recommendation_engine.py`)
-  - PersonalizedRecommender 클래스
-  - 콘텐츠 기반 필터링 (Sentence Transformers)
-  - 사용자 프로파일링
-  - 오답 패턴 기반 복습 추천
-  - 간격 반복 학습 알고리즘
-
-- **사용자 행동 프로파일러** (`api/app/services/user_behavior_profiler.py`)
-  - 학습 패턴 분석
-  - 약점 주제 식별
-  - 선호도 벡터 계산
-  - 학습 시간대 분석
-
-- **백엔드 API** (`api/app/routers/recommendations.py`)
-  - `GET /api/v1/recommendations/next-lesson`: 다음 레슨 추천
-  - `GET /api/v1/recommendations/review`: 복습 추천
-
-- **프론트엔드** (`apps/web/src/hooks/useRecommendations.ts`)
-  - 추천 시스템 훅
-  - "오늘 학습 이어하기" 화면에 추천 표시
-  - 단원 목록에 추천 순서 표시
-
-**기능**: 사용자 행동 분석 → 프로파일 생성 → 콘텐츠 기반 필터링 → 추천 생성
-
----
-
-### 16. AI/ML 모듈
-
-**목적**: 머신러닝 및 딥러닝 기반 기능 제공
-
-**주요 구성요소**:
-- **ML 기반 점자 변환** (`api/app/services/braille_ml.py`)
-  - KoBERT 기반 Seq2Seq 모델
-  - 문맥 인식 점자 변환
-  - 동음이의어 처리 개선
-  - 규칙 기반과 병행 (Fallback)
-
-- **Vision Transformer** (`api/app/services/pdf_structure_classifier.py`)
-  - LayoutLMv3 기반 PDF 구조 분류
-  - 이미지 + 텍스트 멀티모달 분석
-  - 블록 구조 자동 분류
-
-- **생성형 AI** (`api/app/services/content_generator.py`)
-  - LangChain + GPT-4/Claude
-  - 문제 해설 자동 생성
-  - 핵심 포인트 요약
-  - 강의 대본 초안 생성
-
-- **AI 기반 제작 자동화** (`api/app/services/content_auto_generator_ml.py`)
-  - LangChain 기반 자동화
-  - 매뉴얼 규칙 자동 적용
-  - 품질 점수 자동 계산
-
-- **LangChain 기반 레슨 블록 생성** (`api/app/services/langchain_lesson_flow.py`)
-  - GPT-4o-mini 기반 레슨 블록 자동 분해
-  - Pydantic 스키마 검증
-  - MongoDB 자동 저장
-
-**기술 스택**: PyTorch, Transformers (Hugging Face), LangChain, OpenAI GPT-4, Whisper, Sentence Transformers, MongoDB
+**작업 흐름**:
+1. **관리자**: EBS PDF 수신 → HWP 분석 → 커리큘럼 생성 → DB 저장
+2. **사용자**: 앱 열기 → 과목 선택 → 교재 선택 → 커리큘럼 선택 → 학습 시작
 
 ---
 
@@ -988,26 +679,89 @@
 ## 📊 모듈별 통계
 
 ### 백엔드 API
-- 총 파일 수: 약 76개
-- 주요 모듈: 라우터(11), 서비스(35), 스키마(8), 테스트(9)
+- 총 파일 수: 약 60개 (단순화 후)
+- 주요 모듈: 라우터(11), 서비스(10+), 스키마(9), PDF 모듈(10), 데이터 핸들러
 
 ### 프론트엔드 웹
-- 총 파일 수: 약 200개
-- 주요 모듈: 페이지(50+), 컴포넌트(36), 훅(29), 서비스(25), 상태 관리(13)
-
-### 확장 프로그램
-- 총 파일 수: 5개
-- 주요 모듈: 백그라운드 스크립트, 콘텐츠 스크립트, 팝업 UI
+- 총 파일 수: 약 130개 (단순화 후)
+- 주요 모듈: 페이지(13), 컴포넌트(35+), 훅(28), 서비스(15+), 상태 관리(10)
 
 ### 하드웨어
 - 총 파일 수: 8개
 - 주요 모듈: Arduino 펌웨어, 테스트 스케치
 
 ### 문서
-- 총 파일 수: 22개
-- 주요 문서: 개발 가이드, API 문서, 테스트 가이드
+- 총 파일 수: 6개 (단순화 후)
+- 주요 문서: 개발명세서, WBS, 화면명세서, 시스템 아키텍처, 메뉴 흐름도, README
 
 ---
 
-*작성일: 2024년*
-*마지막 업데이트: 2024년*
+## 📝 최신화 이력
+
+### 2024년 12월 (최신)
+- **프로젝트 단순화**: 불필요한 라우터 및 서비스 삭제
+- **필수 라우터만 유지**: health, subjects, books, lessons, units, progress, answers, curriculum, ai (총 9개)
+- **핵심 서비스만 유지**: 커리큘럼 생성, HWP 추출, 강의 대본 파서, 점자 변환, PDF-강의대본 매칭, AI 강의 교사
+- **MENU_FLOW.md에 맞춘 API 구조 정리**: 단순화된 사용자 흐름 반영
+- **문서 단순화**: 필수 문서만 유지 (개발명세서, WBS, 화면명세서, 시스템 아키텍처, 메뉴 흐름도, README)
+- **삭제된 기능**: 복습 시스템, 동기화 포인트, 레슨 블록 시스템, AI/ML 고급 기능, Chrome 확장 프로그램, 테스트 파일, 사용자용 커리큘럼 생성 UI (나중에 구현 예정)
+- **역할 분리 명확화**: 관리자가 인프라 제공 (커리큘럼 생성), 사용자는 조회/학습만 수행
+
+### 2025년 1월 (리팩토링)
+- **프론트엔드 서비스 레이어 통합**: `api-client.ts` 생성, 공통 CRUD 패턴 추출
+- **유틸리티 함수 통합**: `pdfReferences.ts`, `subjectMetadata.ts` 생성, 중복 코드 제거
+- **CurriculumLesson.tsx 리팩토링**: 중복 파싱 로직 제거 (200+ 줄 감소)
+- **코드 가독성 향상**: 유틸리티 함수로 의도 명확화
+
+### 2025년 1월 (문학 학습 기능 추가)
+- **문학 학습 페이지 추가**: `LiteratureLearning.tsx` - 개념/본문/문제 순서로 학습, AI 설명 생성
+- **문학 API 라우터 추가**: `literature.py` (강의 목록, 문제 목록, 이미지, 본문 콘텐츠), `literature_ai.py` (AI 설명 생성)
+- **과목별 파이프라인 통합**: `textbook_pipeline.py`에 문학/수학Ⅰ/영어 파싱 전략 통합
+- **국어 선택 시 문학 강의 목록 표시**: `Book.tsx`에서 국어(KOREAN) 선택 시 문학 강의 목록 표시
+- **핵심 키워드 섹션 추가**: 각 강의 마지막에 핵심 키워드 3개 점자 출력 기능
+
+---
+
+---
+
+## 🗑️ 삭제된 기능 및 페이지
+
+다음 기능들은 프로젝트 단순화 과정에서 삭제되었습니다:
+
+### 삭제된 페이지 (프론트엔드)
+- `Passage/Passage.tsx` - 지문 학습 페이지
+- `GraphTable/GraphTable.tsx` - 그래프/표 뷰어
+- `Vocab/Vocab.tsx` - 어휘 학습 페이지
+- `BrailleSpeed/BrailleSpeed.tsx` - 점자 속도 훈련
+- `ExamMode/ExamMode.tsx` - 시험 모드
+- `ExamTimer/ExamTimer.tsx` - 시험 타이머
+- `Explore.tsx` - 탐색 페이지
+- `LearnIndex.tsx`, `LearnStep.tsx` - 학습 인덱스/스텝
+- `FreeConvert.tsx` - 자유 변환
+- `Quiz.tsx` - 퀴즈 페이지
+- `exam/TextbookConverter.tsx`, `exam/TextCompress.tsx`, `exam/SentenceRepeat.tsx` - 시험 관련 페이지
+
+### 삭제된 라우터 (백엔드)
+- `review.py` - 복습 시스템 (Question으로 통합)
+- `syncpoints.py` - 동기화 포인트
+- `lecture_scripts.py` - 강의 대본 관리
+- `lesson_blocks.py` - 레슨 블록 시스템
+- `content.py` - 콘텐츠 관리 (통합됨)
+- `pdf.py` - PDF 관리 (books.py로 통합)
+
+### 삭제된 서비스 (백엔드)
+- `review_logic.py` - 복습 로직
+- `audio_sync.py` - 오디오 동기화 (나중에 구현 예정)
+- `content_auto_generator.py` - 콘텐츠 자동 생성 (통합됨)
+- `curriculum_generator.py`, `curriculum_template.py`, `pdf_script_matcher.py` - 커리큘럼 관련 (통합됨)
+- `subject_strategies/` 디렉토리 - `textbook_pipeline.py`로 통합
+
+### 삭제된 모듈
+- Chrome 확장 프로그램 (`apps/extension/`)
+- 테스트 파일 (`api/tests/`, `apps/web/src/__tests__/`)
+- E2E 테스트 (`apps/web/e2e/`)
+
+---
+
+*작성일: 2024년*  
+*마지막 업데이트: 2025년 1월*

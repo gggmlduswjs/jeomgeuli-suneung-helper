@@ -9,6 +9,7 @@ interface LessonState {
   selectedLesson: Lesson | null;
   setLessons: (lessons: Lesson[]) => void;
   setLesson: (lesson: Lesson | null) => void;
+  clearLessons: () => void;
 }
 
 export const useLessonStore = create<LessonState>((set) => ({
@@ -16,4 +17,5 @@ export const useLessonStore = create<LessonState>((set) => ({
   selectedLesson: null,
   setLessons: (lessons) => set({ lessons }),
   setLesson: (lesson) => set({ selectedLesson: lesson }),
+  clearLessons: () => set({ lessons: [], selectedLesson: null }),
 }));

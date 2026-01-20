@@ -37,32 +37,60 @@ export function extractFormula(text: string): string {
 }
 
 /**
- * 핵심 키워드 추출
+ * 핵심 키워드 추출 (명사 단어만, 한 단어씩)
  * @param text 텍스트
  * @param maxCount 최대 키워드 수
  */
 export function extractKeywords(text: string, maxCount: number = 3): string[] {
   if (!text) return [];
 
-  // 한글 키워드 패턴 (2글자 이상 명사)
-  const koreanKeywordPattern = /[가-힣]{2,}/g;
-  const koreanMatches = text.match(koreanKeywordPattern) || [];
-
-  // 영어 키워드 패턴 (3글자 이상 단어)
-  const englishKeywordPattern = /\b[a-zA-Z]{3,}\b/g;
-  const englishMatches = text.match(englishKeywordPattern) || [];
+  // 불용어 제거 (조사, 어미, 일반 동사/형용사 등)
+  const stopWords = new Set([
+    '이', '가', '을', '를', '의', '에', '에서', '로', '으로', '와', '과', '도', '만', '까지', '부터',
+    '은', '는', '이다', '다', '하다', '되다', '있다', '없다', '그', '이것', '저것',
+    '것', '수', '때', '경우', '등', '및', '또한', '그리고', '하지만', '그러나', '따라서',
+    '그래서', '그런데', '그러면', '그렇다면', '그러므로', '그런', '이런', '저런',
+    'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had',
+    'this', 'that', 'these', 'those', 'it', 'they', 'we', 'you', 'he', 'she', 'and', 'or', 'but'
+  ]);
 
   // 키워드 빈도 계산
   const keywordCount: Map<string, number> = new Map();
   
-  [...koreanMatches, ...englishMatches].forEach(keyword => {
-    const lower = keyword.toLowerCase();
-    keywordCount.set(lower, (keywordCount.get(lower) || 0) + 1);
+  // 텍스트를 단어로 분리 (공백, 문장부호 기준)
+  // 한글과 영어를 구분하여 처리
+  const words = text.split(/[\s.,!?;:()\[\]{}"'`]+/).filter(w => w.trim().length > 0);
+  
+  words.forEach(word => {
+    // 문장부호 제거
+    const cleanWord = word.replace(/[.,!?;:()\[\]{}"'`]/g, '').trim();
+    
+    if (!cleanWord) return;
+    
+    // 한글 단어 추출 (2-4글자, 명사 형태 - 한 단어씩만)
+    const koreanMatch = cleanWord.match(/^[가-힣]{2,4}$/);
+    if (koreanMatch) {
+      const keyword = koreanMatch[0];
+      // 불용어 제외
+      if (!stopWords.has(keyword)) {
+        keywordCount.set(keyword, (keywordCount.get(keyword) || 0) + 1);
+      }
+    }
+    
+    // 영어 단어 추출 (3글자 이상, 명사 형태 - 한 단어씩만)
+    const englishMatch = cleanWord.match(/^[a-zA-Z]{3,}$/);
+    if (englishMatch) {
+      const keyword = englishMatch[0].toLowerCase();
+      // 불용어 제외
+      if (!stopWords.has(keyword)) {
+        keywordCount.set(keyword, (keywordCount.get(keyword) || 0) + 1);
+      }
+    }
   });
 
-  // 빈도순으로 정렬
+  // 빈도순으로 정렬하고 상위 N개 추출
   const sorted = Array.from(keywordCount.entries())
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => b[1] - a[1]) // 빈도순 정렬
     .slice(0, maxCount)
     .map(([keyword]) => keyword);
 

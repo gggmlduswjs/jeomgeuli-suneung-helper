@@ -13,9 +13,14 @@ import ToastA11y from '../components/system/ToastA11y';
 import BookUpload from '../components/textbook/BookUpload';
 import { booksAPI } from '../services/books';
 import { lessonsAPI } from '../services/lessons';
+import { curriculumAPI } from '../services/curriculum';
+import { literatureAPI, type LiteratureLectureSummary } from '../services/literature';
+import { Subject } from '../types/book';
 import type { Book } from '../types/book';
+import type { Subject as CurriculumSubject } from '../types/curriculum';
 import type { Lesson } from '../types/lesson';
 import { useBookStore } from '../store/bookStore';
+import { useLessonStore } from '../store/lessonStore';
 
 export default function Book() {
   const navigate = useNavigate();
@@ -27,7 +32,9 @@ export default function Book() {
   const [toastMessage, setToastMessage] = useState('');
   
   const [book, setBook] = useState<Book | null>(null);
+  const [books, setBooks] = useState<Book[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [literatureLectures, setLiteratureLectures] = useState<LiteratureLectureSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
@@ -35,7 +42,14 @@ export default function Book() {
   
   const { setBook: setStoreBook } = useBookStore();
 
-  // 교재 ID가 있으면 상세 조회, 없으면 업로드 모드
+  // URL 파라미터에서 subject 확인 및 변환
+  const subjectParamRaw = searchParams.get('subject');
+  const subjectParam: Subject | null = subjectParamRaw 
+    ? (subjectParamRaw.toUpperCase() as Subject)
+    : null;
+
+
+  // 교재 ID가 있으면 상세 조회, subject만 있으면 교재 목록, 둘 다 없으면 업로드 모드
   useEffect(() => {
     if (bookId) {
       loadBook(bookId);
@@ -58,10 +72,18 @@ export default function Book() {
       }, 2000);
       
       return () => clearInterval(interval);
+    } else if (subjectParam) {
+      // 국어(KOREAN) 선택 시 문학 강의 목록 표시
+      if (subjectParam === Subject.KOREAN) {
+        loadLiteratureLectures();
+      } else {
+        // 다른 과목은 교재 목록 로드
+        loadBooksBySubject(subjectParam);
+      }
     } else {
       setShowUpload(true);
     }
-  }, [bookId]);
+  }, [bookId, subjectParam]);
 
   const loadBook = async (id: string) => {
     setLoading(true);
@@ -85,6 +107,78 @@ export default function Book() {
       setLessons(data);
     } catch (err) {
       console.error('[Book] 강 목록 로드 실패:', err);
+    }
+  };
+
+  const loadLiteratureLectures = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await literatureAPI.getLectures();
+      setLiteratureLectures(data);
+      if (data.length === 0) {
+        const message = '등록된 문학 강의가 없습니다.';
+        speak(message);
+      } else {
+        speak(`수능특강 문학 강의 ${data.length}개가 있습니다.`);
+      }
+    } catch (err) {
+      const errorMsg = '문학 강의 목록을 불러오는 중 오류가 발생했습니다.';
+      setError(errorMsg);
+      speak(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadBooksBySubject = async (subject: Subject) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await booksAPI.list(subject);
+      
+      // 중복 제거: 제목이 같은 교재는 가장 최근 것 하나만 표시
+      const bookMap = new Map<string, Book>();
+      data.forEach((book: Book) => {
+        const key = book.title; // 제목만으로 중복 판단
+        const existing = bookMap.get(key);
+        if (!existing || (book.year && existing.year && book.year > existing.year)) {
+          // 같은 제목이 없거나, 더 최근 연도면 교체
+          bookMap.set(key, book);
+        }
+      });
+      
+      const uniqueBooks = Array.from(bookMap.values());
+      setBooks(uniqueBooks);
+      if (uniqueBooks.length === 0) {
+        const message = `${subject === Subject.KOREAN ? '국어' : subject === Subject.ENGLISH ? '영어' : '수학'} 과목의 교재가 없습니다.`;
+        speak(message);
+      }
+    } catch (err) {
+      const errorMsg = '교재 목록을 불러오는 중 오류가 발생했습니다.';
+      setError(errorMsg);
+      speak(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBookSelect = async (selectedBook: Book) => {
+    try {
+      // book의 subject를 사용하여 커리큘럼 찾기 (과목 필터링)
+      // Book.Subject와 Curriculum.Subject는 같은 enum 값이므로 타입 캐스팅
+      const curricula = await curriculumAPI.list(selectedBook.subject as CurriculumSubject, selectedBook.book_id);
+      if (curricula.length > 0) {
+        // 첫 번째 커리큘럼으로 이동
+        navigate(`/curriculum/${curricula[0].curriculum_id}`);
+      } else {
+        // 커리큘럼이 없으면 교재 상세 페이지로 이동
+        navigate(`/book/${selectedBook.book_id}`);
+      }
+    } catch (err) {
+      console.error('[Book] 커리큘럼 조회 실패:', err);
+      // 에러 발생 시 교재 상세 페이지로 이동
+      navigate(`/book/${selectedBook.book_id}`);
     }
   };
 
@@ -132,6 +226,31 @@ export default function Book() {
       }
     } catch (err: any) {
       const errorMsg = err.message || '재파싱 중 오류가 발생했습니다.';
+      setError(errorMsg);
+      showToastMessage(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRecreateCurriculum = async () => {
+    if (!bookId) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await booksAPI.createCurriculumFromData(bookId);
+      showToastMessage(result.message);
+      if (result.ok) {
+        // 교재 정보 새로고침
+        await loadBook(bookId);
+        // 강의 목록 새로고침
+        await loadLessons(bookId);
+        // 페이지 새로고침하여 커리큘럼 반영
+        window.location.reload();
+      }
+    } catch (err: any) {
+      const errorMsg = err.message || '커리큘럼 재생성 중 오류가 발생했습니다.';
       setError(errorMsg);
       showToastMessage(errorMsg);
     } finally {
@@ -187,6 +306,72 @@ export default function Book() {
                 onUploadComplete={handleUploadComplete}
                 onSpeak={speak}
               />
+            ) : subjectParam && !bookId ? (
+              // subject만 있고 bookId가 없으면 교재/강의 목록 표시
+              <div className="space-y-4">
+                {/* 국어 선택 시 문학 강의 목록 표시 */}
+                {subjectParam === Subject.KOREAN ? (
+                  <>
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg p-4 mb-4">
+                      <h2 className="text-xl font-bold mb-2 text-blue-900">📚 수능특강 문학</h2>
+                      <p className="text-sm text-blue-700">문학 강의를 선택하여 학습을 시작하세요.</p>
+                    </div>
+                    {literatureLectures.length > 0 ? (
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-semibold mb-2">문학 강의 목록</h3>
+                        {literatureLectures.map((lecture) => (
+                          <button
+                            key={lecture.lecture_id}
+                            onClick={() => {
+                              stopTTS();
+                              navigate(`/textbook?subject=korean`);
+                              showToastMessage(`${lecture.title} 학습을 시작합니다.`);
+                            }}
+                            className="w-full p-4 text-left bg-card border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                          >
+                            <div className="font-medium text-gray-900">{lecture.title}</div>
+                            <div className="text-sm text-gray-600 mt-1">
+                              강의 ID: {lecture.lecture_id}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted">
+                        <p>등록된 문학 강의가 없습니다.</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* 다른 과목은 교재 목록 표시 */}
+                    <h2 className="text-xl font-bold mb-4">
+                      {subjectParam === Subject.ENGLISH ? '영어' : '수학'} 교재 목록
+                    </h2>
+                    {books.length > 0 ? (
+                      <div className="space-y-2">
+                        {books.map((book) => (
+                          <button
+                            key={book.book_id}
+                            onClick={() => handleBookSelect(book)}
+                            className="w-full p-4 text-left bg-card border border-border rounded-lg hover:border-primary transition-colors"
+                          >
+                            <div className="font-medium">{book.title}</div>
+                            <div className="text-sm text-muted mt-1">
+                              {book.year && `${book.year}년 • `}
+                              강 {book.lesson_count || 0}개
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted">
+                        <p>등록된 교재가 없습니다.</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             ) : book ? (
               <div className="space-y-4">
                 {/* 교재 정보 */}
@@ -229,6 +414,22 @@ export default function Book() {
                       >
                         {loading ? '재파싱 중...' : '재파싱 시도'}
                       </button>
+                    </div>
+                  )}
+
+                  {/* 커리큘럼 재생성 버튼 */}
+                  {book.parse_status === 'DONE' && (
+                    <div className="mt-4">
+                      <button
+                        onClick={handleRecreateCurriculum}
+                        disabled={loading}
+                        className="w-full px-4 py-2 bg-warning/10 text-warning border border-warning rounded-lg hover:bg-warning/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {loading ? '커리큘럼 재생성 중...' : '커리큘럼 재생성'}
+                      </button>
+                      <p className="text-xs text-muted mt-2">
+                        기존 커리큘럼을 삭제하고 파이프라인 데이터로부터 새로 생성합니다.
+                      </p>
                     </div>
                   )}
                 </div>

@@ -1,7 +1,7 @@
 /**
  * 강 목록 컴포넌트
  */
-import { BraillePatternFactory } from '../../lib/braillePattern';
+import { BraillePatternFactory } from '../lib/braillePattern';
 import useBrailleBLE from '../../hooks/useBrailleBLE';
 import type { Unit } from '../../types/unit';
 
@@ -20,7 +20,8 @@ export default function LessonList({ units, onSelect, onSpeak }: LessonListProps
     // 점자 패턴 전송 (단위 번호)
     if (isConnected && index < 5) {
       const pattern = BraillePatternFactory.createNumberPattern((index + 1) as 1 | 2 | 3 | 4 | 5);
-      writeCells([pattern]);
+      const cellArray = BraillePatternFactory.cellToArray(pattern);
+      writeCells([cellArray]);
     }
     
     // 음성 안내

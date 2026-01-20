@@ -77,18 +77,34 @@ export function useBrailleChunkReader(
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTextRef = useRef<string>(''); // 이전 텍스트 추적
+
+  // 텍스트가 변경되면 인덱스와 재생 상태 초기화
+  useEffect(() => {
+    if (text !== lastTextRef.current) {
+      setCurrentIndex(0);
+      setIsPlaying(false);
+      // 기존 인터벌 정리
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      lastTextRef.current = text;
+    }
+  }, [text]);
 
   // 현재 청크
   const currentChunk = chunks[currentIndex] || null;
 
   // 현재 청크를 점자로 출력
   useEffect(() => {
-    if (currentChunk && isConnected && !isPlaying) {
+    if (currentChunk && isConnected) {
+      // 텍스트 변경 시 즉시 출력
       writeText(currentChunk).catch((error) => {
         console.error('[useBrailleChunkReader] Failed to write to braille:', error);
       });
     }
-  }, [currentIndex, currentChunk, isConnected, writeText, isPlaying]);
+  }, [currentIndex, currentChunk, isConnected, writeText]);
 
   // 자동 재생
   useEffect(() => {

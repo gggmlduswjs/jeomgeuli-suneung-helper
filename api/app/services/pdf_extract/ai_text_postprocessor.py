@@ -48,6 +48,30 @@ class AITextPostProcessor:
         self.temperature = temperature
         self.use_langchain = use_langchain and LANGCHAIN_AVAILABLE
         
+        # 프롬프트 텍스트 (LangChain 사용 여부와 관계없이 필요)
+        self.clean_prompt_text = """당신은 수능특강 교재 텍스트 정리 전문가입니다.
+
+다음 작업을 수행해주세요:
+1. OCR 오류 수정 (예: "0" → "O", "rn" → "m", "1" → "l")
+2. 문장 구조 정리 (불필요한 줄바꿈, 공백 정규화)
+3. 한글/영어 혼합 텍스트 정규화
+4. 수능특강 교재 형식 유지 (문제 번호, 보기 기호 등)
+
+중요:
+- 원본 구조를 최대한 보존
+- 수식이나 특수 기호는 그대로 유지
+- 문제 번호(1., 2.)와 보기 기호(①②③④⑤)는 반드시 유지
+- 지문과 문제의 구분은 명확히 유지"""
+        
+        self.ocr_fix_prompt_text = """당신은 OCR 오류 수정 전문가입니다.
+
+다음 텍스트의 OCR 오류를 수정해주세요:
+- 숫자와 문자 혼동 (0/O, 1/l/I, 5/S 등)
+- 문자 인접 오류 (rn → m, cl → d 등)
+- 공백 오류 (단어 분리/병합)
+
+맥락 정보를 활용하여 정확한 단어로 수정해주세요."""
+        
         if self.use_langchain:
             self.llm = ChatOpenAI(model=model, temperature=temperature)
             self._setup_prompts()
@@ -62,31 +86,12 @@ class AITextPostProcessor:
     def _setup_prompts(self):
         """LangChain 프롬프트 설정"""
         self.clean_prompt = ChatPromptTemplate.from_messages([
-            ("system", """당신은 수능특강 교재 텍스트 정리 전문가입니다.
-
-다음 작업을 수행해주세요:
-1. OCR 오류 수정 (예: "0" → "O", "rn" → "m", "1" → "l")
-2. 문장 구조 정리 (불필요한 줄바꿈, 공백 정규화)
-3. 한글/영어 혼합 텍스트 정규화
-4. 수능특강 교재 형식 유지 (문제 번호, 보기 기호 등)
-
-중요:
-- 원본 구조를 최대한 보존
-- 수식이나 특수 기호는 그대로 유지
-- 문제 번호(1., 2.)와 보기 기호(①②③④⑤)는 반드시 유지
-- 지문과 문제의 구분은 명확히 유지"""),
+            ("system", self.clean_prompt_text),
             ("human", "다음 텍스트를 정리해주세요:\n\n{text}")
         ])
         
         self.ocr_fix_prompt = ChatPromptTemplate.from_messages([
-            ("system", """당신은 OCR 오류 수정 전문가입니다.
-
-다음 텍스트의 OCR 오류를 수정해주세요:
-- 숫자와 문자 혼동 (0/O, 1/l/I, 5/S 등)
-- 문자 인접 오류 (rn → m, cl → d 등)
-- 공백 오류 (단어 분리/병합)
-
-맥락 정보를 활용하여 정확한 단어로 수정해주세요."""),
+            ("system", self.ocr_fix_prompt_text),
             ("human", "맥락: {context}\n\n텍스트: {text}\n\n수정된 텍스트:")
         ])
     
@@ -129,7 +134,7 @@ class AITextPostProcessor:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": self.clean_prompt.format_messages()[0].content},
+                    {"role": "system", "content": self.clean_prompt_text},
                     {"role": "user", "content": f"다음 텍스트를 정리해주세요:\n\n{text}"}
                 ],
                 temperature=self.temperature
@@ -165,7 +170,7 @@ class AITextPostProcessor:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": self.ocr_fix_prompt.format_messages()[0].content},
+                    {"role": "system", "content": self.ocr_fix_prompt_text},
                     {"role": "user", "content": f"맥락: {context}\n\n텍스트: {text}\n\n수정된 텍스트:"}
                 ],
                 temperature=self.temperature

@@ -412,18 +412,24 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
 
   // 포인터 시작 - 화면을 누르고 있는 동안 마이크 켜기
   const handlePointerDown = useCallback((e: PointerEvent) => {
-    // 버튼/입력 필드 필터링
+    // 버튼/입력 필드/링크 필터링 (더 엄격하게)
     const target = e.target as HTMLElement;
     if (
       target.tagName === 'BUTTON' ||
       target.tagName === 'INPUT' ||
       target.tagName === 'TEXTAREA' ||
+      target.tagName === 'A' ||
+      target.tagName === 'SELECT' ||
       target.closest('button') ||
       target.closest('input') ||
       target.closest('textarea') ||
-      target.closest('a')
+      target.closest('a') ||
+      target.closest('[role="button"]') ||
+      target.closest('[onclick]') ||
+      // 스크롤 가능한 영역은 제외하지 않음 (길게 누르면 마이크 켜짐)
+      target.getAttribute('data-no-long-press') === 'true' // 특정 요소는 명시적으로 제외
     ) {
-      return;
+      return; // 버튼/입력 필드/링크에서는 마이크 시작하지 않음
     }
 
     // 이미 활성 포인터가 있으면 무시
@@ -436,22 +442,29 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
       return;
     }
 
-    // 텍스트 선택 및 시스템 제스처 차단 (크롬 검색 등)
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-
-    // 활성 포인터 등록
+    // 활성 포인터 등록 (길게 누르기 감지용)
     activePointerRef.current = {
       pointerId: e.pointerId,
       startTime: Date.now()
     };
 
-    // 마이크 시작
-    setIsLongPressing(true);
-    setShowAnimation(true);
-    stopTTS(); // TTS 중지 (홈 화면 등에서 안내 멘트 중단)
-    micMode.requestStart();
+    // 짧게 누른 경우 클릭으로 처리 (300ms 후에 마이크 시작)
+    const longPressTimer = setTimeout(() => {
+      // 300ms 이상 누르고 있으면 마이크 시작
+      if (activePointerRef.current && activePointerRef.current.pointerId === e.pointerId) {
+        // 텍스트 선택 및 시스템 제스처 차단 (길게 누르는 경우에만)
+        e.preventDefault();
+        
+        // 마이크 시작
+        setIsLongPressing(true);
+        setShowAnimation(true);
+        stopTTS(); // TTS 중지 (홈 화면 등에서 안내 멘트 중단)
+        micMode.requestStart();
+      }
+    }, 300); // 300ms 후에 길게 누르기로 인식
+
+    // 타이머 저장 (pointerUp에서 취소하기 위해)
+    (activePointerRef.current as any).timer = longPressTimer;
   }, [isListening, stopTTS]);
 
   // 포인터 종료 - 손을 떼면 마이크 끄기
@@ -466,19 +479,35 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
       return;
     }
 
-    // 마이크 중지
-    if (isListening) {
+    // 길게 누르기 타이머 취소 (짧게 누른 경우 클릭으로 처리)
+    const timer = (activePointerRef.current as any).timer;
+    if (timer) {
+      clearTimeout(timer);
+    }
+
+    // 짧게 누른 경우 (300ms 미만) - 클릭으로 간주하고 마이크 시작하지 않음
+    const pressDuration = Date.now() - activePointerRef.current.startTime;
+    const wasShortPress = pressDuration < 300;
+
+    // 마이크 중지 (이미 마이크가 켜져 있는 경우)
+    if (isListening && !wasShortPress) {
       micMode.requestStop();
     }
 
     // 상태 리셋
     activePointerRef.current = null;
     setIsLongPressing(false);
-    setTimeout(() => {
-      if (!isListening) {
-        setShowAnimation(false);
-      }
-    }, 200);
+    
+    // 짧게 누른 경우 애니메이션 즉시 숨김 (클릭 이벤트가 정상 동작하도록)
+    if (wasShortPress) {
+      setShowAnimation(false);
+    } else {
+      setTimeout(() => {
+        if (!isListening) {
+          setShowAnimation(false);
+        }
+      }, 200);
+    }
   }, [isListening]);
 
   // MicMode intents → 실제 STT start/stop 수행

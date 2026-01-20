@@ -13,6 +13,7 @@ import ToastA11y from '../components/system/ToastA11y';
 import LessonList from '../components/lesson/LessonList';
 import { lessonsAPI } from '../services/lessons';
 import { unitsAPI } from '../services/units';
+import { useAILectureTeacher } from '../hooks/useAILectureTeacher';
 import type { Lesson } from '../types/lesson';
 import type { Unit } from '../types/unit';
 
@@ -28,6 +29,12 @@ export default function Lesson() {
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
+  const [showSequentialLesson, setShowSequentialLesson] = useState(false);
+  
+  // AI 강의 선생님 훅 (순차적 수업용)
+  const aiTeacher = lessonId ? useAILectureTeacher(lessonId) : null;
 
   useEffect(() => {
     if (lessonId) {
@@ -43,12 +50,30 @@ export default function Lesson() {
       const data = await lessonsAPI.get(id);
       setLesson(data);
       speak(`${data.title}입니다. ${data.unit_count || 0}개의 학습 단위가 있습니다.`);
+      
+      // AI 요약 로드
+      loadAISummary(id);
     } catch (err) {
       const errorMsg = '강을 불러오는 중 오류가 발생했습니다.';
       setError(errorMsg);
       speak(errorMsg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAISummary = async (lessonId: string) => {
+    setIsLoadingSummary(true);
+    try {
+      const summary = await lessonsAPI.getSummary(lessonId);
+      setAiSummary(summary.summary);
+      // 요약을 TTS로 재생
+      speak(`이 레슨의 핵심 내용: ${summary.summary}`);
+    } catch (err) {
+      console.error('[Lesson] AI 요약 로드 실패:', err);
+      // 요약 실패해도 계속 진행
+    } finally {
+      setIsLoadingSummary(false);
     }
   };
 
@@ -111,11 +136,90 @@ export default function Lesson() {
         )}
 
         {!loading && !error && (
-          <LessonList
-            units={units}
-            onSelect={handleUnitSelect}
-            onSpeak={speak}
-          />
+          <div className="space-y-4">
+            {/* AI 요약 표시 */}
+            {isLoadingSummary && (
+              <div className="bg-info/10 border border-info rounded-lg p-4">
+                <p className="text-info">AI가 레슨 내용을 요약하고 있습니다...</p>
+              </div>
+            )}
+            
+            {aiSummary && !isLoadingSummary && (
+              <div className="bg-primary/10 border border-primary rounded-lg p-4">
+                <h4 className="font-semibold mb-2">AI 레슨 요약</h4>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{aiSummary}</p>
+                <button
+                  onClick={() => speak(`이 레슨의 핵심 내용: ${aiSummary}`)}
+                  className="btn-ghost text-xs mt-2"
+                >
+                  다시 듣기
+                </button>
+              </div>
+            )}
+            
+            {/* 순차적 수업 모드 */}
+            {lesson && lesson.lecture_script_text && aiTeacher && (
+              <div className="bg-card border border-border rounded-lg p-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-semibold">AI 순차적 수업</h4>
+                  {!showSequentialLesson && (
+                    <button
+                      onClick={async () => {
+                        setShowSequentialLesson(true);
+                        await aiTeacher.startLesson();
+                      }}
+                      className="btn-primary text-sm"
+                      disabled={aiTeacher.isTeaching}
+                    >
+                      수업 시작
+                    </button>
+                  )}
+                </div>
+                
+                {showSequentialLesson && (
+                  <div className="space-y-2">
+                    {aiTeacher.currentTopic && (
+                      <div className="bg-primary/10 border border-primary rounded-lg p-3 mb-2">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {aiTeacher.currentTopic}
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-2">
+                      <button
+                        onClick={aiTeacher.prevTopic}
+                        disabled={aiTeacher.position === 0 || aiTeacher.isTeaching}
+                        className="btn-ghost text-sm flex-1"
+                      >
+                        이전
+                      </button>
+                      <button
+                        onClick={aiTeacher.nextTopic}
+                        disabled={aiTeacher.isTeaching}
+                        className="btn-primary text-sm flex-1"
+                      >
+                        {aiTeacher.isTeaching ? '처리 중...' : '다음'}
+                      </button>
+                    </div>
+                    
+                    <button
+                      onClick={() => setShowSequentialLesson(false)}
+                      className="btn-ghost text-xs w-full"
+                    >
+                      수업 종료
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <LessonList
+              units={units}
+              onSelect={handleUnitSelect}
+              onSpeak={speak}
+            />
+          </div>
         )}
       </div>
 

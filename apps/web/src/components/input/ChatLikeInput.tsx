@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Send, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { useTTS } from "@/hooks/useTTS";
 import useVoiceCommands from "@/hooks/useVoiceCommands";
+import useSTT from "@/hooks/useSTT";
 
 interface ChatLikeInputProps {
   onSubmit: (message: string) => void;
@@ -29,8 +30,7 @@ export default function ChatLikeInput({
   const autoSendTimerRef = useRef<number | undefined>(undefined);
 
   const { speak: _speak, stop, isSpeaking } = useTTS();
-  const isListening = false; // 전역 STT만 사용
-  const transcript = "";     // 전역 voice:transcript만 사용
+  const { stop: stopSTT, isListening, transcript } = useSTT();
 
   const handleSubmit = useCallback((e?: React.FormEvent) => {
     if (e) e.preventDefault();

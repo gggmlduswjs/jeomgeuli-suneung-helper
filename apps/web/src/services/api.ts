@@ -70,7 +70,15 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 export const api = {
   get: async <T>(path: string): Promise<T> => {
-    return fetchWithRetry<T>(() => fetch(`${API_BASE}${path}`));
+    // 캐시 방지 헤더 추가 (항상 최신 데이터 가져오기)
+    return fetchWithRetry<T>(() => fetch(`${API_BASE}${path}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    }));
   },
 
   post: async <T>(path: string, body?: any): Promise<T> => {
@@ -78,6 +86,7 @@ export const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
       body: body ? JSON.stringify(body) : undefined,
     }));
@@ -86,6 +95,9 @@ export const api = {
   postFormData: async <T>(path: string, formData: FormData): Promise<T> => {
     return fetchWithRetry<T>(() => fetch(`${API_BASE}${path}`, {
       method: 'POST',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
       body: formData,
     }));
   },

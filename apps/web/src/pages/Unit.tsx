@@ -11,11 +11,15 @@ import useSTT from '../hooks/useSTT';
 import useVoiceCommands from '../hooks/useVoiceCommands';
 import ToastA11y from '../components/system/ToastA11y';
 import UnitViewer from '../components/unit/UnitViewer';
-import AnswerInput from '../pages/Question/components/AnswerInput';
-import AnswerResultComponent from '../pages/Question/components/AnswerResult';
+import AnswerInput from '../components/question/AnswerInput';
+import AnswerResultComponent from '../components/question/AnswerResult';
 import { unitsAPI } from '../services/units';
 import { answersAPI } from '../services/answers';
 import { progressAPI } from '../services/progress';
+import { aiAPI } from '../services/ai';
+import AIQuestionInput from '../components/ai/AIQuestionInput';
+import AIExplanationCard from '../components/ai/AIExplanationCard';
+import { useBrailleBLE } from '../hooks/useBrailleBLE';
 import type { Unit } from '../types/unit';
 import type { AnswerCreate } from '../types/answer';
 import { useProgressStore } from '../store/progressStore';
@@ -33,8 +37,11 @@ export default function UnitPage() {
   const [answerResult, setAnswerResult] = useState<{ is_correct: boolean; correct_answer: number; explanation?: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   
   const { saveProgress } = useProgressStore();
+  const { sendText } = useBrailleBLE();
 
   useEffect(() => {
     if (unitId) {
@@ -56,6 +63,11 @@ export default function UnitPage() {
         lesson_id: data.lesson_id,
       });
       
+      // AI 설명 요청 (강의 대본 기반)
+      if (data.type !== 'QUESTION') {
+        loadAIExplanation(id);
+      }
+      
       // 음성 안내
       if (data.type === 'QUESTION') {
         speak(`${data.title}입니다. 문제를 읽고 답하세요.`);
@@ -68,6 +80,46 @@ export default function UnitPage() {
       speak(errorMsg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAIExplanation = async (unitId: string) => {
+    setIsAiLoading(true);
+    try {
+      const response = await aiAPI.teachUnit(unitId);
+      setAiExplanation(response.explanation);
+      // AI 설명을 TTS로 재생
+      if (response.explanation) {
+        speak(response.explanation);
+        // 점자로도 출력
+        try {
+          await sendText(response.explanation);
+        } catch (err) {
+          console.error('[Unit] 점자 출력 실패:', err);
+          // 점자 실패해도 계속 진행
+        }
+      }
+    } catch (err) {
+      console.error('[Unit] AI 설명 로드 실패:', err);
+      // AI 실패해도 계속 진행
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const handleQuestion = async (question: string) => {
+    if (!unit) return;
+    
+    setIsAiLoading(true);
+    try {
+      const response = await aiAPI.answerQuestion(question, unit.unit_id, unit.lesson_id);
+      setAiExplanation(response.answer);
+      speak(response.answer);
+    } catch (err) {
+      console.error('[Unit] AI 질문 답변 실패:', err);
+      speak('죄송합니다. 답변을 생성하는 중 오류가 발생했습니다.');
+    } finally {
+      setIsAiLoading(false);
     }
   };
 
@@ -153,6 +205,43 @@ export default function UnitPage() {
         {!loading && !error && unit && (
           <div className="space-y-4">
             <UnitViewer unit={unit} onSpeak={speak} />
+            
+            {/* AI 설명 표시 */}
+            {isAiLoading && (
+              <div className="bg-info/10 border border-info rounded-lg p-4">
+                <p className="text-info">AI가 설명을 생성하고 있습니다...</p>
+              </div>
+            )}
+            
+            {aiExplanation && !isAiLoading && (
+              <AIExplanationCard
+                explanation={aiExplanation}
+                isLoading={false}
+                onReplay={async () => {
+                  speak(aiExplanation);
+                  // 점자로도 출력
+                  try {
+                    await sendText(aiExplanation);
+                  } catch (err) {
+                    console.error('[Unit] 점자 출력 실패:', err);
+                  }
+                }}
+              />
+            )}
+            
+            {/* AI 질문 입력 (개념/작품인 경우) */}
+            {unit && (unit.type === 'CONCEPT_CORE' || unit.type === 'PASSAGE') && (
+              <div className="mt-4">
+                <AIQuestionInput
+                  unitId={unit.unit_id}
+                  lessonId={unit.lesson_id}
+                  onAnswer={(answer) => {
+                    // 답변은 이미 TTS로 재생됨
+                    console.log('AI 답변:', answer);
+                  }}
+                />
+              </div>
+            )}
             
             {/* 문제인 경우 답안 입력 */}
             {unit.type === 'QUESTION' && unit.question && !answerResult && (

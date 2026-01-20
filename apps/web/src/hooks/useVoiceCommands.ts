@@ -3,7 +3,7 @@
  * 분리된 모듈을 사용하여 명령어 처리
  */
 import { useCallback } from "react";
-import { route } from "../lib/voice/CommandRouter";
+import CommandService from "../services/CommandService";
 
 // 타입 정의
 export type CommandHandlers = {
@@ -59,6 +59,9 @@ export type CommandHandlers = {
   // 입력 관련
 	clear?: () => void;
 	submit?: () => void;
+  
+  // 학습 이어하기
+	continue?: () => void;
 };
 
 /**
@@ -66,6 +69,8 @@ export type CommandHandlers = {
  * 분리된 모듈(commands, normalizers, matchers)을 사용하여 명령어 처리
  */
 export default function useVoiceCommands(handlers: CommandHandlers) {
-  const onSpeech = useCallback((text: string): boolean => route(text, handlers), [handlers]);
+  const onSpeech = useCallback((text: string): boolean => {
+    return CommandService.processCommand(text, handlers);
+  }, [handlers]);
   return { onSpeech };
 }

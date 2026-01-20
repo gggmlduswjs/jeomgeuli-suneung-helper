@@ -20,7 +20,7 @@ export default function BrailleRow({
     >
       {cells.map((c, idx) => {
         // Cell을 "100000" 형태의 문자열로 변환
-        const pattern = c.map(dot => dot ? '1' : '0').join('');
+        const pattern = c.map((dot: boolean) => dot ? '1' : '0').join('');
         return <BrailleGrid key={`cell-${idx}`} pattern={pattern} size={48} />;
       })}
     </div>

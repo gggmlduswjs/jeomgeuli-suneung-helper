@@ -6,6 +6,7 @@ from .base_extractor import BaseExtractor
 from .pdfplumber_extractor import PDFPlumberExtractor
 from .image_extractor import ImageExtractor
 from .literature_extractor import LiteraturePDFExtractor
+from .pdf_cropper import PDFCropper, crop_pdf_pages, extract_pdf_blocks_from_range
 from .exceptions import (
     PDFExtractionError,
     PDFNotFoundError,
@@ -40,6 +41,9 @@ __all__ = [
     "PDFPlumberExtractor", 
     "ImageExtractor",
     "LiteraturePDFExtractor",
+    "PDFCropper",
+    "crop_pdf_pages",
+    "extract_pdf_blocks_from_range",
     "PDFExtractionError",
     "PDFNotFoundError",
     "PDFCorruptedError",

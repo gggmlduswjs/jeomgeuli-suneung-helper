@@ -241,6 +241,9 @@ export function useBrailleBLE(config: BrailleBLEConfig = {}) {
     await writeCells(cells);
   }, [writeCells]);
 
+  // sendText는 writeText의 별칭 (호환성)
+  const sendText = writeText;
+
   return {
     isConnected,
     isBluetoothSupported,
@@ -250,6 +253,7 @@ export function useBrailleBLE(config: BrailleBLEConfig = {}) {
     disconnect,
     writeCells,
     writeText,
+    sendText, // writeText의 별칭
     writePattern // 레거시 호환
   };
 }

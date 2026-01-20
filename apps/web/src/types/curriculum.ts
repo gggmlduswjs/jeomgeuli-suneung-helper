@@ -68,6 +68,10 @@ export interface CurriculumDetail extends Curriculum {
   total_units: number;
 }
 
+/**
+ * 커리큘럼 생성 타입 (관리자용)
+ * 사용자는 커리큘럼을 생성하지 않음. 관리자가 백엔드에서 처리
+ */
 export interface CurriculumCreate {
   subject: Subject;
   title: string;

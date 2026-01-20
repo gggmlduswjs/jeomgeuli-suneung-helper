@@ -1,12 +1,11 @@
 """
 Data 폴더 정리 스크립트
 
-1. curricula/ 폴더를 과목별로 정리
-2. uploads/ 폴더의 오래된 임시 파일 삭제
-3. pdfs/ 폴더의 중복 확장자 파일명 정리
+1. uploads/ 폴더의 오래된 임시 파일 삭제
+2. pdfs/ 폴더의 중복 확장자 파일명 정리
+
+참고: curricula/ 폴더 정리는 더 이상 사용되지 않습니다 (DB에 저장됨).
 """
-import json
-import shutil
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -14,65 +13,10 @@ from datetime import datetime, timedelta
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 
-def cleanup_curricula():
-    """curricula 폴더를 과목별로 정리"""
-    print("=" * 60)
-    print("1. curricula 폴더 정리")
-    print("=" * 60)
-    
-    curricula_dir = DATA_DIR / "curricula"
-    if not curricula_dir.exists():
-        print("curricula 폴더가 없습니다.")
-        return
-    
-    # 과목별 폴더 매핑
-    subject_map = {
-        'korean': 'korean',
-        'literature': 'korean',
-        'math': 'math1',
-        'math1': 'math1',
-        'english': 'english',
-    }
-    
-    # 루트의 JSON 파일 찾기
-    json_files = list(curricula_dir.glob("cur_*.json"))
-    
-    if not json_files:
-        print("정리할 JSON 파일이 없습니다.")
-        return
-    
-    moved_count = 0
-    for json_file in json_files:
-        try:
-            # JSON 파일 읽어서 과목 확인
-            with open(json_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            subject = data.get('subject', '').lower()
-            folder_name = subject_map.get(subject, 'general')
-            
-            # 과목별 폴더 생성
-            target_dir = curricula_dir / folder_name
-            target_dir.mkdir(parents=True, exist_ok=True)
-            
-            # 파일 이동
-            target_path = target_dir / json_file.name
-            if target_path.exists():
-                print(f"  [스킵] 이미 존재: {target_path}")
-            else:
-                shutil.move(str(json_file), str(target_path))
-                print(f"  [이동] {json_file.name} → {folder_name}/")
-                moved_count += 1
-                
-        except Exception as e:
-            print(f"  [오류] {json_file.name}: {e}")
-    
-    print(f"\n총 {moved_count}개 파일 이동 완료")
-
 def cleanup_uploads(days_old=7):
     """uploads 폴더의 오래된 임시 파일 삭제"""
-    print("\n" + "=" * 60)
-    print("2. uploads 폴더 임시 파일 정리")
+    print("=" * 60)
+    print("1. uploads 폴더 임시 파일 정리")
     print("=" * 60)
     
     uploads_dir = DATA_DIR / "uploads"
@@ -113,7 +57,7 @@ def cleanup_uploads(days_old=7):
 def cleanup_pdf_filenames():
     """pdfs 폴더의 중복 확장자 파일명 정리"""
     print("\n" + "=" * 60)
-    print("3. pdfs 폴더 파일명 정리")
+    print("2. pdfs 폴더 파일명 정리")
     print("=" * 60)
     
     pdfs_dir = DATA_DIR / "pdfs"
@@ -152,13 +96,10 @@ def main():
     print(f"작업 디렉토리: {DATA_DIR}")
     print()
     
-    # 1. curricula 폴더 정리
-    cleanup_curricula()
-    
-    # 2. uploads 폴더 정리 (7일 이상 된 임시 파일 삭제)
+    # 1. uploads 폴더 정리 (7일 이상 된 임시 파일 삭제)
     cleanup_uploads(days_old=7)
     
-    # 3. pdfs 폴더 파일명 정리
+    # 2. pdfs 폴더 파일명 정리
     cleanup_pdf_filenames()
     
     print("\n" + "=" * 60)

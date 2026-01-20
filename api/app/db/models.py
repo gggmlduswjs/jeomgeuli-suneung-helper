@@ -51,6 +51,11 @@ class Lesson(Base):
     book_id = Column(String, ForeignKey("books.book_id", ondelete="CASCADE"), nullable=False)
     index = Column(Integer, nullable=False)
     title = Column(String, nullable=False)
+    lecture_script_text = Column(Text)  # 해당 레슨의 강의 대본 (레슨 단위로 분할된 것)
+    estimated_time = Column(Integer)  # 예상 소요 시간 (분)
+    key_points = Column(Text)  # JSON: ["핵심1", "핵심2"]
+    has_question = Column(Boolean, default=False)  # 문제 풀이 포함 여부
+    has_analysis = Column(Boolean, default=False)  # 작품 분석 포함 여부
     created_at = Column(DateTime, default=datetime.utcnow)
     
     book = relationship("Book", back_populates="lessons")
@@ -175,11 +180,28 @@ class LearningUnit(Base):
     unit_id = Column(String, primary_key=True)
     curriculum_id = Column(String, ForeignKey("curricula.curriculum_id", ondelete="CASCADE"), nullable=False)
     lesson_id = Column(String, ForeignKey("lessons.lesson_id", ondelete="SET NULL"), nullable=True)
-    section_type = Column(String, nullable=False)  # "ot", "concept", "example", "summary" 등
-    content = Column(Text, nullable=False)
+    section_type = Column(String, nullable=False)  # 과목별 타입: "concept", "example", "strategy", "problem" 등
+    title = Column(String)  # 학습 단위 제목 (예: "Unit 1. 수학Ⅰ 전체 맵 이해")
+    content = Column(Text, nullable=False)  # 전체 내용 텍스트
     order = Column(Integer, nullable=False)
+    
+    # 공통 구조 필드 (과목 공통)
+    learning_objective = Column(Text)  # 학습 목표
+    key_content = Column(Text)  # 핵심 내용
+    learning_point = Column(Text)  # 학습 포인트
+    
+    # 점자/음성 지원 필드
+    braille_pattern = Column(Text)  # JSON: [1,2,3] - 점자 3셀 패턴 (상태 전환 신호용)
+    braille_text = Column(Text)  # 점자 변환 결과 (전체)
+    tts_text = Column(Text)  # TTS용 요약 텍스트
+    
+    # 분할 및 참조 정보
     break_points = Column(Text)  # JSON: ["자, 그다음에...", "먼저..."] - 말하는 단위 분할 지점
     pdf_references = Column(Text)  # JSON: [{"type": "problem", "number": 1}, ...]
+    
+    # 과목별 확장 정보 (JSON)
+    subject_metadata = Column(Text)  # JSON: 과목별 특화 정보 (예: {"work_title": "...", "expression_type": "..."})
+    
     created_at = Column(DateTime, default=datetime.utcnow)
     
     curriculum = relationship("Curriculum", back_populates="learning_units")
