@@ -34,9 +34,9 @@ async def submit_answer(
     )
     db.add(answer)
     db.commit()
-    
-    # 오답인 경우 복습 큐에 추가
-    if not data.is_correct:
-        create_review_queue_for_wrong_answers(data.user_id, data.unit_id, db)
-    
+
+    # TODO: 오답인 경우 복습 큐에 추가 (나중에 구현)
+    # if not data.is_correct:
+    #     create_review_queue_for_wrong_answers(data.user_id, data.unit_id, db)
+
     return AnswerResponse(answer_id=answer_id, saved=True)

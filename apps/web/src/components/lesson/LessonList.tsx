@@ -1,7 +1,7 @@
 /**
  * 강 목록 컴포넌트
  */
-import { BraillePatternFactory } from '../lib/braillePattern';
+import { BraillePatternFactory } from '../../lib/braille';
 import useBrailleBLE from '../../hooks/useBrailleBLE';
 import type { Unit } from '../../types/unit';
 

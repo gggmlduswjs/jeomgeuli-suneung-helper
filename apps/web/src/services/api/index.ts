@@ -101,4 +101,13 @@ export const api = {
       body: formData,
     }));
   },
+
+  delete: async <T>(path: string): Promise<T> => {
+    return fetchWithRetry<T>(() => fetch(`${API_BASE}${path}`, {
+      method: 'DELETE',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+    }));
+  },
 };

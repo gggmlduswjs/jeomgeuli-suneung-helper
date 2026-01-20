@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from pathlib import Path
 import json
+import logging
 
 from app.db.session import get_db
 from app.db.models import Unit, Lesson, UnitType
@@ -56,13 +57,47 @@ async def list_units(lesson_id: str, db: Session = Depends(get_db)):
             "order": unit.order,
             "content_text": unit.content_text,
             "braille_text": unit.braille_text,
+            "image_path": unit.image_path,
         }
-        
+
+        # JSON 필드 파싱
+        if unit.content_image_paths:
+            try:
+                unit_data["content_image_paths"] = json.loads(unit.content_image_paths)
+            except:
+                unit_data["content_image_paths"] = []
+
+        if unit.ai_explanation:
+            unit_data["ai_explanation"] = unit.ai_explanation
+
+        if unit.braille_keywords:
+            try:
+                unit_data["braille_keywords"] = json.loads(unit.braille_keywords)
+            except:
+                unit_data["braille_keywords"] = []
+
         # 문제 타입인 경우 question 필드 추가
         if unit.type == UnitType.QUESTION and unit.question_stem:
-            choices = json.loads(unit.question_choices) if unit.question_choices else []
+            try:
+                # question_choices가 None이거나 빈 문자열인 경우 빈 리스트
+                if not unit.question_choices or unit.question_choices.strip() == '':
+                    choices = []
+                else:
+                    parsed = json.loads(unit.question_choices)
+                    # 딕셔너리인 경우 {"1": "...", "2": "..."} -> ["...", "..."] 변환
+                    if isinstance(parsed, dict):
+                        choices = [parsed.get(str(i), "") for i in range(1, 6)]
+                    elif isinstance(parsed, list):
+                        choices = parsed
+                    else:
+                        choices = []
+            except (json.JSONDecodeError, TypeError, ValueError) as e:
+                # 유효하지 않은 JSON인 경우 빈 리스트로 처리하고 로그 출력
+                logging.warning(f"Invalid question_choices JSON for unit {unit.unit_id}: {e}")
+                choices = []
+
             unit_data["question"] = UnitQuestion(
-                stem=unit.question_stem,
+                stem=unit.question_stem or "",
                 choices=choices,
                 answer=unit.question_answer,
             )
@@ -87,13 +122,47 @@ async def get_unit(unit_id: str, db: Session = Depends(get_db)):
         "order": unit.order,
         "content_text": unit.content_text,
         "braille_text": unit.braille_text,
+        "image_path": unit.image_path,
     }
-    
+
+    # JSON 필드 파싱
+    if unit.content_image_paths:
+        try:
+            unit_data["content_image_paths"] = json.loads(unit.content_image_paths)
+        except:
+            unit_data["content_image_paths"] = []
+
+    if unit.ai_explanation:
+        unit_data["ai_explanation"] = unit.ai_explanation
+
+    if unit.braille_keywords:
+        try:
+            unit_data["braille_keywords"] = json.loads(unit.braille_keywords)
+        except:
+            unit_data["braille_keywords"] = []
+
     # 문제 타입인 경우 question 필드 추가
     if unit.type == UnitType.QUESTION and unit.question_stem:
-        choices = json.loads(unit.question_choices) if unit.question_choices else []
+        try:
+            # question_choices가 None이거나 빈 문자열인 경우 빈 리스트
+            if not unit.question_choices or unit.question_choices.strip() == '':
+                choices = []
+            else:
+                parsed = json.loads(unit.question_choices)
+                # 딕셔너리인 경우 {"1": "...", "2": "..."} -> ["...", "..."] 변환
+                if isinstance(parsed, dict):
+                    choices = [parsed.get(str(i), "") for i in range(1, 6)]
+                elif isinstance(parsed, list):
+                    choices = parsed
+                else:
+                    choices = []
+        except (json.JSONDecodeError, TypeError, ValueError) as e:
+            # 유효하지 않은 JSON인 경우 빈 리스트로 처리하고 로그 출력
+            logging.warning(f"Invalid question_choices JSON for unit {unit.unit_id}: {e}")
+            choices = []
+
         unit_data["question"] = UnitQuestion(
-            stem=unit.question_stem,
+            stem=unit.question_stem or "",
             choices=choices,
             answer=unit.question_answer,
         )

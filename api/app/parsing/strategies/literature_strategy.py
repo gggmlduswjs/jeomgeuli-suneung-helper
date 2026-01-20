@@ -77,11 +77,15 @@ class LiteratureParsingStrategy(BaseParsingStrategy):
                 if re.search(r'\([가-힣]+\)', line_text) and len(line_text) < 40:
                     continue
                 
-                # 문제 번호/지문 제외
+                # 문제 번호/지문 제외 (더 관대하게 수정)
+                # 2자리 숫자로 시작하지만 "N강" 형식이 아니고, 텍스트가 매우 긴 경우만 제외
                 if re.match(r'^\d{2,}\s+[가-힣]', line_text) and not re.search(r'^\d+강', line_text):
-                    continue
+                    # 텍스트가 매우 긴 경우만 문제 지문으로 간주 (50자 이상)
+                    if len(line_text) > 50:
+                        continue
                 
-                if len(line_text) > 30 and re.match(r'^\d{2,}\s+[가-힣]{5,}', line_text) and not re.search(r'^\d+강', line_text):
+                # 매우 긴 텍스트는 문제 지문일 가능성이 높음
+                if len(line_text) > 80 and re.match(r'^\d{2,}\s+[가-힣]{10,}', line_text) and not re.search(r'^\d+강', line_text):
                     continue
                 
                 # 페이지 상단 영역 체크
@@ -96,9 +100,20 @@ class LiteratureParsingStrategy(BaseParsingStrategy):
                 
                 # 패턴 매칭
                 if matches_patterns(line_text, patterns):
-                    # 강의 제목 검증: 반드시 "N강" 형식이어야 함
-                    lecture_title_match = re.search(r'^(\d+)강', line_text)
-                    if not lecture_title_match:
+                    # 강의 제목 검증: "N강" 또는 "작품으로 이해하기 N" 또는 "NN 장르명" 형식
+                    # 검증을 완화하여 다양한 형식 허용 (OCR 오인식 대응)
+                    is_valid_lecture = (
+                        re.search(r'^\d+강', line_text) or  # "1강 |", "2강" 등
+                        re.search(r'작품으로\s*이해하기\s*\d+', line_text) or  # "작품으로 이해하기 4"
+                        re.search(r'^\d{2}\s+[가-힣]+', line_text) or  # "01 고전 시가", "02 현대시" 등 (공백 필수)
+                        re.search(r'^\d{2}[가-힣]+', line_text) or  # "01고전시가" (공백 없이도 허용)
+                        # 추가 패턴: 숫자로 시작하고 한글이 포함된 경우 (더 관대하게)
+                        (re.match(r'^\d+', line_text) and re.search(r'[가-힣]', line_text) and len(line_text) >= 3 and len(line_text) <= 50)
+                    )
+                    if not is_valid_lecture:
+                        # 디버깅: 왜 필터링되었는지 로그 (패턴 매칭은 되었지만 검증 실패)
+                        if len(line_text) < 50 and re.match(r'^\d+', line_text):
+                            print(f"    [필터링] 강의 제목 검증 실패: '{line_text[:40]}' (페이지 {page_num})")
                         continue
                     
                     # 문제/해설 페이지 제외

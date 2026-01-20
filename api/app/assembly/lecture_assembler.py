@@ -7,7 +7,7 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 import json
 
-from .intermediate_schema import IntermediateDocument, IntermediateBlock, BlockType
+from app.parsing.schemas import IntermediateDocument, IntermediateBlock, BlockType
 
 logger = logging.getLogger(__name__)
 

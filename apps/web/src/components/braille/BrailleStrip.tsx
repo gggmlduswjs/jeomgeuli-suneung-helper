@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import BrailleCell from "./BrailleCell";
 import { brailleAPI } from "@/lib/api/BrailleAPI";
-import { normalizeCells } from "@/lib/brailleSafe";
+import { normalizeCells } from "@/lib/braille";
 
 type DotArray = [boolean, boolean, boolean, boolean, boolean, boolean];
 

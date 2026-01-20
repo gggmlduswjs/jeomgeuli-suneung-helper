@@ -3,9 +3,10 @@
  * 텍스트를 청크로 분할하고 순차적으로 점자 디스플레이에 출력
  */
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { splitToBrailleChunks, estimateBrailleCells } from '../utils/brailleChunk';
+import { splitToBrailleChunks, estimateBrailleCells } from '../lib/braille';
 import { brailleDisplayConfig } from '../config/brailleDisplay';
 import useBrailleBLE from './useBrailleBLE';
+import { useArduinoButtons } from './useArduinoButtons';
 
 export interface UseBrailleChunkReaderOptions {
   maxCells?: number;
@@ -35,6 +36,9 @@ export function useBrailleChunkReader(
 ): UseBrailleChunkReaderReturn {
   const config = brailleDisplayConfig.get();
   const { isConnected, writeText } = useBrailleBLE();
+  
+  // Arduino 버튼 제어 (선택적)
+  const { isConnected: isArduinoConnected, connect: connectArduino, onButtonPress, offButtonPress } = useArduinoButtons();
   
   // 과목별 전략 적용
   const getSubjectStrategy = (subject?: string): 'word' | 'sentence' | 'smart' => {
@@ -78,6 +82,59 @@ export function useBrailleChunkReader(
   const [isPlaying, setIsPlaying] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastTextRef = useRef<string>(''); // 이전 텍스트 추적
+  
+  // 다음 청크로 이동
+  const next = useCallback(() => {
+    setCurrentIndex((prev) => Math.min(prev + 1, chunks.length - 1));
+  }, [chunks.length]);
+
+  // 이전 청크로 이동
+  const prev = useCallback(() => {
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+  }, []);
+
+  // 특정 인덱스로 이동
+  const goTo = useCallback((index: number) => {
+    setCurrentIndex(Math.max(0, Math.min(index, chunks.length - 1)));
+  }, [chunks.length]);
+
+  // 재생 시작
+  const play = useCallback(() => {
+    setIsPlaying(true);
+  }, []);
+
+  // 일시정지
+  const pause = useCallback(() => {
+    setIsPlaying(false);
+  }, []);
+
+  // Arduino 버튼 이벤트 처리
+  useEffect(() => {
+    if (!isArduinoConnected) return;
+    
+    const handleButtonEvent = (event: 'prev' | 'next' | 'play' | 'pause') => {
+      switch (event) {
+        case 'prev':
+          prev();
+          break;
+        case 'next':
+          next();
+          break;
+        case 'play':
+          play();
+          break;
+        case 'pause':
+          pause();
+          break;
+      }
+    };
+    
+    onButtonPress(handleButtonEvent);
+    
+    return () => {
+      offButtonPress();
+    };
+  }, [isArduinoConnected, prev, next, play, pause, onButtonPress, offButtonPress]);
 
   // 텍스트가 변경되면 인덱스와 재생 상태 초기화
   useEffect(() => {
@@ -128,31 +185,6 @@ export function useBrailleChunkReader(
       };
     }
   }, [autoPlay, isPlaying, chunks.length, delayMs]);
-
-  // 다음 청크로 이동
-  const next = useCallback(() => {
-    setCurrentIndex((prev) => Math.min(prev + 1, chunks.length - 1));
-  }, [chunks.length]);
-
-  // 이전 청크로 이동
-  const prev = useCallback(() => {
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
-  }, []);
-
-  // 특정 인덱스로 이동
-  const goTo = useCallback((index: number) => {
-    setCurrentIndex(Math.max(0, Math.min(index, chunks.length - 1)));
-  }, [chunks.length]);
-
-  // 재생 시작
-  const play = useCallback(() => {
-    setIsPlaying(true);
-  }, []);
-
-  // 일시정지
-  const pause = useCallback(() => {
-    setIsPlaying(false);
-  }, []);
 
   // 초기화
   const reset = useCallback(() => {

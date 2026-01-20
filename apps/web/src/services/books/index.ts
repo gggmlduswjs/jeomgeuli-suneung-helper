@@ -1,7 +1,7 @@
 /**
  * 교재 API 서비스
  */
-import { api } from './api';
+import { api } from '../api';
 import type { Book, BookCreate, BookParseStatus, Subject } from '../types/book';
 
 export const booksAPI = {
@@ -12,7 +12,8 @@ export const booksAPI = {
     file: File,
     title: string,
     subject: Subject,
-    year?: number
+    year?: number,
+    aiOptions?: import('../types/book').AIProcessingOptions
   ): Promise<Book> {
     const formData = new FormData();
     formData.append('file', file);
@@ -20,6 +21,23 @@ export const booksAPI = {
     formData.append('subject', subject);
     if (year) {
       formData.append('year', year.toString());
+    }
+    
+    // AI 옵션 추가
+    if (aiOptions) {
+      formData.append('enable_ml_deduplication', String(aiOptions.enable_ml_deduplication ?? true));
+      formData.append('enable_ml_classification', String(aiOptions.enable_ml_classification ?? true));
+      formData.append('enable_layout_analysis', String(aiOptions.enable_layout_analysis ?? false));
+      formData.append('enable_math_recognition', String(aiOptions.enable_math_recognition ?? false));
+      formData.append('enable_llm_metadata', String(aiOptions.enable_llm_metadata ?? false));
+      formData.append('enable_llm_explanations', String(aiOptions.enable_llm_explanations ?? false));
+      formData.append('enable_llm_recommendations', String(aiOptions.enable_llm_recommendations ?? false));
+      if (aiOptions.openai_api_key) {
+        formData.append('openai_api_key', aiOptions.openai_api_key);
+      }
+      if (aiOptions.education_level) {
+        formData.append('education_level', aiOptions.education_level);
+      }
     }
     
     return api.postFormData<Book>('/books/upload', formData);
@@ -90,5 +108,12 @@ export const booksAPI = {
     }
     
     return api.postFormData<Book>('/books/upload-hwp', formData);
+  },
+
+  /**
+   * 교재 삭제
+   */
+  async delete(bookId: string): Promise<{ ok: boolean; message: string }> {
+    return api.delete<{ ok: boolean; message: string }>(`/books/${bookId}`);
   },
 };

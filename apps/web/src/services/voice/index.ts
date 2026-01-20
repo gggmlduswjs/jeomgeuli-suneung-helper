@@ -1,9 +1,9 @@
-import { useVoiceStore } from '../store/voice';
-import VoiceEventBus, { VoiceEventType, emitTranscript } from '../lib/voice/VoiceEventBus';
-import micMode from '../lib/voice/MicMode';
-import GoogleStreamingProvider from '../stt/GoogleStreamingProvider';
-import { TranscriptProcessor } from '../lib/voice/TranscriptProcessor';
-import { CircuitBreaker } from '../lib/voice/CircuitBreaker';
+import { useVoiceStore } from '../../store/voice';
+import VoiceEventBus, { VoiceEventType, emitTranscript } from '../../lib/voice/VoiceEventBus';
+import micMode from '../../lib/voice/MicMode';
+import GoogleStreamingProvider from '../../stt/GoogleStreamingProvider';
+import { TranscriptProcessor } from '../../lib/voice/TranscriptProcessor';
+import { CircuitBreaker } from '../../lib/voice/CircuitBreaker';
 
 /**
  * STT Provider 인터페이스

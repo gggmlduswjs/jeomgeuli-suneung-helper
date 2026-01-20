@@ -62,23 +62,39 @@ class ImageProcessor:
     ) -> Image.Image:
         """
         이미지 전처리 및 저장
-        
+
         Args:
             image: 원본 이미지
             page_num: 페이지 번호
             output_dir: 저장 디렉토리
-            
+
         Returns:
             전처리된 이미지
         """
-        # 디렉토리 생성
-        output_dir.mkdir(parents=True, exist_ok=True)
-        
+        # 디렉토리는 이미 생성되어 있어야 함 (병렬 처리 시 중복 생성 방지)
+        # 혹시 모를 경우를 대비해 한 번 더 확인
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+        except (OSError, FileExistsError):
+            # 이미 존재하거나 다른 스레드가 생성 중이면 무시
+            pass
+
         # 전처리
         processed_image = ImageProcessor.preprocess_image(image)
-        
-        # 저장
+
+        # 저장 (재시도 로직 추가)
         image_path = output_dir / f"page_{page_num:03d}.png"
-        processed_image.save(image_path)
-        
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                processed_image.save(image_path)
+                break
+            except OSError as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"이미지 저장 실패 (페이지 {page_num}): {e}")
+                    raise
+                # 짧은 대기 후 재시도
+                import time
+                time.sleep(0.1 * (attempt + 1))
+
         return processed_image

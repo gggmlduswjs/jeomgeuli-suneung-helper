@@ -2,7 +2,7 @@
  * AI 서비스
  * AI 강의 선생님 API 호출
  */
-import { api } from './api';
+import { api } from '../api';
 
 export const aiAPI = {
   /**

@@ -192,12 +192,13 @@ async def explain_problem(
         # 선택지 포맷팅
         choices_text = "\n".join([f"{k}번: {v}" for k, v in choices.items()])
         
+        passage_section = f"지문:\n{passage_text}\n" if passage_text else ""
+
         prompt = f"""다음 문학 문제를 학생이 이해하기 쉽게 설명해주세요.
 
 문제: {question_text}
 
-{passage_text and f"지문:\n{passage_text}\n" or ""}
-
+{passage_section}
 선택지:
 {choices_text}
 
@@ -234,13 +235,17 @@ async def explain_problem(
         raise HTTPException(status_code=500, detail=f"AI 설명 생성 실패: {str(e)}")
 
 
-# ML 기반 유사도 계산 서비스
+# ML 기반 유사도 계산 서비스 (선택적)
 try:
     from app.services.ml_content_similarity import get_similarity_service, get_keyword_extractor
     ML_AVAILABLE = True
-except ImportError as e:
+except ImportError:
     ML_AVAILABLE = False
-    print(f"[LiteratureAI] ML 서비스 로드 실패: {e}")
+    # ML 서비스는 선택적 의존성이므로 경고 없이 무시
+    def get_similarity_service():
+        return None
+    def get_keyword_extractor():
+        return None
 
 
 @router.post("/literature/ai/find-similar-content")

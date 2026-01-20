@@ -62,8 +62,17 @@ export default function Book() {
           setParseProgress(status.progress);
           if (status.status === 'DONE' || status.status === 'FAILED') {
             clearInterval(interval);
+            await loadBook(bookId); // 교재 정보 새로고침 (상태 업데이트)
             if (status.status === 'DONE') {
-              loadLessons(bookId); // 강 목록 새로고침
+              // 강 목록 새로고침 및 검증
+              await loadLessons(bookId);
+              // DONE이지만 lessons가 비어있는 경우는 파싱 실패가 아니라 데이터 준비 중일 수 있음
+              // 에러 메시지는 표시하지 않고, UI에서 적절한 안내만 표시
+            } else if (status.status === 'FAILED') {
+              // 진짜 파싱 실패 시에만 에러 메시지 표시
+              const errorMsg = 'PDF 파싱이 실패했습니다. 파일을 확인하거나 재파싱을 시도해보세요.';
+              setError(errorMsg);
+              speak(errorMsg);
             }
           }
         } catch (err) {
@@ -105,8 +114,19 @@ export default function Book() {
     try {
       const data = await lessonsAPI.list(id);
       setLessons(data);
+      console.log(`[Book] 강 목록 로드 완료: ${data.length}개`);
+      // 강의가 있지만 일부가 섹션이 없는 경우 로그
+      if (data.length > 0) {
+        const lessonsWithoutContent = data.filter((lesson: Lesson) => !lesson.unit_count || lesson.unit_count === 0);
+        if (lessonsWithoutContent.length > 0) {
+          console.warn(`[Book] 콘텐츠가 없는 강의 ${lessonsWithoutContent.length}개:`, 
+            lessonsWithoutContent.map((l: Lesson) => l.title));
+        }
+      }
     } catch (err) {
       console.error('[Book] 강 목록 로드 실패:', err);
+      // 에러가 발생해도 빈 배열로 설정하여 UI에서 적절히 처리
+      setLessons([]);
     }
   };
 
@@ -212,7 +232,12 @@ export default function Book() {
               clearInterval(interval);
               await loadBook(bookId);
               if (status.status === 'DONE') {
-                loadLessons(bookId);
+                await loadLessons(bookId);
+              } else if (status.status === 'FAILED') {
+                // 재파싱 중 실패한 경우
+                const errorMsg = '재파싱이 실패했습니다.';
+                setError(errorMsg);
+                showToastMessage(errorMsg);
               }
             }
           } catch (err) {
@@ -438,24 +463,45 @@ export default function Book() {
                 {lessons.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-lg font-semibold">강 목록</h3>
-                    {lessons.map((lesson) => (
-                      <button
-                        key={lesson.lesson_id}
-                        onClick={() => handleLessonSelect(lesson)}
-                        className="w-full p-4 text-left bg-card border border-border rounded-lg hover:border-primary transition-colors"
-                      >
-                        <div className="font-medium">{lesson.title}</div>
-                        <div className="text-sm text-muted mt-1">
-                          단위 {lesson.unit_count || 0}개, 문제 {lesson.question_count || 0}개
-                        </div>
-                      </button>
-                    ))}
+                    {lessons.map((lesson) => {
+                      const hasContent = (lesson.unit_count && lesson.unit_count > 0) || (lesson.question_count && lesson.question_count > 0);
+                      return (
+                        <button
+                          key={lesson.lesson_id}
+                          onClick={() => handleLessonSelect(lesson)}
+                          className={`w-full p-4 text-left bg-card border rounded-lg transition-colors ${
+                            hasContent 
+                              ? 'border-border hover:border-primary' 
+                              : 'border-warning/50 hover:border-warning'
+                          }`}
+                        >
+                          <div className="font-medium">{lesson.title}</div>
+                          <div className="text-sm text-muted mt-1">
+                            단위 {lesson.unit_count || 0}개, 문제 {lesson.question_count || 0}개
+                            {!hasContent && (
+                              <span className="ml-2 text-warning text-xs">(콘텐츠 준비 중)</span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
                 {lessons.length === 0 && book.parse_status === 'DONE' && (
-                  <div className="text-center py-8 text-muted">
-                    <p>등록된 강이 없습니다.</p>
+                  <div className="bg-warning/10 border border-warning rounded-lg p-4 text-center">
+                    <p className="text-warning font-medium mb-2">강의 데이터를 찾을 수 없습니다.</p>
+                    <p className="text-xs text-muted mb-3">
+                      파싱은 완료되었지만 강의가 생성되지 않았을 수 있습니다. 
+                      커리큘럼 재생성을 시도해보세요.
+                    </p>
+                    <button
+                      onClick={handleRecreateCurriculum}
+                      disabled={loading}
+                      className="px-4 py-2 bg-warning/20 text-warning border border-warning rounded-lg hover:bg-warning/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                    >
+                      {loading ? '재생성 중...' : '커리큘럼 재생성'}
+                    </button>
                   </div>
                 )}
               </div>

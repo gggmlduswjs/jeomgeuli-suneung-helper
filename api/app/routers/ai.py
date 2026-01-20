@@ -40,43 +40,59 @@ async def ai_teach_unit(
 ):
     """
     Unit 내용을 AI가 강의 대본 기반으로 설명
-    
+
     Args:
         unit_id: Unit ID
-        
+
     Returns:
         AI 설명 텍스트
     """
     unit = db.query(Unit).filter(Unit.unit_id == unit_id).first()
     if not unit:
         raise HTTPException(status_code=404, detail="학습 단위를 찾을 수 없습니다.")
-    
-    # 레슨의 강의 대본 가져오기
+
+    # 1순위: Unit에 저장된 AI 설명 사용
+    if unit.ai_explanation:
+        return {
+            "unit_id": unit_id,
+            "explanation": unit.ai_explanation,
+            "unit_type": unit.type.value,
+            "source": "stored"
+        }
+
+    # 2순위: 레슨의 강의 대본 기반 LLM 호출
     lesson = db.query(Lesson).filter(Lesson.lesson_id == unit.lesson_id).first()
-    if not lesson or not lesson.lecture_script_text:
-        raise HTTPException(status_code=400, detail="강의 대본이 없습니다.")
-    
+    if not lesson or not hasattr(lesson, 'lecture_script_text') or not lesson.lecture_script_text:
+        # 강의 대본도 없으면 기본 설명 반환
+        return {
+            "unit_id": unit_id,
+            "explanation": "이 문제에 대한 상세한 설명이 준비되지 않았습니다.",
+            "unit_type": unit.type.value,
+            "source": "default"
+        }
+
     # AI 강의 선생님 초기화
     subject = lesson.book.subject.value.lower() if lesson.book else 'literature'
     teacher = AILectureTeacher(
         lecture_script=lesson.lecture_script_text,
         subject=subject
     )
-    
+
     # Unit 타입에 따라 설명
     unit_content = unit.content_text or unit.question_stem or ''
-    
+
     try:
         explanation = await teacher.teach_unit(
             unit_content=unit_content,
             unit_type=unit.type.value,
             unit_title=unit.title
         )
-        
+
         return {
             "unit_id": unit_id,
             "explanation": explanation,
-            "unit_type": unit.type.value
+            "unit_type": unit.type.value,
+            "source": "llm"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI 설명 생성 실패: {str(e)}")

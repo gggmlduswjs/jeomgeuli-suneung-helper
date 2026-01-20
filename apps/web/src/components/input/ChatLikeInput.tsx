@@ -159,12 +159,14 @@ export default function ChatLikeInput({
             inputMode="text"
             enterKeyHint="send"
             className="
-              w-full px-4 py-2.5 rounded-2xl border border-border
-              bg-bg text-fg placeholder:text-muted
-              focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+              w-full px-4 py-3 rounded-2xl border border-border/50
+              text-fg placeholder:text-muted
+              focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50
+              focus:shadow-soft-lg transition-all duration-300
               disabled:opacity-50 disabled:cursor-not-allowed
-              text-base
+              text-base shadow-soft
             "
+            style={{ background: 'linear-gradient(135deg, rgb(249, 250, 251) 0%, rgb(255, 255, 255) 100%)' }}
             aria-label="메시지 입력"
             aria-describedby="input-help"
           />

@@ -138,7 +138,8 @@ class TextbookPipeline:
         use_cache: bool = True,  # OCR 캐싱
         ai_model: str = "gpt-4o-mini",  # AI 모델
         max_pages: Optional[int] = None,  # 처리할 최대 페이지 수 (None = 전체)
-        use_pdfplumber: bool = True  # pdfplumber 사용 (텍스트 레이어가 있는 PDF에 권장)
+        use_pdfplumber: bool = True,  # pdfplumber 사용 (텍스트 레이어가 있는 PDF에 권장)
+        ai_options: Optional[dict] = None  # AI 기능 세부 옵션
     ):
         """
         Args:
@@ -153,6 +154,7 @@ class TextbookPipeline:
             ai_model: AI 모델명
             max_pages: 처리할 최대 페이지 수 (None = 전체, 예: 20 = 첫 20페이지만)
             use_pdfplumber: pdfplumber 사용 여부 (텍스트 레이어가 있는 PDF에 권장, OCR보다 정확하고 빠름)
+            ai_options: AI 기능 세부 옵션 딕셔너리 (ML, DL, LLM 기능별 활성화 설정)
         """
         self.subject = subject
         self.dpi = dpi
@@ -164,12 +166,13 @@ class TextbookPipeline:
         self.use_cache = use_cache
         self.max_pages = max_pages
         self.use_pdfplumber = use_pdfplumber and PDFPLUMBER_AVAILABLE
-        
+        self.ai_options = ai_options or {}
+
         if self.use_pdfplumber:
-            print(f"    ✓ pdfplumber 사용 (텍스트 레이어 추출, OCR보다 정확하고 빠름)")
+            print(f"    [OK] pdfplumber 사용 (텍스트 레이어 추출, OCR보다 정확하고 빠름)")
         elif PDFPLUMBER_AVAILABLE == False:
-            print(f"    ⚠️ pdfplumber가 설치되지 않았습니다. OCR을 사용합니다.")
-            print(f"    💡 더 정확한 추출을 위해: pip install pdfplumber")
+            print(f"     pdfplumber가 설치되지 않았습니다. OCR을 사용합니다.")
+            print(f"     더 정확한 추출을 위해: pip install pdfplumber")
         
         # 폴더 구조
         self.data_dir = settings.API_DIR / "data" / subject
@@ -242,10 +245,10 @@ class TextbookPipeline:
                 # OCR 추출기에도 경로 설정
                 self.text_extractor.tesseract_cmd = self.tesseract_cmd
             else:
-                print(f"    ⚠️ Tesseract가 설정되지 않았습니다. OCR이 작동하지 않을 수 있습니다.")
+                print(f"     Tesseract가 설정되지 않았습니다. OCR이 작동하지 않을 수 있습니다.")
                 print(f"    설치 방법: https://github.com/UB-Mannheim/tesseract/wiki")
         elif not TESSERACT_AVAILABLE and isinstance(self.text_extractor, OCRExtractor):
-            print(f"    ⚠️ pytesseract가 설치되지 않았습니다.")
+            print(f"     pytesseract가 설치되지 않았습니다.")
         
         # AI 후처리기 초기화 (선택적)
         self.ai_postprocessor = None
@@ -300,10 +303,16 @@ class TextbookPipeline:
             return {
                 "subject": "literature",
                 "lecture_title_patterns": [
-                    # 큰 주제 단위만 추출 (엄격한 패턴)
+                    # 1부: 교과서 개념 학습 (1~9강)
                     r'^\d+강\s*[|]\s*[가-힣]+',  # "1강 | 시의 표현과 형식"
                     r'^\d+강\s+[가-힣]+',  # "1강 시의 표현과 형식"
-                    r'^\d+\s+[가-힣]{2,}\s+[가-힣]{2,}',  # "1 시의 표현과 형식" (숫자 + 여러 한글 단어, 최소 2글자씩)
+                    r'작품으로\s*이해하기\s*\d+',  # "작품으로 이해하기 4" (4~9강)
+                    # 2부: 적용 학습 (작품별)
+                    r'^\d{2}\s+고전\s*시가',  # "01 고전 시가"
+                    r'^\d{2}\s+현대시',  # "01 현대시"
+                    r'^\d{2}\s+현대\s*소설',  # "01 현대 소설"
+                    r'^\d{2}\s+고전\s*산문',  # "01 고전 산문"
+                    r'^\d{2}\s+[가-힣]{2,}',  # "01 작품명" (일반 패턴)
                 ],
                 "concept_title_patterns": [
                     # 개념 블록 제목 패턴 (일반적인 패턴 - 모든 단원에 적용 가능)
@@ -427,7 +436,7 @@ class TextbookPipeline:
             for path in default_paths:
                 if path and Path(path).exists():
                     pytesseract.pytesseract.tesseract_cmd = path
-                    print(f"    ✓ Tesseract 경로 설정: {path}")
+                    print(f"    [OK] Tesseract 경로 설정: {path}")
                     return path
             
             # Tesseract 버전 확인 시도 (PATH에 있을 때)
@@ -436,19 +445,19 @@ class TextbookPipeline:
                 result = subprocess.run(['tesseract', '--version'], 
                                       capture_output=True, timeout=5)
                 if result.returncode == 0:
-                    print(f"    ✓ Tesseract를 PATH에서 찾았습니다")
+                    print(f"    [OK] Tesseract를 PATH에서 찾았습니다")
                     return 'tesseract'  # PATH에 있으면 이름만으로 가능
             except (FileNotFoundError, subprocess.TimeoutExpired):
                 pass
                 
-            print(f"    ⚠️ Tesseract를 찾을 수 없습니다!")
+            print(f"     Tesseract를 찾을 수 없습니다!")
             print(f"    다음 경로를 확인해주세요:")
             for path in default_paths[:2]:
                 print(f"      - {path}")
             print(f"    또는 Tesseract를 설치하고 PATH에 추가하세요.")
             return None
         except Exception as e:
-            print(f"    ⚠️ Tesseract 경로 설정 실패: {e}")
+            print(f"     Tesseract 경로 설정 실패: {e}")
             return None
     
     def _preprocess_image(self, image: Image.Image) -> Image.Image:
@@ -524,16 +533,16 @@ class TextbookPipeline:
         if isinstance(self.text_extractor, PdfplumberExtractor):
             # pdfplumber 사용 시: 텍스트 추출 먼저 (이미지 변환은 나중에 크롭할 때)
             print(f"[1/5] pdfplumber로 텍스트 추출 중... (텍스트 레이어 직접 추출, 매우 빠름)")
-            print(f"    💡 텍스트 레이어가 있는 PDF에 최적화됨 (OCR보다 정확하고 빠름)")
-            print(f"    ✅ pdfplumber 사용 중 - 텍스트 추출 우선, 이미지 변환은 나중에")
+            print(f"     텍스트 레이어가 있는 PDF에 최적화됨 (OCR보다 정확하고 빠름)")
+            print(f"     pdfplumber 사용 중 - 텍스트 추출 우선, 이미지 변환은 나중에")
             ocr_start = time.time()
             all_ocr_data = self.text_extractor.extract(pdf_path)
             self.stats["ocr_time"] = time.time() - ocr_start
-            print(f"    📊 pdfplumber 추출 완료: {len(all_ocr_data)}개 페이지 ({self.stats['ocr_time']:.1f}초)")
-            print(f"    ⚡ 텍스트 추출 완료! (이미지 변환은 크롭 단계에서 수행)")
+            print(f"     pdfplumber 추출 완료: {len(all_ocr_data)}개 페이지 ({self.stats['ocr_time']:.1f}초)")
+            print(f"     텍스트 추출 완료! (이미지 변환은 크롭 단계에서 수행)")
         elif isinstance(self.text_extractor, OCRExtractor):
             # OCR 사용 시: 이미지 변환 필요
-            print(f"[1/5] PDF → 페이지 이미지 변환 중... (DPI: {self.dpi})")
+            print(f"[1/5] PDF  페이지 이미지 변환 중... (DPI: {self.dpi})")
             page_images = self._pdf_to_images(pdf_path)
             print(f"[1/5] 완료: {len(page_images)}개 페이지")
             
@@ -568,10 +577,10 @@ class TextbookPipeline:
         print(f"    캐시 히트: {self.stats['cache_hits']}, 미스: {self.stats['cache_misses']}")
         print(f"    추출된 텍스트: {total_text_count}개 단어, {total_lines}개 줄")
         if empty_pages:
-            print(f"    ⚠️ 빈 OCR 페이지: {empty_pages[:5]}{'...' if len(empty_pages) > 5 else ''}")
+            print(f"     빈 OCR 페이지: {empty_pages[:5]}{'...' if len(empty_pages) > 5 else ''}")
             print(f"    캐시를 삭제하고 다시 시도하세요: data/{self.subject}/cache/ 폴더 삭제")
         elif total_text_count == 0:
-            print(f"    ⚠️ 모든 페이지에서 텍스트를 추출하지 못했습니다!")
+            print(f"     모든 페이지에서 텍스트를 추출하지 못했습니다!")
             print(f"    Tesseract 설치 및 한국어 언어팩 설치를 확인하세요.")
             print(f"    캐시를 삭제하고 다시 시도하세요: data/{self.subject}/cache/ 폴더 삭제")
         
@@ -595,9 +604,9 @@ class TextbookPipeline:
             # pdfplumber 사용 시: 이미지가 필요할 때만 변환 (지연 로딩)
             # 주의: 이미지 크롭을 위해 페이지 이미지가 반드시 필요함!
             if page_images is None and isinstance(self.text_extractor, PdfplumberExtractor):
-                print(f"[이미지] PDF → 페이지 이미지 변환 중... (크롭을 위해 필수)")
-                print(f"    💡 pdfplumber로 텍스트는 이미 추출 완료")
-                print(f"    📸 개념/본문/문제 영역 크롭을 위해 페이지 이미지 변환 필요")
+                print(f"[이미지] PDF  페이지 이미지 변환 중... (크롭을 위해 필수)")
+                print(f"     pdfplumber로 텍스트는 이미 추출 완료")
+                print(f"     개념/본문/문제 영역 크롭을 위해 페이지 이미지 변환 필요")
                 page_images = self._pdf_to_images(pdf_path)
                 print(f"[이미지] 완료: {len(page_images)}개 페이지 (크롭 준비 완료)")
             
@@ -607,9 +616,9 @@ class TextbookPipeline:
                     self._extract_concept_content_and_problem_images(all_ocr_data, lectures, lecture_contents, problems)
                 except Exception as e:
                     logger.warning(f"이미지 추출 실패: {e}")
-                    print(f"    ⚠️ 이미지 추출 실패: {e}")
+                    print(f"     이미지 추출 실패: {e}")
             else:
-                print(f"[이미지] ⚠️ 페이지 이미지가 없어 이미지 추출을 건너뜁니다.")
+                print(f"[이미지]  페이지 이미지가 없어 이미지 추출을 건너뜁니다.")
         
         # 7. JSON 저장 (구조 파싱 완료 후)
         print(f"[저장] JSON 파일 저장 중...")
@@ -618,8 +627,8 @@ class TextbookPipeline:
         
         # 8. AI 후처리 (구조 파싱 이후, 선택적 - 텍스트 정제만)
         if self.use_ai_postprocess:
-            print(f"[후처리] AI 텍스트 정제 중... (⚠️ LLM API 호출로 시간이 오래 걸릴 수 있습니다)")
-            print(f"    💡 빠른 처리를 원하면 다음 실행 시 'AI 후처리 사용? (y/N)'에 'n' 입력")
+            print(f"[후처리] AI 텍스트 정제 중... ( LLM API 호출로 시간이 오래 걸릴 수 있습니다)")
+            print(f"     빠른 처리를 원하면 다음 실행 시 'AI 후처리 사용? (y/N)'에 'n' 입력")
             ai_start = time.time()
             lecture_contents, problems = self._ai_postprocess_structured_data(lecture_contents, problems)
             self.stats["ai_postprocess_time"] = time.time() - ai_start
@@ -655,11 +664,16 @@ class TextbookPipeline:
         """PDF → 페이지 이미지 변환 (최적화)"""
         if not PDF2IMAGE_AVAILABLE:
             raise ImportError("pdf2image가 설치되지 않았습니다. pip install pdf2image")
-        
+
+        # Ensure pdf_path is a Path object
+        from pathlib import Path as PathLib
+        if isinstance(pdf_path, str):
+            pdf_path = PathLib(pdf_path)
+
         # PDF 파일 크기 확인
         pdf_size_mb = pdf_path.stat().st_size / (1024 * 1024)
         if pdf_size_mb > 50:
-            print(f"    ⚠️ 큰 파일 감지 ({pdf_size_mb:.1f}MB). 변환에 시간이 걸릴 수 있습니다...")
+            print(f"     큰 파일 감지 ({pdf_size_mb:.1f}MB). 변환에 시간이 걸릴 수 있습니다...")
         
         convert_kwargs = {"dpi": self.dpi}
         if self.poppler_path:
@@ -672,9 +686,9 @@ class TextbookPipeline:
             print(f"    첫 페이지 변환 테스트 중...")
             first_page = convert_from_path(pdf_path, first_page=1, last_page=1, **convert_kwargs)
             if first_page:
-                print(f"    ✓ PDF 읽기 성공! 전체 변환 시작...")
+                print(f"    [OK] PDF 읽기 성공! 전체 변환 시작...")
         except Exception as e:
-            print(f"    ⚠️ 첫 페이지 테스트 실패: {e}")
+            print(f"     첫 페이지 테스트 실패: {e}")
         
         # PDF 페이지 수 미리 확인 (진행 상황 파악)
         total_pages = None
@@ -683,23 +697,23 @@ class TextbookPipeline:
             pdf_doc = fitz.open(pdf_path)
             total_pages = len(pdf_doc)
             pdf_doc.close()
-            print(f"    📄 총 {total_pages}개 페이지 감지됨")
+            print(f"     총 {total_pages}개 페이지 감지됨")
         except ImportError:
             try:
                 import PyPDF2
                 with open(pdf_path, 'rb') as f:
                     pdf_reader = PyPDF2.PdfReader(f)
                     total_pages = len(pdf_reader.pages)
-                    print(f"    📄 총 {total_pages}개 페이지 감지됨")
+                    print(f"     총 {total_pages}개 페이지 감지됨")
             except:
                 # pdfplumber로 시도
                 try:
                     with pdfplumber.open(pdf_path) as pdf:
                         total_pages = len(pdf.pages)
-                        print(f"    📄 총 {total_pages}개 페이지 감지됨 (pdfplumber)")
+                        print(f"     총 {total_pages}개 페이지 감지됨 (pdfplumber)")
                 except:
                     total_pages = None
-                    print(f"    ⚠️ 페이지 수를 미리 확인할 수 없습니다")
+                    print(f"     페이지 수를 미리 확인할 수 없습니다")
         
         # 전체 PDF 변환 (페이지 제한 적용)
         start_time = time.time()
@@ -721,12 +735,12 @@ class TextbookPipeline:
         try:
             # 변환 시작 전 시간 로그
             start_time_str = time.strftime('%H:%M:%S')
-            print(f"    ⏳ 변환 시작: {start_time_str} (잠시만 기다려주세요...)")
+            print(f"     변환 시작: {start_time_str} (잠시만 기다려주세요...)")
             if expected_pages:
                 # DPI에 따른 예상 시간 계산
                 time_per_page = 0.25 if self.dpi <= 180 else (0.3 if self.dpi <= 200 else 0.4)
                 estimated_time = expected_pages * time_per_page
-                print(f"    💡 팁: 대용량 PDF는 변환에 시간이 걸릴 수 있습니다 (예상: {estimated_time:.0f}초)")
+                print(f"     팁: 대용량 PDF는 변환에 시간이 걸릴 수 있습니다 (예상: {estimated_time:.0f}초)")
             
             images = convert_from_path(pdf_path, **convert_kwargs)
             elapsed = time.time() - start_time
@@ -735,12 +749,12 @@ class TextbookPipeline:
             elapsed_str = time.strftime('%H:%M:%S', time.gmtime(elapsed))
             if len(images) > 0:
                 avg_time = elapsed / len(images)
-                print(f"    ✓ 변환 완료: {len(images)}개 페이지 ({elapsed:.1f}초 소요, 평균 {avg_time:.2f}초/페이지)")
+                print(f"    [OK] 변환 완료: {len(images)}개 페이지 ({elapsed:.1f}초 소요, 평균 {avg_time:.2f}초/페이지)")
             else:
-                print(f"    ✓ 변환 완료: {len(images)}개 페이지 ({elapsed:.1f}초 소요)")
+                print(f"    [OK] 변환 완료: {len(images)}개 페이지 ({elapsed:.1f}초 소요)")
         except Exception as e:
             elapsed = time.time() - start_time
-            print(f"    ❌ [오류] PDF 변환 실패 (소요 시간: {elapsed:.1f}초): {e}")
+            print(f"     [오류] PDF 변환 실패 (소요 시간: {elapsed:.1f}초): {e}")
             raise
         
         # 이미지 전처리 및 저장 (병렬)
@@ -748,6 +762,9 @@ class TextbookPipeline:
         processed_images = []
         
         if self.use_parallel and len(images) > 1:
+            print("    페이지 이미지 전처리 및 저장 중... (총 {}개)".format(len(images)))
+            # 디렉토리 미리 생성 (병렬 처리 전에 한 번만)
+            self.pages_dir.mkdir(parents=True, exist_ok=True)
             # 병렬 이미지 처리 (워커 수 증가: 4 → 8 또는 CPU 코어 수)
             worker_count = min(8, self.max_workers) if self.max_workers else min(8, mp.cpu_count())
             with ThreadPoolExecutor(max_workers=worker_count) as executor:
@@ -819,7 +836,7 @@ class TextbookPipeline:
         
         # Tesseract 확인
         if not self.tesseract_cmd:
-            print(f"    ⚠️ Tesseract가 설정되지 않아 OCR을 건너뜁니다.")
+            print(f"     Tesseract가 설정되지 않아 OCR을 건너뜁니다.")
             print(f"    빈 OCR 데이터를 반환합니다.")
             return all_ocr_data
         
@@ -879,7 +896,7 @@ class TextbookPipeline:
                 
                 # OCR 에러 요약
                 if ocr_errors:
-                    print(f"    ⚠️ OCR 실패한 페이지: {len(ocr_errors)}개")
+                    print(f"     OCR 실패한 페이지: {len(ocr_errors)}개")
                     if len(ocr_errors) == len(futures):
                         print(f"    모든 페이지에서 OCR 실패. Tesseract 설치를 확인하세요.")
         else:
@@ -1001,7 +1018,7 @@ class TextbookPipeline:
         
         except Exception as e:
             logger.error(f"pdfplumber 추출 실패: {e}")
-            print(f"    ⚠️ pdfplumber 추출 실패: {e}")
+            print(f"     pdfplumber 추출 실패: {e}")
             print(f"    OCR로 대체합니다...")
             # OCR로 대체
             if not hasattr(self, '_page_images_cache'):
@@ -1085,7 +1102,7 @@ class TextbookPipeline:
         if not text_items:
             return lecture_contents, problems
         
-        print(f"    📊 총 {len(text_items)}개 텍스트 항목 처리 중... (병렬 처리)")
+        print(f"     총 {len(text_items)}개 텍스트 항목 처리 중... (병렬 처리)")
         
         # 병렬 처리로 텍스트 정제
         cleaned_texts = {}
@@ -1163,7 +1180,7 @@ class TextbookPipeline:
             processed_problems.append(processed_problem)
         
         total_time = time.time() - start_time
-        print(f"    ✓ 병렬 처리 완료: {len(text_items)}개 항목 ({total_time:.1f}초, 평균 {total_time/len(text_items):.2f}초/항목)")
+        print(f"    [OK] 병렬 처리 완료: {len(text_items)}개 항목 ({total_time:.1f}초, 평균 {total_time/len(text_items):.2f}초/항목)")
         
         return processed_lectures, processed_problems
     
@@ -1195,16 +1212,17 @@ class TextbookPipeline:
     def _extract_lectures_literature(self, all_ocr_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         문학 강의 목록 자동 생성 (config 기반)
-        
+
         개선사항:
         - 단어 단위가 아닌 문장 단위 매칭
         - y좌표 기반으로 같은 줄의 단어 결합
         - 페이지 상단의 큰 텍스트 우선 인식
+        - 다중 라인 제목 지원 ("1강" + 다음 줄 제목)
         """
         lectures = []
         lecture_id = 1
         patterns = self.config.get('lecture_title_patterns', [])
-        
+
         # OCR 데이터 디버깅
         if all_ocr_data and len(all_ocr_data) > 0:
             first_page_ocr = all_ocr_data[0]
@@ -1213,14 +1231,14 @@ class TextbookPipeline:
                 print(f"    [디버그] 첫 페이지 OCR 단어 샘플 (상위 20개):")
                 for i, text in enumerate(first_page_texts[:20], 1):
                     print(f"      {i}. {text[:60]}")
-                
+
                 # 줄 단위로 그룹화된 텍스트도 출력
                 texts = first_page_ocr.get('text', [])
                 tops = first_page_ocr.get('top', [])
                 lefts = first_page_ocr.get('left', [])
                 widths = first_page_ocr.get('width', [])
                 heights = first_page_ocr.get('height', [])
-                
+
                 if texts and tops:
                     lines = self._group_texts_by_line(texts, tops, lefts, widths, heights)
                     print(f"    [디버그] 첫 페이지 줄 단위 텍스트 (상위 20줄):")
@@ -1229,10 +1247,10 @@ class TextbookPipeline:
                         if line_text.strip():
                             print(f"      {i}. {line_text[:80]}")
             else:
-                print(f"    ⚠️ 첫 페이지에서 OCR 텍스트를 찾을 수 없습니다!")
+                print(f"     첫 페이지에서 OCR 텍스트를 찾을 수 없습니다!")
                 print(f"    캐시를 삭제하고 다시 시도하세요: data/{self.subject}/cache/ 폴더 삭제")
                 return []
-        
+
         # 각 페이지에서 강의 제목 찾기
         for ocr_data in all_ocr_data:
             page_num = ocr_data['page_num']
@@ -1241,13 +1259,13 @@ class TextbookPipeline:
             lefts = ocr_data.get('left', [])
             widths = ocr_data.get('width', [])
             heights = ocr_data.get('height', [])
-            
+
             if not texts or len([t for t in texts if t.strip()]) == 0:
                 continue
-            
+
             # y좌표 기준으로 같은 줄의 단어들을 그룹화
             lines = group_texts_by_line(texts, tops, lefts, widths, heights)
-            
+
             # 각 줄을 문장으로 결합하고 패턴 매칭
             # 페이지 상단의 큰 텍스트만 강의 제목으로 인식 (상위 40% 영역, 큰 폰트)
             page_top_threshold = None
@@ -1259,7 +1277,7 @@ class TextbookPipeline:
                     last_line = lines[-1]
                     estimated_page_height = last_line[-1]['top'] + last_line[-1]['height']
                     page_top_threshold = first_line_y + (estimated_page_height * 0.4)  # 상단 40%
-            
+
             # 평균 폰트 크기 계산 (높이 기준) - 조건 완화
             if lines:
                 total_height = sum(word['height'] for line in lines[:10] for word in line[:3])
@@ -1271,81 +1289,144 @@ class TextbookPipeline:
                     min_title_height = 0
             else:
                 min_title_height = 0
-            
-            for line in lines:
+
+            for idx, line in enumerate(lines):
                 # 같은 줄의 단어들을 공백으로 결합
                 line_text = " ".join([word['text'] for word in line])
                 line_text = line_text.strip()
-                
-                if not line_text or len(line_text) < 5:  # 최소 길이 5자 이상
+
+                if not line_text:
                     continue
-                
-                # 목차 형식 제외 (페이지 번호 포함된 것들)
-                # 예: "01 모 죽지랑가 (득오) / 화왕가 (이익) 044"
-                if re.search(r'\d{3,}', line_text) and len(line_text) < 50:
-                    # 3자리 이상 숫자가 있고 텍스트가 짧으면 목차로 간주
-                    continue
-                
-                # 작품 제목 형식 제외 (괄호 안에 작가명이 있는 짧은 텍스트)
-                # 예: "03 귀 거래 귀거래 말뿐이오 ~ (이현보)"
-                if re.search(r'\([가-힣]+\)', line_text) and len(line_text) < 40:
-                    # 괄호 안에 한글이 있고 텍스트가 짧으면 작품 제목으로 간주
-                    continue
-                
-                # 문제 번호/지문 제외 (숫자로 시작하지만 "N강" 형식이 아닌 경우)
-                # 예: "01 간을 옮긴 이유도...", "03 주제 슬픔의 승화를..."
-                if re.match(r'^\d{2,}\s+[가-힣]', line_text) and not re.search(r'^\d+강', line_text):
-                    # 2자리 이상 숫자로 시작하고 "N강" 형식이 아니면 문제 번호/지문일 가능성
-                    continue
-                
-                # 문제 지문 형식 제외 (긴 문장으로 시작하는 경우)
-                # 예: "01 간을 옮긴 이유도 겉으로는 가족에 대한 미안한 마음을 언급했지"
-                if len(line_text) > 30 and re.match(r'^\d{2,}\s+[가-힣]{5,}', line_text) and not re.search(r'^\d+강', line_text):
-                    # 2자리 이상 숫자로 시작하고 한글이 5자 이상이고 "N강" 형식이 아니면 문제 지문일 가능성
-                    continue
-                
-                # 페이지 상단 영역 체크 (상단 40%로 제한)
-                line_y = line[0]['top']
-                if page_top_threshold and line_y > page_top_threshold * 0.8:  # 상단 40%로 제한
-                    continue  # 페이지 상단이 아니면 스킵
-                
-                # 큰 폰트 체크 (조건 강화)
-                line_height = max(word['height'] for word in line)
-                if min_title_height > 0 and line_height < min_title_height * 0.9:  # 0.9배 이상이어야 함
-                    continue  # 너무 작은 폰트는 스킵
-                
-                # 패턴 매칭
-                if matches_patterns(line_text, patterns):
-                    # 강의 제목 검증: 반드시 "N강" 형식이어야 함 (문제 번호/지문 제외)
-                    # "1강", "2강", "3강" 등으로 시작하거나 "N강 |" 형식이어야 함
-                    lecture_title_match = re.search(r'^(\d+)강', line_text)
-                    if not lecture_title_match:
-                        # "N강" 형식이 아니면 스킵 (문제 번호나 지문일 가능성)
+
+                # **핵심 개선: "N강" 또는 숫자 단독 감지 후 다음 줄과 결합**
+                # PDF 텍스트 레이어가 깨진 경우 "강" 글자가 누락되어 숫자만 추출될 수 있음
+                # "1강", "2강" 또는 "1", "2" 등이 단독으로 있는 경우
+                lecture_num_match = re.match(r'^(\d+)강?\s*$', line_text)
+
+                # 추가: 1~2자리 숫자만 있는 경우도 강의 번호로 인식 (PDF 깨진 경우 대비)
+                if not lecture_num_match and re.match(r'^\d{1,2}$', line_text):
+                    line_height = max(word['height'] for word in line)
+                    line_y = line[0]['top']
+
+                    # 디버그 로그
+                    if page_num <= 20 and int(line_text) <= 10:
+                        print(f"    [디버그] 숫자 '{line_text}' 발견 (페이지 {page_num})")
+                        print(f"      폰트 높이: {line_height:.1f} (최소: {min_title_height:.1f})")
+                        print(f"      y좌표: {line_y} (상단 임계값: {page_top_threshold * 0.3 if page_top_threshold else 'N/A'})")
+
+                    # 조건 완화: 폰트 크기 또는 위치 중 하나만 만족하면 OK
+                    is_large_font = min_title_height > 0 and line_height >= min_title_height * 1.2
+                    is_top_area = not page_top_threshold or line_y <= page_top_threshold * 0.4
+
+                    if is_large_font or is_top_area:
+                        lecture_num_match = re.match(r'^(\d+)$', line_text)
+                        if lecture_num_match and page_num <= 20 and int(line_text) <= 10:
+                            print(f"      => 강의 번호로 인식!")
+
+                if lecture_num_match:
+                    # "N강"만 있는 경우 - 다음 1-2 줄을 제목으로 결합
+                    lecture_num = lecture_num_match.group(1)
+                    title_parts = [line_text]
+
+                    # 다음 2줄까지 확인하여 제목 수집
+                    for next_idx in range(idx + 1, min(idx + 3, len(lines))):
+                        next_line = lines[next_idx]
+                        next_line_text = " ".join([word['text'] for word in next_line]).strip()
+
+                        # 빈 줄이면 중단
+                        if not next_line_text:
+                            break
+
+                        # 숫자로 시작하는 줄이면 중단 (다음 강의 시작)
+                        if re.match(r'^\d+', next_line_text):
+                            break
+
+                        # 제목으로 추가
+                        title_parts.append(next_line_text)
+
+                        # 제목이 충분히 길면 중단 (30자 이상)
+                        combined = " ".join(title_parts)
+                        if len(combined) >= 30:
+                            break
+
+                    # 결합된 제목
+                    full_title = " ".join(title_parts)
+
+                    # 페이지 상단 체크
+                    line_y = line[0]['top']
+                    if page_top_threshold and line_y > page_top_threshold * 0.8:
                         continue
-                    
-                    # 문제/해설 페이지 제외 (페이지 번호가 매우 높은 경우, 또는 "정답과 해설" 텍스트가 있는 경우)
-                    # 문학 교재는 보통 1-2강이 8-40페이지 정도, 3강 이상은 더 뒤쪽
-                    # 하지만 문제/해설 페이지는 보통 300페이지 이후
-                    if page_num > 200:
-                        # 200페이지 이후는 문제/해설 페이지일 가능성이 높음
-                        # "정답과 해설", "답", "해설" 등의 키워드가 있으면 제외
-                        if any(keyword in line_text for keyword in ["정답", "해설", "답", "문제", "보기"]):
-                            continue
-                        # "N강" 형식이지만 페이지가 너무 높으면 추가 검증
-                        # 실제 강의 제목은 보통 "N강 |" 또는 "N강" 다음에 주제가 나옴
-                        if not re.search(r'^\d+강\s*[|]', line_text) and len(line_text) < 20:
-                            # "N강 |" 형식이 아니고 짧으면 문제 번호일 가능성
-                            continue
-                    
-                    # bbox 계산 (줄의 첫 단어와 마지막 단어 기준)
+
+                    # 큰 폰트 체크
+                    line_height = max(word['height'] for word in line)
+                    if min_title_height > 0 and line_height < min_title_height * 0.9:
+                        continue
+
+                    # bbox 계산
                     first_word = line[0]
                     last_word = line[-1]
-                    
+
                     left = first_word['left']
                     top = first_word['top']
                     right = last_word['left'] + last_word['width']
                     bottom = max(w['top'] + w['height'] for w in line)
-                    
+
+                    lectures.append({
+                        "lecture_id": lecture_id,
+                        "title": full_title,
+                        "page": page_num,
+                        "bbox": [left, top, right, bottom]
+                    })
+                    lecture_id += 1
+                    print(f"    [OK] 강의 발견 (다중라인): {full_title[:60]} (페이지 {page_num})")
+                    continue
+
+                # 기존 로직: 한 줄에 "N강 | 제목" 형식
+                if len(line_text) < 5:
+                    continue
+
+                # 목차 형식 제외 (페이지 번호 포함)
+                if re.search(r'\d{3,}', line_text) and len(line_text) < 50:
+                    continue
+
+                # 작품 제목 형식 제외
+                if re.search(r'\([가-힣]+\)', line_text) and len(line_text) < 40:
+                    continue
+
+                # 문제 번호/지문 제외 (2자리 숫자 시작, "N강" 아님)
+                if re.match(r'^\d{2,}\s+', line_text) and not re.search(r'^\d+강', line_text):
+                    continue
+
+                # 문제 해설 키워드 제외
+                if any(keyword in line_text for keyword in ["정답", "해설", "보기", "선택지"]):
+                    continue
+
+                # 페이지 상단 영역 체크
+                line_y = line[0]['top']
+                if page_top_threshold and line_y > page_top_threshold * 0.8:
+                    continue
+
+                # 큰 폰트 체크
+                line_height = max(word['height'] for word in line)
+                if min_title_height > 0 and line_height < min_title_height * 0.9:
+                    continue
+
+                # 패턴 매칭 - "N강 |" 또는 "N강" 형식
+                if matches_patterns(line_text, patterns):
+                    # "N강" 형식 검증
+                    lecture_title_match = re.search(r'^(\d+)강', line_text)
+                    if not lecture_title_match:
+                        continue
+
+                    # bbox 계산
+                    first_word = line[0]
+                    last_word = line[-1]
+
+                    left = first_word['left']
+                    top = first_word['top']
+                    right = last_word['left'] + last_word['width']
+                    bottom = max(w['top'] + w['height'] for w in line)
+
                     lectures.append({
                         "lecture_id": lecture_id,
                         "title": line_text,
@@ -1353,19 +1434,24 @@ class TextbookPipeline:
                         "bbox": [left, top, right, bottom]
                     })
                     lecture_id += 1
-                    print(f"    ✓ 강의 발견: {line_text[:50]} (페이지 {page_num})")
+                    print(f"    [OK] 강의 발견 (단일라인): {line_text[:60]} (페이지 {page_num})")
                 else:
-                    # 디버깅: 패턴 매칭 실패한 경우 로그 (짧은 텍스트만)
-                    if len(line_text) < 30 and re.match(r'^\d+', line_text):
+                    # 디버깅 로그
+                    if len(line_text) < 50 and re.match(r'^\d+', line_text) and page_num <= 10:
                         print(f"    [디버그] 패턴 미매칭: '{line_text[:40]}' (페이지 {page_num})")
         
         if not lectures:
-            print(f"    ⚠️ 강의를 찾을 수 없습니다.")
-            print(f"    사용된 패턴: {patterns}")
-            print(f"    캐시를 삭제하고 OCR을 다시 수행하세요.")
+            print(f"")
+            print(f"     ========================================")
+            print(f"     [경고] 강의를 찾을 수 없습니다.")
+            print(f"     ========================================")
+            print(f"     사용된 패턴: {patterns}")
+            print(f"     캐시를 삭제하고 OCR을 다시 수행하세요.")
+            print(f"     ========================================")
             # 모든 페이지의 상위 텍스트 출력 (디버깅)
             print(f"    [디버그] 각 페이지 상위 텍스트 (줄 단위):")
-            for ocr_data in all_ocr_data[:5]:  # 처음 5페이지만
+            print(f"    [디버그] 총 {len(all_ocr_data)}개 페이지에서 텍스트 추출됨")
+            for ocr_data in all_ocr_data[:15]:  # 처음 15페이지까지 확인
                 page_num = ocr_data.get('page_num', 0)
                 texts = ocr_data.get('text', [])
                 tops = ocr_data.get('top', [])
@@ -1375,11 +1461,17 @@ class TextbookPipeline:
                 
                 if texts and tops:
                     lines = self._group_texts_by_line(texts, tops, lefts, widths, heights)
-                    print(f"      페이지 {page_num} (상위 10줄):")
-                    for i, line in enumerate(lines[:10], 1):
+                    print(f"      페이지 {page_num} (상위 15줄, 총 {len(lines)}줄):")
+                    for i, line in enumerate(lines[:15], 1):
                         line_text = " ".join([word['text'] for word in line])
                         if line_text.strip():
-                            print(f"        {i}. {line_text[:70]}")
+                            # 숫자로 시작하는 줄은 강조 표시
+                            if re.match(r'^\d+', line_text):
+                                print(f"        {i}. [숫자시작] {line_text[:70]}")
+                            else:
+                                print(f"        {i}. {line_text[:70]}")
+                else:
+                    print(f"      페이지 {page_num}: 텍스트 없음")
         
         return lectures
     
@@ -1477,10 +1569,10 @@ class TextbookPipeline:
                         "bbox": [left, top, right, bottom]
                     })
                     unit_id += 1
-                    print(f"    ✓ 단원 발견: {line_text[:50]} (페이지 {page_num})")
+                    print(f"    [OK] 단원 발견: {line_text[:50]} (페이지 {page_num})")
         
         if not units:
-            print(f"    ⚠️ 단원을 찾을 수 없습니다.")
+            print(f"     단원을 찾을 수 없습니다.")
             print(f"    사용된 패턴: {patterns}")
         
         return units
@@ -1543,23 +1635,86 @@ class TextbookPipeline:
             else:
                 min_title_height = 0
             
-            for line in lines:
+            for idx, line in enumerate(lines):
                 line_text = " ".join([word['text'] for word in line])
                 line_text = line_text.strip()
-                
-                if not line_text or len(line_text) < 3:
+
+                if not line_text:
                     continue
-                
+
+                # **핵심 개선: "N강" 단독 감지 후 다음 줄과 결합**
+                lecture_num_match = re.match(r'^(\d+)강\s*$', line_text)
+                if lecture_num_match:
+                    # "N강"만 있는 경우 - 다음 1-2 줄을 제목으로 결합
+                    lecture_num = lecture_num_match.group(1)
+                    title_parts = [line_text]
+
+                    # 다음 2줄까지 확인하여 제목 수집
+                    for next_idx in range(idx + 1, min(idx + 3, len(lines))):
+                        next_line = lines[next_idx]
+                        next_line_text = " ".join([word['text'] for word in next_line]).strip()
+
+                        # 빈 줄이면 중단
+                        if not next_line_text:
+                            break
+
+                        # 숫자로 시작하는 줄이면 중단 (다음 강의 시작)
+                        if re.match(r'^\d+', next_line_text):
+                            break
+
+                        # 제목으로 추가
+                        title_parts.append(next_line_text)
+
+                        # 제목이 충분히 길면 중단
+                        if len(" ".join(title_parts)) >= 30:
+                            break
+
+                    # 결합된 제목
+                    full_title = " ".join(title_parts)
+
+                    # 페이지 상단 체크
+                    line_y = line[0]['top']
+                    if page_top_threshold and line_y > page_top_threshold:
+                        continue
+
+                    # 큰 폰트 체크
+                    line_height = max(word['height'] for word in line)
+                    if min_title_height > 0 and line_height < min_title_height * 0.9:
+                        continue
+
+                    # bbox 계산
+                    first_word = line[0]
+                    last_word = line[-1]
+
+                    left = first_word['left']
+                    top = first_word['top']
+                    right = last_word['left'] + last_word['width']
+                    bottom = max(w['top'] + w['height'] for w in line)
+
+                    units.append({
+                        "lecture_id": unit_id,
+                        "title": full_title,
+                        "page": page_num,
+                        "bbox": [left, top, right, bottom]
+                    })
+                    unit_id += 1
+                    print(f"    [OK] Unit 발견 (다중라인): {full_title[:60]} (페이지 {page_num})")
+                    continue
+
+                # 기존 로직: 한 줄에 제목이 모두 있는 경우
+                if len(line_text) < 3:
+                    continue
+
                 # 페이지 상단 영역 체크
                 line_y = line[0]['top']
                 if page_top_threshold and line_y > page_top_threshold:
                     continue
-                
+
                 # 큰 폰트 체크
                 line_height = max(word['height'] for word in line)
                 if min_title_height > 0 and line_height < min_title_height * 0.9:
                     continue
-                
+
                 # 패턴 매칭 (대소문자 무시)
                 line_text_lower = line_text.lower()
                 matched = False
@@ -1567,16 +1722,16 @@ class TextbookPipeline:
                     if re.search(pattern, line_text_lower, re.IGNORECASE):
                         matched = True
                         break
-                
+
                 if matched:
                     first_word = line[0]
                     last_word = line[-1]
-                    
+
                     left = first_word['left']
                     top = first_word['top']
                     right = last_word['left'] + last_word['width']
                     bottom = max(w['top'] + w['height'] for w in line)
-                    
+
                     units.append({
                         "lecture_id": unit_id,
                         "title": line_text,
@@ -1584,10 +1739,10 @@ class TextbookPipeline:
                         "bbox": [left, top, right, bottom]
                     })
                     unit_id += 1
-                    print(f"    ✓ Unit 발견: {line_text[:50]} (페이지 {page_num})")
+                    print(f"    [OK] Unit 발견 (단일라인): {line_text[:60]} (페이지 {page_num})")
         
         if not units:
-            print(f"    ⚠️ Unit을 찾을 수 없습니다.")
+            print(f"     Unit을 찾을 수 없습니다.")
             print(f"    사용된 패턴: {patterns}")
         
         return units
@@ -1764,7 +1919,7 @@ class TextbookPipeline:
                             print(f"    [강의 {lecture_id} 디버그] 페이지 {page_num}에서 '{cleaned_text}' 발견 (강의 번호: {lecture_num}, 폰트 높이: {line_height:.1f}, 평균: {avg_height:.1f})")
         
         # 찾지 못하면 -1 반환 (제외 표시)
-        print(f"    ⚠️ [강의 {lecture_id}] 실제 시작 페이지를 찾지 못했습니다. 강의 번호 {lecture_num}을(를) 페이지 {START_CONTENT_PAGE} 이상에서 찾을 수 없습니다.")
+        print(f"     [강의 {lecture_id}] 실제 시작 페이지를 찾지 못했습니다. 강의 번호 {lecture_num}을(를) 페이지 {START_CONTENT_PAGE} 이상에서 찾을 수 없습니다.")
         return -1  # 찾지 못함을 나타내는 sentinel 값
     
     def _load_existing_lectures(self) -> Dict[int, Dict[str, Any]]:
@@ -1841,7 +1996,7 @@ class TextbookPipeline:
             # 증분 파싱: 이미 파싱된 강의는 건너뛰기
             if lecture_id in existing_lectures:
                 existing_lecture = existing_lectures[lecture_id]
-                print(f"    ⏭️ [강의 {lecture_id}] 이미 파싱됨: '{existing_lecture.get('title', '')}' - 건너뜀")
+                print(f"     [강의 {lecture_id}] 이미 파싱됨: '{existing_lecture.get('title', '')}' - 건너뜀")
                 # 기존 데이터를 그대로 사용
                 lecture_contents.append({
                     "lecture_id": lecture_id,
@@ -1870,10 +2025,10 @@ class TextbookPipeline:
                 # _find_actual_lecture_start_page가 -1을 반환했다는 것은
                 # 강의 번호를 찾지 못했다는 의미이므로 제외
                 if actual_start_page == -1:
-                    print(f"    ⚠️ [강의 {lecture_id}] '{lecture['title']}'의 실제 시작 페이지를 찾지 못했습니다. 이 강의는 제외됩니다.")
+                    print(f"     [강의 {lecture_id}] '{lecture['title']}'의 실제 시작 페이지를 찾지 못했습니다. 이 강의는 제외됩니다.")
                     continue  # 이 강의는 건너뛰기
                 
-                print(f"    ✓ [강의 {lecture_id}] 실제 시작 페이지: {actual_start_page} (목차: {lecture_page})")
+                print(f"    [OK] [강의 {lecture_id}] 실제 시작 페이지: {actual_start_page} (목차: {lecture_page})")
                 start_page = actual_start_page
             else:
                 start_page = lecture_page
@@ -1940,7 +2095,7 @@ class TextbookPipeline:
             ]
             
             if not lecture_ocr_data:
-                print(f"    ⚠️ 강의 {lecture_id}에 해당하는 OCR 데이터가 없습니다.")
+                print(f"     강의 {lecture_id}에 해당하는 OCR 데이터가 없습니다.")
                 lecture_contents.append({
                     "lecture_id": lecture_id,
                     "title": lecture['title'],
@@ -1970,7 +2125,7 @@ class TextbookPipeline:
             })
         
         if skipped_count > 0:
-            print(f"    ⏭️ 증분 파싱: {skipped_count}개 강의 건너뜀 (이미 파싱됨)")
+            print(f"     증분 파싱: {skipped_count}개 강의 건너뜀 (이미 파싱됨)")
         
         return lecture_contents
     
@@ -2446,7 +2601,7 @@ class TextbookPipeline:
         all_problems.extend(problems)
         
         if existing_problems:
-            print(f"    ⏭️ 증분 파싱: {len(existing_problems)}개 문제 건너뜀 (이미 파싱됨)")
+            print(f"     증분 파싱: {len(existing_problems)}개 문제 건너뜀 (이미 파싱됨)")
         
         return all_problems
     
@@ -2538,7 +2693,7 @@ class TextbookPipeline:
                     # 증분 파싱: 이미 파싱된 문제는 건너뛰기
                     problem_key = f"{page_num:02d}_{problem_id}"
                     if existing_problem_keys and problem_key in existing_problem_keys:
-                        print(f"    ⏭️ [문제 {problem_id}] 이미 파싱됨 (페이지 {page_num}) - 건너뜀")
+                        print(f"     [문제 {problem_id}] 이미 파싱됨 (페이지 {page_num}) - 건너뜀")
                         problem_id += 1
                         continue
                     
@@ -2730,7 +2885,7 @@ class TextbookPipeline:
                     # 증분 파싱: 이미 파싱된 문제는 건너뛰기
                     problem_key = f"{page_num:02d}_{problem_id:02d}"
                     if existing_problem_keys and problem_key in existing_problem_keys:
-                        print(f"    ⏭️ [문제 {problem_id}] 이미 파싱됨 (페이지 {page_num}) - 건너뜀")
+                        print(f"     [문제 {problem_id}] 이미 파싱됨 (페이지 {page_num}) - 건너뜀")
                         problem_id += 1
                         continue
                     
@@ -2834,7 +2989,7 @@ class TextbookPipeline:
                     # 증분 파싱: 이미 파싱된 문제는 건너뛰기
                     problem_key = f"{page_num:02d}_{problem_id:02d}"
                     if existing_problem_keys and problem_key in existing_problem_keys:
-                        print(f"    ⏭️ [문제 {problem_id}] 이미 파싱됨 (페이지 {page_num}) - 건너뜀")
+                        print(f"     [문제 {problem_id}] 이미 파싱됨 (페이지 {page_num}) - 건너뜀")
                         problem_id += 1
                         continue
                     
@@ -2884,7 +3039,7 @@ class TextbookPipeline:
         
         with open(lectures_json_path, 'w', encoding='utf-8') as f:
             json.dump(all_lectures_list, f, ensure_ascii=False, indent=2)
-        print(f"    ✓ [저장] 강의 목록 저장: {len(all_lectures_list)}개 강의 (기존: {len(existing_lectures_list)}, 새: {len(new_lectures_list)})")
+        print(f"    [OK] [저장] 강의 목록 저장: {len(all_lectures_list)}개 강의 (기존: {len(existing_lectures_list)}, 새: {len(new_lectures_list)})")
         
         # 2. lecture_XX.json 생성 (각 강의에 세부 목차 포함)
         saved_count = 0
@@ -3058,20 +3213,20 @@ class TextbookPipeline:
             # 증분 파싱: 기존 파일이 있고 기존 강의 목록에 있으면 건너뛰기
             if lecture_json_path.exists() and lecture_id in existing_lecture_ids:
                 # 기존 파일은 그대로 유지 (이미 파싱된 강의)
-                print(f"    ⏭️ [저장] 강의 {lecture_id}는 이미 저장됨 - 건너뜀")
+                print(f"     [저장] 강의 {lecture_id}는 이미 저장됨 - 건너뜀")
                 skipped_count += 1
                 continue
             
             # 새로 파싱한 강의 저장
             with open(lecture_json_path, 'w', encoding='utf-8') as f:
                 json.dump(lecture_json, f, ensure_ascii=False, indent=2)
-            print(f"    ✓ [저장] 강의 {lecture_id} 저장: {lecture_json_path.name} (섹션 {len(sections)}개)")
+            print(f"    [OK] [저장] 강의 {lecture_id} 저장: {lecture_json_path.name} (섹션 {len(sections)}개)")
             saved_count += 1
         
         if skipped_count > 0:
-            print(f"    ⏭️ [저장] {skipped_count}개 강의 건너뜀 (이미 저장됨)")
+            print(f"     [저장] {skipped_count}개 강의 건너뜀 (이미 저장됨)")
         if saved_count > 0:
-            print(f"    ✓ [저장] {saved_count}개 새 강의 저장 완료")
+            print(f"    [OK] [저장] {saved_count}개 새 강의 저장 완료")
         
         # 3. problem_p{page}_{problem_id}.json (페이지 번호 포함) - 증분 파싱 지원
         if problems:
@@ -3093,11 +3248,11 @@ class TextbookPipeline:
                 new_problem_count += 1
             
             if new_problem_count > 0:
-                print(f"    ✓ {new_problem_count}개 새 문제 저장: {self.problems_dir}")
+                print(f"    [OK] {new_problem_count}개 새 문제 저장: {self.problems_dir}")
             else:
-                print(f"    ⏭️ 새로 파싱된 문제 없음 (모두 이미 파싱됨)")
+                print(f"     새로 파싱된 문제 없음 (모두 이미 파싱됨)")
         else:
-            print(f"    ⚠️ 추출된 문제가 없습니다. 문제 패턴을 확인하세요.")
+            print(f"     추출된 문제가 없습니다. 문제 패턴을 확인하세요.")
         
         # 5. 영역 시각화 (선택적) - YOLO 없이 OCR 좌표 기반
         if lectures or problems:
@@ -3206,7 +3361,7 @@ class TextbookPipeline:
             except Exception as e:
                 logger.warning(f"페이지 {page_num} 시각화 실패: {e}")
         
-        print(f"    ✓ 시각화 완료: {self.visualizations_dir}")
+        print(f"    [OK] 시각화 완료: {self.visualizations_dir}")
     
     def _extract_concept_content_and_problem_images(
         self,
@@ -3227,7 +3382,7 @@ class TextbookPipeline:
         # 페이지 이미지 존재 확인
         page_files = list(self.pages_dir.glob("page_*.png"))
         if not page_files:
-            print(f"    ⚠️ 페이지 이미지가 없습니다. 이미지 추출을 건너뜁니다.")
+            print(f"     페이지 이미지가 없습니다. 이미지 추출을 건너뜁니다.")
             logger.warning(f"페이지 이미지 디렉토리: {self.pages_dir}, 파일 수: 0")
             return
         
@@ -3239,7 +3394,7 @@ class TextbookPipeline:
         
         # 본문 블록이 없으면 fallback: 문제 번호 직전의 작품 텍스트를 본문으로 인식
         if len(content_blocks) == 0:
-            print(f"    ⚠️ 본문 헤더 매칭 실패, fallback 로직 시도...")
+            print(f"     본문 헤더 매칭 실패, fallback 로직 시도...")
             content_blocks = self._extract_content_blocks_fallback(all_ocr_data)
         
         # 각 타입별 이미지 크롭 (책임 분리)
@@ -3261,20 +3416,20 @@ class TextbookPipeline:
         
         # 결과 출력
         if concept_count > 0:
-            print(f"    ✓ 개념 이미지 {concept_count}개 저장: {self.concepts_images_dir}")
+            print(f"    [OK] 개념 이미지 {concept_count}개 저장: {self.concepts_images_dir}")
         else:
-            print(f"    ⚠️ 개념 이미지 0개 (블록 추출 실패 또는 bbox 없음)")
+            print(f"     개념 이미지 0개 (블록 추출 실패 또는 bbox 없음)")
         
         if content_count > 0:
-            print(f"    ✓ 본문 이미지 {content_count}개 저장: {self.content_images_dir}")
-            print(f"    ✓ 본문 메타데이터 {len(content_metadata)}개 저장: {self.content_dir}")
+            print(f"    [OK] 본문 이미지 {content_count}개 저장: {self.content_images_dir}")
+            print(f"    [OK] 본문 메타데이터 {len(content_metadata)}개 저장: {self.content_dir}")
         else:
-            print(f"    ⚠️ 본문 이미지 0개 (블록 추출 실패 또는 bbox 없음)")
+            print(f"     본문 이미지 0개 (블록 추출 실패 또는 bbox 없음)")
         
         if problem_count > 0:
-            print(f"    ✓ 문제 이미지 {problem_count}개 저장: {self.problems_images_dir}")
+            print(f"    [OK] 문제 이미지 {problem_count}개 저장: {self.problems_images_dir}")
         else:
-            print(f"    ⚠️ 문제 이미지 0개 (문제 추출 실패 또는 bbox 없음)")
+            print(f"     문제 이미지 0개 (문제 추출 실패 또는 bbox 없음)")
     
     def _crop_concept_images(
         self,
@@ -3722,7 +3877,7 @@ class TextbookPipeline:
                         
                         # 디버깅: 색상 정보 출력
                         if page_num <= 12 and line_idx < 5:
-                            print(f"  줄 {line_idx} 색상: '{line_text}' → RGB{main_color}")
+                            print(f"  줄 {line_idx} 색상: '{line_text}'  RGB{main_color}")
                         
                         # 색상 기반 필터링: 검은색(0,0,0) 또는 진한 색상만 개념 제목으로 간주
                         r, g, b = main_color if isinstance(main_color, tuple) and len(main_color) >= 3 else (0, 0, 0)
@@ -3975,7 +4130,7 @@ class TextbookPipeline:
                     if line_text:
                         # "작품" 또는 "이해" 키워드가 포함된 줄 강조
                         if '작품' in line_text or '이해' in line_text:
-                            print(f"  ⭐ 줄 {i}: '{line_text}' [본문 헤더 후보]")
+                            print(f"   줄 {i}: '{line_text}' [본문 헤더 후보]")
                         else:
                             print(f"  줄 {i}: '{line_text}'")
             

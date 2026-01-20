@@ -36,9 +36,9 @@ import json
 try:
     from app.services.ml_section_classifier import get_section_classifier
     ML_CLASSIFIER_AVAILABLE = True
-except ImportError as e:
+except ImportError:
     ML_CLASSIFIER_AVAILABLE = False
-    print(f"[books] ML 섹션 분류기 로드 실패: {e}")
+    # ML 분류기는 선택적 의존성이므로 경고 없이 무시
 
 
 def _subject_to_pipeline_subject(subject: Subject) -> str:
@@ -114,27 +114,28 @@ def _create_curriculum_from_pipeline(
         
         # lecture_data.title을 레슨 제목으로 사용 (예: "1강 | 시의 표현과 형식 >>> 고전 시가")
         lecture_title = lecture_data.get("title", f"{lecture_number}강")
-        
-        # 강의 제목 검증: 반드시 "N강" 형식이어야 함 (문제 번호/지문 제외)
+
+        # 강의 제목 검증: 국어/수학만 "N강" 형식 검증 (영어는 다양한 형식 허용)
         import re
-        lecture_title_match = re.search(r'^(\d+)강', lecture_title)
-        if not lecture_title_match:
-            # "N강" 형식이 아니면 문제 번호나 지문일 가능성이 높음
-            print(f"[books] 경고: 강의 {lecture_id}의 제목이 'N강' 형식이 아님: '{lecture_title[:50]}' - 건너뜀")
-            continue
-        
-        # 문제/해설 페이지에서 추출된 잘못된 강의 제목 필터링
-        # 예: "03 주제 슬픔의 승화를...", "01 간을 옮긴 이유도..." 등
-        if re.match(r'^\d{2,}\s+[가-힣]{5,}', lecture_title) and not re.search(r'^\d+강', lecture_title):
-            # 2자리 이상 숫자로 시작하고 한글이 5자 이상이고 "N강" 형식이 아니면 문제 지문일 가능성
-            print(f"[books] 경고: 강의 {lecture_id}의 제목이 문제 지문으로 보임: '{lecture_title[:50]}' - 건너뜀")
-            continue
-        
-        # 문제 번호 형식 제외 (예: "04 웅적 활약", "04 정보를 제공해 주기도 한다...")
-        if re.match(r'^\d{2,}\s+[가-힣]{1,4}', lecture_title) and not re.search(r'^\d+강', lecture_title):
-            # 2자리 이상 숫자로 시작하고 한글이 4자 이하이고 "N강" 형식이 아니면 문제 번호일 가능성
-            print(f"[books] 경고: 강의 {lecture_id}의 제목이 문제 번호로 보임: '{lecture_title[:50]}' - 건너뜀")
-            continue
+        if subject_enum in [Subject.KOREAN, Subject.MATH]:
+            lecture_title_match = re.search(r'^(\d+)강', lecture_title)
+            if not lecture_title_match:
+                # "N강" 형식이 아니면 문제 번호나 지문일 가능성이 높음
+                print(f"[books] 경고: 강의 {lecture_id}의 제목이 'N강' 형식이 아님: '{lecture_title[:50]}' - 건너뜀")
+                continue
+
+            # 문제/해설 페이지에서 추출된 잘못된 강의 제목 필터링
+            # 예: "03 주제 슬픔의 승화를...", "01 간을 옮긴 이유도..." 등
+            if re.match(r'^\d{2,}\s+[가-힣]{5,}', lecture_title) and not re.search(r'^\d+강', lecture_title):
+                # 2자리 이상 숫자로 시작하고 한글이 5자 이상이고 "N강" 형식이 아니면 문제 지문일 가능성
+                print(f"[books] 경고: 강의 {lecture_id}의 제목이 문제 지문으로 보임: '{lecture_title[:50]}' - 건너뜀")
+                continue
+
+            # 문제 번호 형식 제외 (예: "04 웅적 활약", "04 정보를 제공해 주기도 한다...")
+            if re.match(r'^\d{2,}\s+[가-힣]{1,4}', lecture_title) and not re.search(r'^\d+강', lecture_title):
+                # 2자리 이상 숫자로 시작하고 한글이 4자 이하이고 "N강" 형식이 아니면 문제 번호일 가능성
+                print(f"[books] 경고: 강의 {lecture_id}의 제목이 문제 번호로 보임: '{lecture_title[:50]}' - 건너뜀")
+                continue
         
         sections = lecture_data.get("sections", [])
         problems = lecture_data.get("problems", [])  # 문제 목록 추가
@@ -149,7 +150,20 @@ def _create_curriculum_from_pipeline(
         
         # 각 섹션을 이미지 단위로 학습 단위 변환
         print(f"[books] 강의 {lecture_id} ({lecture_number}강): 섹션 {len(sections)}개, 문제 {len(problems)}개 발견")
-        
+
+        # Lesson 생성 (book_id와 연결)
+        from app.routers.lessons import generate_lesson_id
+        lesson_db_id = generate_lesson_id(pipeline_subject, lecture_number)
+        lesson = Lesson(
+            lesson_id=lesson_db_id,
+            book_id=book_id,
+            index=lecture_number,
+            title=lecture_title,
+        )
+        db.add(lesson)
+        db.flush()  # lesson_id를 얻기 위해 flush
+        print(f"[books]   Lesson 생성: {lesson_db_id} - {lecture_title}")
+
         # 이미지 디렉토리 경로
         from app.core.config import settings
         data_dir = settings.API_DIR / "data" / pipeline_subject
@@ -729,31 +743,64 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
         
         result = pipeline.process_pdf(pdf_path)
         
+        # 파이프라인 결과 확인
+        lectures = result.get('lectures', [])
+        problems = result.get('problems', [])
+        
+        print(f"[books] 파이프라인 결과: 강의 {len(lectures)}개, 문제 {len(problems)}개")
+        print(f"[books] PDF 경로: {pdf_path}")
+        print(f"[books] 과목: {pipeline_subject}")
+        
+        # 강의가 없으면 파싱 실패로 처리
+        if not lectures:
+            print(f"[books] ========================================")
+            print(f"[books] [경고] 강의를 찾을 수 없습니다. 파싱이 실패했습니다.")
+            print(f"[books] ========================================")
+            print(f"[books] 가능한 원인:")
+            print(f"  1. PDF에 강의 제목이 없거나 인식되지 않음")
+            print(f"  2. 강의 제목 패턴이 PDF 형식과 맞지 않음")
+            print(f"  3. OCR 품질이 낮아 텍스트 추출 실패")
+            print(f"[books] 해결 방법:")
+            print(f"  1. 캐시 삭제: data/{pipeline_subject}/cache/ 폴더 삭제 후 재시도")
+            print(f"  2. 강의 제목 패턴 확인: textbook_pipeline.py의 lecture_title_patterns 확인")
+            print(f"  3. OCR 품질 확인: Tesseract 한국어 언어팩 설치 확인")
+            print(f"[books] ========================================")
+            print(f"[books] 상세 디버그 로그는 위의 textbook_pipeline.py 출력을 확인하세요.")
+            print(f"[books] ========================================")
+            
+            # 파싱 실패 상태 업데이트
+            book = db.query(Book).filter(Book.book_id == book_id).first()
+            if book:
+                book.parse_status = ParseStatus.FAILED
+                db.commit()
+            return
+        
+        # 교재 정보 조회 (커리큘럼 생성 전에 필요)
+        book = db.query(Book).filter(Book.book_id == book_id).first()
+        if not book:
+            print(f"[books] 경고: 교재를 찾을 수 없음: {book_id}")
+            return
+
         # 파이프라인 완료 후 커리큘럼 자동 생성
         curriculum_id = None
-        if result.get('lectures'):
-            try:
-                curriculum_id = _create_curriculum_from_pipeline(
-                    book_id=book_id,
-                    subject_enum=subject_enum,
-                    pipeline_subject=pipeline_subject,
-                    title=book.title if book else f"{subject} 교재",
-                    db=db
-                )
-                print(f"[books] 커리큘럼 자동 생성 완료: {curriculum_id}")
-            except Exception as e:
-                print(f"[books] 커리큘럼 생성 실패 (파이프라인은 성공): {e}")
-                import traceback
-                traceback.print_exc()
-        
+        try:
+            curriculum_id = _create_curriculum_from_pipeline(
+                book_id=book_id,
+                subject_enum=subject_enum,
+                pipeline_subject=pipeline_subject,
+                title=book.title,
+                db=db
+            )
+            print(f"[books] 커리큘럼 자동 생성 완료: {curriculum_id}")
+        except Exception as e:
+            print(f"[books] 커리큘럼 생성 실패 (파이프라인은 성공): {e}")
+            import traceback
+            traceback.print_exc()
+
         # 파싱 완료 상태 업데이트
-        book = db.query(Book).filter(Book.book_id == book_id).first()
-        if book:
-            book.parse_status = ParseStatus.DONE
-            db.commit()
-            print(f"[books] PDF 파이프라인 완료: {book_id} (강의 {len(result.get('lectures', []))}개 생성, 커리큘럼: {curriculum_id})")
-        else:
-            print(f"[books] 경고: 교재를 찾을 수 없음: {book_id}")
+        book.parse_status = ParseStatus.DONE
+        db.commit()
+        print(f"[books] PDF 파이프라인 완료: {book_id} (강의 {len(lectures)}개 생성, 커리큘럼: {curriculum_id})")
             
     except Exception as e:
         print(f"[books] PDF 파이프라인 실패: {e}")
@@ -940,8 +987,16 @@ async def get_parse_status(book_id: str, db: Session = Depends(get_db)):
     if not book:
         raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
     
-    # TODO: 실제 파싱 진행률 계산 (현재는 상태만 반환)
-    progress = 100 if book.parse_status == ParseStatus.DONE else 0
+    # 파싱 진행률 계산
+    if book.parse_status == ParseStatus.DONE:
+        progress = 100
+    elif book.parse_status == ParseStatus.FAILED:
+        progress = 0
+    elif book.parse_status == ParseStatus.PROCESSING:
+        # 파싱 중이면 진행률을 추정 (실제로는 파이프라인 단계별로 계산 가능)
+        progress = 50  # 중간 단계로 표시
+    else:
+        progress = 0
     
     return BookParseStatusResponse(
         book_id=book.book_id,
@@ -951,52 +1006,82 @@ async def get_parse_status(book_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/books/{book_id}/reparse")
-async def reparse_book(book_id: str, db: Session = Depends(get_db)):
+async def reparse_book(
+    book_id: str,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
     """교재 재파싱"""
     book = db.query(Book).filter(Book.book_id == book_id).first()
     if not book:
         raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
-    
+
     # 파일 경로 확인
     file_path = Path(book.file_path)
     if not file_path.exists():
         raise HTTPException(
-            status_code=404, 
+            status_code=404,
             detail=f"파일을 찾을 수 없습니다: {file_path}"
         )
-    
+
     # PDF 파일인 경우 재파싱
     if file_path.suffix.lower() == '.pdf':
         try:
-            # 기존 강의 삭제 (선택적)
-            # for lesson in book.lessons:
-            #     db.delete(lesson)
-            # db.commit()
-            
-            # 재파싱 시작
-            # TODO: PDF 파싱 파이프라인 구현 후 활성화
-            # success = parse_lessons_and_units(book_id, db)
-            success = False  # 임시로 False
-            
-            # 최신 상태 가져오기
-            db.refresh(book)
-            
-            if success:
-                return {
-                    "ok": True,
-                    "message": "재파싱이 완료되었습니다.",
-                    "status": book.parse_status.value if hasattr(book.parse_status, 'value') else str(book.parse_status)
-                }
-            else:
-                return {
-                    "ok": False,
-                    "message": "재파싱에 실패했습니다.",
-                    "status": book.parse_status.value if hasattr(book.parse_status, 'value') else str(book.parse_status)
-                }
+            print(f"[books] 재파싱 시작: {book_id}")
+
+            # 파싱 상태를 PROCESSING으로 업데이트
+            book.parse_status = ParseStatus.PROCESSING
+            db.commit()
+
+            # 캐시 삭제 (강제 재파싱을 위해)
+            pipeline_subject = _subject_to_pipeline_subject(book.subject)
+            cache_dir = settings.DATA_DIR / pipeline_subject / "cache"
+            if cache_dir.exists():
+                print(f"[books] 캐시 삭제: {cache_dir}")
+                import shutil
+                try:
+                    shutil.rmtree(cache_dir)
+                except Exception as cache_err:
+                    print(f"[books] 캐시 삭제 실패 (계속 진행): {cache_err}")
+
+            # 기본 AI 옵션 (기본 ML 기능만 활성화)
+            ai_options = {
+                "enable_ml_deduplication": True,
+                "enable_ml_classification": True,
+                "enable_layout_analysis": False,
+                "enable_math_recognition": False,
+                "enable_llm_metadata": False,
+                "enable_llm_explanations": False,
+                "enable_llm_recommendations": False,
+                "openai_api_key": None,
+                "education_level": "high",
+            }
+
+            # 백그라운드에서 PDF 파이프라인 실행
+            background_tasks.add_task(
+                _process_pdf_background,
+                book_id,
+                file_path,
+                book.subject.value,
+                ai_options
+            )
+
+            print(f"[books] 재파싱 백그라운드 작업 시작: {book_id}")
+
+            return {
+                "ok": True,
+                "message": "재파싱이 시작되었습니다.",
+                "status": book.parse_status.value if hasattr(book.parse_status, 'value') else str(book.parse_status)
+            }
         except Exception as e:
             print(f"[books] 재파싱 실패: {e}")
             import traceback
             traceback.print_exc()
+
+            # 파싱 실패 상태 업데이트
+            book.parse_status = ParseStatus.FAILED
+            db.commit()
+
             raise HTTPException(
                 status_code=500,
                 detail=f"재파싱 중 오류가 발생했습니다: {str(e)}"
@@ -1150,6 +1235,34 @@ async def get_lessons_from_hwp(book_id: str, db: Session = Depends(get_db)):
         "lesson_info": lesson_info,
         "structure": structure
     }
+
+
+@router.delete("/books/{book_id}")
+async def delete_book(
+    book_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    교재 삭제
+    
+    교재와 관련된 모든 데이터(레슨, 유닛, 커리큘럼 등)를 함께 삭제합니다.
+    """
+    book = db.query(Book).filter(Book.book_id == book_id).first()
+    if not book:
+        raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
+    
+    # 파싱 중인 교재도 삭제 가능하도록 허용
+    # (cascade로 인해 관련 데이터가 자동 삭제됨)
+    
+    try:
+        # Book 삭제 (cascade로 인해 관련 Lesson, Unit 등이 자동 삭제됨)
+        db.delete(book)
+        db.commit()
+        
+        return {"ok": True, "message": "교재가 삭제되었습니다."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"교재 삭제 실패: {str(e)}")
 
 
 @router.post("/books/{book_id}/create-curriculum-from-data")

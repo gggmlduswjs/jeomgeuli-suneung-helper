@@ -3,19 +3,23 @@ import { ArrowLeft, Volume2, VolumeX, Home, BookOpen, HelpCircle, BookMarked, Ti
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AppShellMobileProps {
-  title: string;
+  title?: string;
   showBackButton?: boolean;
   onBack?: () => void;
   children: React.ReactNode;
   className?: string;
+  showHeader?: boolean;  // 헤더 표시 여부
+  showFooter?: boolean;  // 푸터 표시 여부
 }
 
 export default function AppShellMobile({
-  title,
+  title = '',
   showBackButton = false,
   onBack,
   children,
-  className = ''
+  className = '',
+  showHeader = false,  // 기본값: 헤더 숨김
+  showFooter = false,  // 기본값: 푸터 숨김
 }: AppShellMobileProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -129,8 +133,12 @@ export default function AppShellMobile({
 
   return (
     <div className={`min-h-screen bg-bg text-fg flex flex-col ${className}`}>
-      {/* 상단 헤더 - 모던 스타일 */}
-      <header className="sticky top-0 z-50 bg-white/98 backdrop-blur-xl border-b border-border/50 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+      {/* 상단 헤더 - 선택적 표시 */}
+      {showHeader && (
+      <header 
+        className="sticky top-0 z-50 backdrop-blur-xl border-b border-border/50 shadow-soft"
+        style={{ background: 'linear-gradient(180deg, rgba(249, 250, 251, 0.8) 0%, rgba(255, 255, 255, 1) 100%)' }}
+      >
         <div className="w-full md:max-w-md md:mx-auto">
           <div className="flex items-center justify-between px-4 py-2.5">
             {/* 왼쪽: 홈 버튼 + 뒤로가기 버튼 */}
@@ -140,7 +148,11 @@ export default function AppShellMobile({
                 <button
                   type="button"
                   onClick={() => navigate('/')}
-                  className="p-2.5 -ml-2 rounded-xl bg-card/60 hover:bg-card border border-border/40 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-200 active:scale-95 touch-manipulation"
+                  className="p-2.5 -ml-2 rounded-xl hover:bg-card border border-border/40 
+                             focus:outline-none focus:ring-2 focus:ring-primary/50 
+                             transition-all duration-300 active:scale-95 touch-manipulation
+                             hover:shadow-soft hover:border-primary/30"
+                  style={{ background: 'rgba(249, 250, 251, 0.8)' }}
                   aria-label="홈으로 가기"
                 >
                   <Home className="w-5 h-5 text-fg" aria-hidden="true" />
@@ -151,7 +163,11 @@ export default function AppShellMobile({
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="p-2.5 rounded-xl bg-card/60 hover:bg-card border border-border/40 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-200 active:scale-95 touch-manipulation"
+                  className="p-2.5 rounded-xl hover:bg-card border border-border/40 
+                             focus:outline-none focus:ring-2 focus:ring-primary/50 
+                             transition-all duration-300 active:scale-95 touch-manipulation
+                             hover:shadow-soft hover:border-primary/30"
+                  style={{ background: 'rgba(249, 250, 251, 0.8)' }}
                   aria-label="뒤로 가기"
                 >
                   <ArrowLeft className="w-5 h-5 text-fg" aria-hidden="true" />
@@ -187,13 +203,15 @@ export default function AppShellMobile({
           </div>
         </div>
       </header>
+      )}
 
       {/* 메인 콘텐츠 */}
       <main className="flex-1 overflow-hidden bg-bg">
         <div className="w-full md:max-w-md md:mx-auto h-full flex flex-col">{children}</div>
       </main>
 
-      {/* 하단 탭 네비게이션 - 모던 스타일 */}
+      {/* 하단 탭 네비게이션 - 선택적 표시 */}
+      {showFooter && (
       <nav 
         className="sticky bottom-0 z-50 bg-white/98 backdrop-blur-xl border-t border-border/60 shadow-[0_-2px_12px_rgba(0,0,0,0.05)]" 
         role="navigation" 
@@ -244,6 +262,7 @@ export default function AppShellMobile({
           </div>
         </div>
       </nav>
+      )}
     </div>
   );
 }

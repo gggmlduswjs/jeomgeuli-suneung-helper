@@ -14,10 +14,9 @@ import UnitContent from '../components/textbook/UnitContent';
 import PDFUpload from '../components/textbook/PDFUpload';
 import { booksAPI } from '../services/books';
 import { api } from '../services/api';
-import type { Book } from '../types/book';
 import { Subject } from '../types/book';
 
-type ViewMode = 'textbooks' | 'units' | 'content';
+type ViewMode = 'textbooks' | 'units' | 'content' | 'sections';
 type ReadingMode = 'braille-only' | 'audio-first' | 'mixed';
 
 export default function Textbook() {
@@ -328,10 +327,29 @@ export default function Textbook() {
   const handlePDFUploadComplete = async (textbookId: number) => {
     setShowPDFUpload(false);
     // 새로 업로드된 교재 선택
+    // 교재 목록을 다시 로드하여 최신 상태로 업데이트
     await loadTextbooks();
-    const uploadedTextbook = textbooks.find(t => t.id === textbookId);
+    
+    // textbookId는 숫자이지만, 실제로는 book_id(string)를 기반으로 찾아야 함
+    // book_id로 찾기 (textbookId를 문자열로 변환)
+    const uploadedTextbook = textbooks.find(t => t.book_id === String(textbookId));
+    
     if (uploadedTextbook) {
       await handleTextbookSelect(uploadedTextbook);
+    } else {
+      // 교재를 찾지 못한 경우 목록 새로고침 후 첫 번째 교재 선택
+      console.warn('[Textbook] 업로드된 교재를 찾을 수 없음:', textbookId, '전체 교재:', textbooks);
+      // 잠시 대기 후 다시 시도 (백그라운드 작업이 완료될 시간을 줌)
+      setTimeout(async () => {
+        await loadTextbooks();
+        const retryTextbook = textbooks.find(t => t.book_id === String(textbookId));
+        if (retryTextbook) {
+          await handleTextbookSelect(retryTextbook);
+        } else if (textbooks.length > 0) {
+          // 그래도 없으면 첫 번째 교재 선택
+          await handleTextbookSelect(textbooks[0]);
+        }
+      }, 2000);
     }
   };
 
@@ -416,7 +434,7 @@ export default function Textbook() {
       const firstSection = lessonSections[0];
       console.log('[Textbook] 첫 번째 섹션:', firstSection);
       const unit: Unit = {
-        id: 'section_0', // 고정된 ID 사용 (인덱스 기반)
+        id: 1000000 + 0, // 고정된 ID 사용 (인덱스 기반, 큰 숫자로 섹션 구분)
         title: firstSection.title || firstSection.section_name || '',
         order: firstSection.unit_index || 0,
         content: firstSection.content || '',
@@ -445,7 +463,7 @@ export default function Textbook() {
       
       // 섹션 변경 시 이전 데이터 제거를 위해 새 단원 객체 생성
       const unit: Unit = {
-        id: `section_${index}`, // 고정된 ID 사용 (인덱스 기반)
+        id: 1000000 + index, // 고정된 ID 사용 (인덱스 기반, 큰 숫자로 섹션 구분)
         title: section.title || section.section_name || '',
         order: section.unit_index || index,
         content: section.content || '', // 본문 내용
@@ -545,15 +563,8 @@ export default function Textbook() {
       } else {
         speak('마지막 강의입니다.');
       }
-    } else if (viewMode === 'sections' && sections.length > 0) {
-      const currentIndex = sections.findIndex(s => 
-        (s.title || s.section_name) === currentUnit?.title
-      );
-      if (currentIndex >= 0 && currentIndex < sections.length - 1) {
-        handleSectionSelect(sections[currentIndex + 1]);
-      } else {
-        speak('마지막 섹션입니다.');
-      }
+    } else if (viewMode === 'content' && sections.length > 0) {
+      handleNextSection();
     }
   };
 
@@ -565,15 +576,8 @@ export default function Textbook() {
       } else {
         speak('첫 번째 강의입니다.');
       }
-    } else if (viewMode === 'sections' && sections.length > 0) {
-      const currentIndex = sections.findIndex(s => 
-        (s.title || s.section_name) === currentUnit?.title
-      );
-      if (currentIndex > 0) {
-        handleSectionSelect(sections[currentIndex - 1]);
-      } else {
-        speak('첫 번째 섹션입니다.');
-      }
+    } else if (viewMode === 'content' && sections.length > 0) {
+      handlePrevSection();
     }
   };
 
@@ -664,8 +668,8 @@ export default function Textbook() {
         handleTextbookSelect(textbooks[num - 1]);
       } else if (viewMode === 'units' && num > 0 && num <= lessons.length) {
         handleLessonSelect(lessons[num - 1]);
-      } else if (viewMode === 'sections' && num > 0 && num <= sections.length) {
-        handleSectionSelect(sections[num - 1]);
+      } else if (viewMode === 'content' && num > 0 && num <= sections.length) {
+        handleSectionSelectByIndex(num - 1);
       }
       stopSTT();
       return;

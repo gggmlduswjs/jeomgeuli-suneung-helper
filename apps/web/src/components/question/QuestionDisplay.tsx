@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BraillePatternFactory } from '../../lib/braillePattern';
+import { BraillePatternFactory } from '../../lib/braille';
 import useBrailleBLE from '../../hooks/useBrailleBLE';
 import { useBrailleChunkReader } from '../../hooks/useBrailleChunkReader';
 import { getSubjectStrategy, extractSubjectType } from '../../strategies/subjectLearning';

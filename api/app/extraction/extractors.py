@@ -224,7 +224,11 @@ class PdfplumberExtractor(TextExtractor):
                                 color_samples.append(f"{t}({c})")
                             else:
                                 color_samples.append(f"{t}(None)")
-                        print(f"    [페이지 {page_num} 색상 샘플] {', '.join(color_samples[:5])}")
+                        try:
+                            print(f"    [페이지 {page_num} 색상 샘플] {', '.join(color_samples[:5])}")
+                        except UnicodeEncodeError:
+                            # Windows console encoding issue - skip color sample output
+                            pass
                     
                     if page_num % 10 == 0 or page_num == 1:
                         word_count = len(texts)

@@ -6,6 +6,7 @@ import PerformanceMonitor from "../components/system/PerformanceMonitor";
 import DevHealth from "../components/system/DevHealth";
 import HealthCheck from "../components/system/HealthCheck";
 import VoiceRecognitionDebug from "../components/debug/VoiceRecognitionDebug";
+import { KeyboardProvider } from "../contexts/KeyboardContext";
 import { routes, legacyRedirects, legacyRoutes, notFoundRoute } from "./routes";
 
 // Loading component
@@ -59,38 +60,40 @@ export default function App(){
   return (
     <ErrorBoundary>
       <HealthCheck>
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          {import.meta.env.DEV && <DevHealth />}
-          {import.meta.env.DEV && <PerformanceMonitor />}
-          {import.meta.env.DEV && <VoiceRecognitionDebug />}
-          {/* 전역 음성 인식: 모든 페이지에서 화면을 길게 누르면 음성 인식 시작 */}
-          <GlobalVoiceRecognition />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* 메인 라우트 */}
-              {routes.map((route) => (
-                <Route key={route.path} path={route.path} element={<route.element />} />
-              ))}
-              
-              {/* 레거시 라우트 리다이렉트 */}
-              {legacyRedirects.map((redirect) => (
-                <Route 
-                  key={redirect.from} 
-                  path={redirect.from} 
-                  element={<Navigate to={redirect.to} replace />} 
-                />
-              ))}
+        <KeyboardProvider>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            {import.meta.env.DEV && <DevHealth />}
+            {import.meta.env.DEV && <PerformanceMonitor />}
+            {import.meta.env.DEV && <VoiceRecognitionDebug />}
+            {/* 전역 음성 인식: 모든 페이지에서 화면을 길게 누르면 음성 인식 시작 */}
+            <GlobalVoiceRecognition />
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* 메인 라우트 */}
+                {routes.map((route) => (
+                  <Route key={route.path} path={route.path} element={<route.element />} />
+                ))}
 
-              {/* 레거시 라우트 (제거 예정) */}
-              {legacyRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={<route.element />} />
-              ))}
+                {/* 레거시 라우트 리다이렉트 */}
+                {legacyRedirects.map((redirect) => (
+                  <Route
+                    key={redirect.from}
+                    path={redirect.from}
+                    element={<Navigate to={redirect.to} replace />}
+                  />
+                ))}
 
-              {/* 404 라우트 */}
-              <Route path={notFoundRoute.path} element={<notFoundRoute.element />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
+                {/* 레거시 라우트 (제거 예정) */}
+                {legacyRoutes.map((route) => (
+                  <Route key={route.path} path={route.path} element={<route.element />} />
+                ))}
+
+                {/* 404 라우트 */}
+                <Route path={notFoundRoute.path} element={<notFoundRoute.element />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </KeyboardProvider>
       </HealthCheck>
     </ErrorBoundary>
   );

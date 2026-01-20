@@ -5,7 +5,8 @@ export interface Progress {
   user_id: string;
   book_id?: string;
   lesson_id?: string;
-  unit_id?: string;
+  unit_id?: string; // Legacy - kept for backward compatibility
+  question_id?: string; // New - for tracking specific questions
   syncpoint_id?: string;
   updated_at?: string;
 }
@@ -14,6 +15,7 @@ export interface ProgressCreate {
   user_id: string;
   book_id?: string;
   lesson_id?: string;
-  unit_id?: string;
+  unit_id?: string; // Legacy - kept for backward compatibility
+  question_id?: string; // New - for tracking specific questions
   syncpoint_id?: string;
 }
