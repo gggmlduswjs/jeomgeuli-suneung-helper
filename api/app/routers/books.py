@@ -680,31 +680,49 @@ def _create_curriculum_from_pipeline(
     return curriculum_id
 
 
-def _process_pdf_background(book_id: str, pdf_path: Path, subject: str):
+def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_options: dict = None):
     """백그라운드에서 PDF 파이프라인 실행"""
     from app.services.textbook_pipeline import TextbookPipeline
     from app.db.models import Book, ParseStatus
     from app.db.session import SessionLocal
-    
+
+    if ai_options is None:
+        ai_options = {}
+
     db = SessionLocal()
     try:
         # Subject enum 변환
         subject_enum = Subject(subject)
         pipeline_subject = _subject_to_pipeline_subject(subject_enum)
-        
+
         print(f"[books] PDF 파이프라인 시작: {pdf_path} (과목: {pipeline_subject})")
-        
-        # TextbookPipeline 실행 (최적화 설정)
-        # DPI: 150 (속도 최적화, 품질은 충분함)
-        # pdfplumber 사용 시 이미지 변환이 느릴 수 있지만, 텍스트 추출은 매우 빠름
+        print(f"[books] AI 옵션: ML dedup={ai_options.get('enable_ml_deduplication', True)}, "
+              f"ML class={ai_options.get('enable_ml_classification', True)}, "
+              f"DL layout={ai_options.get('enable_layout_analysis', False)}, "
+              f"DL math={ai_options.get('enable_math_recognition', False)}, "
+              f"LLM meta={ai_options.get('enable_llm_metadata', False)}, "
+              f"LLM expl={ai_options.get('enable_llm_explanations', False)}, "
+              f"LLM rec={ai_options.get('enable_llm_recommendations', False)}")
+
+        # AI 후처리 활성화 여부 결정
+        enable_ai = (ai_options.get('enable_ml_deduplication', True) or
+                    ai_options.get('enable_ml_classification', True) or
+                    ai_options.get('enable_layout_analysis', False) or
+                    ai_options.get('enable_math_recognition', False) or
+                    ai_options.get('enable_llm_metadata', False) or
+                    ai_options.get('enable_llm_explanations', False) or
+                    ai_options.get('enable_llm_recommendations', False))
+
+        # TextbookPipeline 실행 (AI 옵션 반영)
         pipeline = TextbookPipeline(
             subject=pipeline_subject,
-            dpi=150,  # DPI 낮춤 (200 → 150, 속도 향상, 품질은 충분)
+            dpi=150,  # DPI 낮춤 (속도 최적화)
             use_parallel=True,  # 병렬 처리 활성화
-            use_ai_postprocess=False,  # 기본적으로 AI 후처리 비활성화 (느림)
+            use_ai_postprocess=enable_ai,  # AI 옵션에 따라 활성화
             use_cache=True,
-            use_pdfplumber=True,  # pdfplumber 우선 사용 (텍스트 레이어 추출)
-            max_pages=None,  # 전체 페이지 처리 (필요시 제한 가능)
+            use_pdfplumber=True,  # pdfplumber 우선 사용
+            max_pages=None,  # 전체 페이지 처리
+            ai_options=ai_options,  # AI 옵션 전달
         )
         
         print(f"[books] 파이프라인 설정: DPI={pipeline.dpi}, 병렬={pipeline.use_parallel}, pdfplumber={pipeline.use_pdfplumber}")
@@ -775,6 +793,16 @@ async def upload_book(
     title: str = Form(...),
     subject: str = Form(...),
     year: int = Form(None),
+    # AI Processing Options (Level 1/2/3)
+    enable_ml_deduplication: bool = Form(True),
+    enable_ml_classification: bool = Form(True),
+    enable_layout_analysis: bool = Form(False),
+    enable_math_recognition: bool = Form(False),
+    enable_llm_metadata: bool = Form(False),
+    enable_llm_explanations: bool = Form(False),
+    enable_llm_recommendations: bool = Form(False),
+    openai_api_key: str = Form(None),
+    education_level: str = Form("high"),
     db: Session = Depends(get_db),
 ):
     """
@@ -811,12 +839,24 @@ async def upload_book(
     db.commit()
     db.refresh(book)
     
-    # 백그라운드에서 PDF 파이프라인 실행
+    # 백그라운드에서 PDF 파이프라인 실행 (AI 옵션 전달)
+    ai_options = {
+        "enable_ml_deduplication": enable_ml_deduplication,
+        "enable_ml_classification": enable_ml_classification,
+        "enable_layout_analysis": enable_layout_analysis,
+        "enable_math_recognition": enable_math_recognition,
+        "enable_llm_metadata": enable_llm_metadata,
+        "enable_llm_explanations": enable_llm_explanations,
+        "enable_llm_recommendations": enable_llm_recommendations,
+        "openai_api_key": openai_api_key,
+        "education_level": education_level,
+    }
     background_tasks.add_task(
         _process_pdf_background,
         book_id,
         file_path,
-        subject
+        subject,
+        ai_options
     )
     
     return BookResponse(
