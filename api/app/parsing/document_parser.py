@@ -1,6 +1,10 @@
 """
 메인 문서 파서
 OCR 데이터 → 중간 구조(Intermediate Document) 변환
+
+이 파서는 두 가지 모드를 지원합니다:
+1. 블록 기반 파싱 (기존 방식): 중간 구조(IntermediateDocument) 생성
+2. 강의 기반 파싱 (새 방식): 전략 패턴을 사용한 과목별 파싱
 """
 import logging
 from datetime import datetime
@@ -21,20 +25,34 @@ from .concept_parser import ConceptParser
 from .example_parser import ExampleParser
 from .parsing_rules import ParsingRules
 
+# 전략 패턴 import
+try:
+    from .strategies import LiteratureParsingStrategy, Math1ParsingStrategy, EnglishParsingStrategy
+    STRATEGIES_AVAILABLE = True
+except ImportError:
+    STRATEGIES_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
 class DocumentParser:
-    """문서 파서 - PDF OCR 데이터를 중간 구조로 변환"""
+    """
+    문서 파서 - PDF OCR 데이터를 중간 구조로 변환
 
-    def __init__(self, subject: str = "literature"):
+    두 가지 모드 지원:
+    1. parse(): 블록 기반 파싱 (IntermediateDocument 생성)
+    2. parse_lectures(): 강의 기반 파싱 (전략 패턴 사용)
+    """
+
+    def __init__(self, config: Dict[str, Any] = None):
         """
         Args:
-            subject: 과목명
+            config: 설정 딕셔너리 (subject, lecture_title_patterns 등 포함)
         """
-        self.subject = subject
+        self.config = config or {}
+        self.subject = self.config.get('subject', 'literature')
 
-        # 타입별 파서 초기화 (우선순위 순서)
+        # 타입별 파서 초기화 (블록 기반 파싱용)
         self.parsers = {
             BlockType.QUESTION: QuestionParser(),
             BlockType.PASSAGE: PassageParser(),
@@ -48,8 +66,66 @@ class DocumentParser:
             key=lambda x: ParsingRules.get_priority(x[0].value)
         )
 
-        logger.info(f"DocumentParser 초기화: {subject}")
+        # 전략 패턴 초기화 (강의 기반 파싱용)
+        if STRATEGIES_AVAILABLE:
+            self.strategies = {
+                'literature': LiteratureParsingStrategy(),
+                'math1': Math1ParsingStrategy(),
+                'math': Math1ParsingStrategy(),  # 별칭
+                'english': EnglishParsingStrategy()
+            }
+        else:
+            self.strategies = {}
+
+        logger.info(f"DocumentParser 초기화: {self.subject}")
         logger.info(f"파서 우선순위: {[p[0].value for p in self.sorted_parsers]}")
+        if STRATEGIES_AVAILABLE:
+            logger.info(f"전략 패턴 사용 가능: {list(self.strategies.keys())}")
+
+    def parse_lectures(
+        self,
+        all_ocr_data: List[Dict[str, Any]],
+        existing_problem_keys: Optional[set] = None
+    ) -> Dict[str, Any]:
+        """
+        OCR 데이터 → 강의 및 문제 추출 (전략 패턴 사용)
+
+        Args:
+            all_ocr_data: OCR 추출 데이터 (페이지별)
+            existing_problem_keys: 이미 파싱된 문제 키 집합 (증분 파싱용)
+
+        Returns:
+            {
+                'lectures': [...],
+                'problems': [...],
+                'metadata': {...}
+            }
+        """
+        if not STRATEGIES_AVAILABLE:
+            raise RuntimeError("전략 패턴이 사용 불가능합니다. strategies 모듈을 확인하세요.")
+
+        strategy = self.strategies.get(self.subject)
+        if not strategy:
+            raise ValueError(f"Unknown subject: {self.subject}. Available: {list(self.strategies.keys())}")
+
+        logger.info(f"강의 기반 파싱 시작: {self.subject}, {len(all_ocr_data)}개 페이지")
+
+        # 전략을 사용해서 파싱
+        lectures = strategy.extract_lectures(all_ocr_data, self.config)
+        problems = strategy.extract_problems(all_ocr_data, self.config, existing_problem_keys)
+
+        logger.info(f"강의 기반 파싱 완료: {len(lectures)}개 강의, {len(problems)}개 문제")
+
+        return {
+            'subject': self.subject,
+            'lectures': lectures,
+            'problems': problems,
+            'metadata': {
+                'total_lectures': len(lectures),
+                'total_problems': len(problems),
+                'total_pages': len(all_ocr_data)
+            }
+        }
 
     def parse(
         self,
@@ -58,7 +134,7 @@ class DocumentParser:
         ocr_method: str = "pdfplumber"
     ) -> IntermediateDocument:
         """
-        OCR 데이터 → 중간 구조 변환
+        OCR 데이터 → 중간 구조 변환 (블록 기반 파싱)
 
         Args:
             all_ocr_data: OCR 추출 데이터 (페이지별)
