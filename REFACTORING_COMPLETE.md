@@ -3,9 +3,9 @@
 ## 🎉 프로젝트 전체 리팩토링 완료
 
 **Branch**: `refactor/complete-pipeline-separation`
-**총 Commits**: 5개
+**총 Commits**: 8개
 **작업 기간**: 2026-01-20
-**Files Changed**: 80+ files
+**Files Changed**: 100+ files
 
 ---
 
@@ -47,6 +47,30 @@
 
 #### 2.4 정리
 - ✅ 빈 폴더 5개 삭제
+
+### 3. **Data 폴더** ✅
+
+#### 3.1 빈 폴더 정리
+- ✅ datasets/ 제거
+- ✅ extracted/ 제거
+- ✅ lecture_scripts/ 제거
+- ✅ parsed/ 제거
+
+#### 3.2 PDF 중복 제거
+- ✅ 과목별 폴더 제거 (literature/, math1/, english/)
+- ✅ data/pdfs/를 유일한 원본 PDF 저장소로 통일
+- ✅ SHA256 해시로 중복 검증 후 제거
+
+#### 3.3 uploads/ 정리
+- ✅ 중복 임시 파일 13개 제거 (bk_*.pdf)
+- ✅ 314MB → 42MB (272MB 절약)
+
+#### 3.4 문서 업데이트
+- ✅ README.md 업데이트 (폴더 구조 반영)
+- ✅ REFACTORING_STRATEGY.md 작성
+- ✅ REFACTORING_SUMMARY.md 작성
+
+**결과**: 388MB → 87MB (301MB 절약, 77.6% 감소)
 
 ---
 
@@ -203,6 +227,9 @@ apps/web/src/
 ## 💻 Git 커밋 히스토리
 
 ```bash
+3020738 refactor(data): Clean up data folder structure
+868babc docs(data): Add data folder refactoring strategy
+cac7dd7 docs: Add complete refactoring report
 19c9f5f docs(api): Add backend refactoring summary
 58c4914 refactor(api): Clean up backend folder structure
 c987989 refactor(web): Reorganize frontend folder structure
@@ -225,6 +252,12 @@ a79d2c0 refactor: Complete pipeline separation with strategy pattern
 - **재구성된 파일**: 17개 (lib, services, utils)
 - **통합된 braille 파일**: 7개 → 1개 폴더
 - **명명 규칙 통일**: 100% (camelCase)
+
+### Data
+- **삭제된 빈 폴더**: 4개
+- **제거된 중복 PDF**: 3개 (66MB)
+- **정리된 임시 파일**: 13개 (272MB)
+- **용량 감소**: 388MB → 87MB (301MB 절약, 77.6% 감소)
 
 ---
 
@@ -283,6 +316,10 @@ a79d2c0 refactor: Complete pipeline separation with strategy pattern
 - `apps/web/REFACTORING_STRATEGY.md` - 프론트엔드 리팩토링 전략
 - `apps/web/REFACTORING_SUMMARY.md` - 프론트엔드 리팩토링 요약
 
+### Data
+- `data/REFACTORING_STRATEGY.md` - Data 폴더 리팩토링 전략
+- `data/REFACTORING_SUMMARY.md` - Data 폴더 리팩토링 요약
+
 ---
 
 ## 🎊 결론
@@ -292,9 +329,10 @@ a79d2c0 refactor: Complete pipeline separation with strategy pattern
 ### 주요 성과
 1. ✅ Backend: 아키텍처 분리 + 폴더 정리
 2. ✅ Frontend: 명명 규칙 통일 + 도메인별 그룹화
-3. ✅ 전략 패턴: 3개 과목 완전 구현
-4. ✅ 문서 정리: 모든 리팩토링 문서 정리
-5. ✅ 스크립트 분류: 용도별 명확한 분류
+3. ✅ Data: 중복 제거 + 용량 77.6% 감소
+4. ✅ 전략 패턴: 3개 과목 완전 구현
+5. ✅ 문서 정리: 모든 리팩토링 문서 정리
+6. ✅ 스크립트 분류: 용도별 명확한 분류
 
 ### 핵심 원칙
 - **책임 분리** (Separation of Concerns)
