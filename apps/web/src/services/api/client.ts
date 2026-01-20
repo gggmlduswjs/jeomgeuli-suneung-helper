@@ -211,7 +211,7 @@ export class UnitService extends ResourceService<Unit> {
 /**
  * 교재 서비스
  */
-import type { Book, BookParseStatus, Subject } from '../types/book';
+import type { Book, BookParseStatus, Subject, AIProcessingOptions } from '../types/book';
 
 export class BookService extends ResourceService<Book> {
   constructor() {
@@ -219,13 +219,14 @@ export class BookService extends ResourceService<Book> {
   }
 
   /**
-   * PDF 업로드 및 교재 생성
+   * PDF 업로드 및 교재 생성 (AI 옵션 포함)
    */
   async uploadPDF(
     file: File,
     title: string,
     subject: Subject,
-    year?: number
+    year?: number,
+    aiOptions?: AIProcessingOptions
   ): Promise<Book> {
     const formData = new FormData();
     formData.append('file', file);
@@ -234,6 +235,43 @@ export class BookService extends ResourceService<Book> {
     if (year) {
       formData.append('year', year.toString());
     }
+
+    // AI 옵션 추가
+    if (aiOptions) {
+      // Level 1: ML
+      if (aiOptions.enable_ml_deduplication !== undefined) {
+        formData.append('enable_ml_deduplication', aiOptions.enable_ml_deduplication.toString());
+      }
+      if (aiOptions.enable_ml_classification !== undefined) {
+        formData.append('enable_ml_classification', aiOptions.enable_ml_classification.toString());
+      }
+
+      // Level 2: DL
+      if (aiOptions.enable_layout_analysis !== undefined) {
+        formData.append('enable_layout_analysis', aiOptions.enable_layout_analysis.toString());
+      }
+      if (aiOptions.enable_math_recognition !== undefined) {
+        formData.append('enable_math_recognition', aiOptions.enable_math_recognition.toString());
+      }
+
+      // Level 3: LLM
+      if (aiOptions.enable_llm_metadata !== undefined) {
+        formData.append('enable_llm_metadata', aiOptions.enable_llm_metadata.toString());
+      }
+      if (aiOptions.enable_llm_explanations !== undefined) {
+        formData.append('enable_llm_explanations', aiOptions.enable_llm_explanations.toString());
+      }
+      if (aiOptions.enable_llm_recommendations !== undefined) {
+        formData.append('enable_llm_recommendations', aiOptions.enable_llm_recommendations.toString());
+      }
+      if (aiOptions.openai_api_key) {
+        formData.append('openai_api_key', aiOptions.openai_api_key);
+      }
+      if (aiOptions.education_level) {
+        formData.append('education_level', aiOptions.education_level);
+      }
+    }
+
     return api.postFormData<Book>('/books/upload', formData);
   }
 
