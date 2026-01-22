@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import useTTS from '../../hooks/useTTS';
-import { booksAPI } from '../../services/books';
+import { booksAPI } from '../../services/api/client';
 import { Subject } from '../../types/book';
 import type { Book } from '../../types/book';
 

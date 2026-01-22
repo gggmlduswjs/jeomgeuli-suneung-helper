@@ -230,19 +230,12 @@ export default function AppShellMobile({
             <NavButton
               icon={BookOpen}
               label="교재"
-              onClick={() => navigate('/textbook')}
-              isActive={isActive('/textbook') || isActive('/passage')}
+              onClick={() => navigate('/books')}
+              isActive={isActive('/books') || isActive('/textbook') || isActive('/passage')}
               ariaLabel="교재 학습"
-              ariaCurrent={isActive('/textbook') || isActive('/passage') ? 'page' : undefined}
+              ariaCurrent={isActive('/books') || isActive('/textbook') || isActive('/passage') ? 'page' : undefined}
             />
-            <NavButton
-              icon={HelpCircle}
-              label="문항"
-              onClick={() => navigate('/question')}
-              isActive={isActive('/question') || isActive('/graph-table')}
-              ariaLabel="문항 풀이"
-              ariaCurrent={isActive('/question') || isActive('/graph-table') ? 'page' : undefined}
-            />
+            {/* Question 페이지는 제거됨 - Unit.tsx로 통합 */}
             <NavButton
               icon={BookMarked}
               label="어휘"

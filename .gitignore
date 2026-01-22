@@ -144,3 +144,27 @@ tmp/
 temp/
 backend/spatial-logic-444905-j1-9a3a2a5f636b.json
 *.json
+
+# Windows
+nul
+
+# OCR outputs
+**/ocr_*.txt
+**/page_*_text.txt
+**/cache/
+**/temp/
+
+# Uploaded PDFs
+data/uploads/
+
+# YOLO / ML
+dataset/
+runs/
+yolov5/
+yolov8*.pt
+api/ml_models/
+api/models/
+
+# Generated data
+**/*.jpg
+**/*.png

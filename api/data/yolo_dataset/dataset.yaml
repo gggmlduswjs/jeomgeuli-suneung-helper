@@ -1,0 +1,17 @@
+# YOLO 데이터셋 설정
+path: C:\Users\user\Desktop\jeomgeuli-suneung-helper\api\data\yolo_dataset
+train: images/train
+val: images/val
+test: images/test
+
+# 클래스 정의 (업데이트된 클래스 매핑)
+names:
+  0: header        # 헤더 영역 (단원/유형/번호/코너 이름)
+  1: section       # 섹션 영역 (하나의 문제 묶음/학습 단위)
+  2: passage       # 본문 영역 (문제를 풀기 위해 읽어야 하는 지문)
+  3: question      # 문제 영역 (질문 + 선지)
+  4: concept_box   # 개념박스 영역 (풀이 전략/개념 설명)
+  5: sidebar       # 사이드바 영역 (부가 정보: 단어 뜻, 주석 등)
+
+# 클래스 개수
+nc: 6

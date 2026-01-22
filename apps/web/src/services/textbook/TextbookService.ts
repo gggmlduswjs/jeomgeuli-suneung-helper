@@ -2,7 +2,7 @@
  * 교재 관련 서비스
  * 교재 및 단원 관련 비즈니스 로직
  */
-import { examAPI, type Textbook, type Unit } from '../../lib/api/exam';
+import { examAPI, type Textbook, type Unit } from '../../lib/api';
 
 export class TextbookService {
   /**

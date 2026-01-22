@@ -1,8 +1,8 @@
+@import './styles/animations.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './styles/animations.css';
 
 /* 최소 가시성 보장 */
 html, body, #root { 

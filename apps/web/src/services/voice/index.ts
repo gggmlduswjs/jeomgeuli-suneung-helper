@@ -119,18 +119,24 @@ class VoiceServiceClass {
             (recognitionInstance.readyState === 2 ? 'listening' : 'idle');
           
           if (recognitionState === 'listening') {
-            console.warn('[VoiceService] 이미 음성 인식이 진행 중입니다.');
+            if (import.meta.env.DEV) {
+              console.warn('[VoiceService] 이미 음성 인식이 진행 중입니다.');
+            }
             return;
           } else {
             // 인스턴스가 있지만 비활성 상태면 리셋
-            console.log('[VoiceService] recognition 인스턴스가 비활성 상태 - 리셋');
+            if (import.meta.env.DEV) {
+              console.log('[VoiceService] recognition 인스턴스가 비활성 상태 - 리셋');
+            }
             recognitionInstance = null;
           }
         }
         
         // 상태 불일치 감지 시 리셋
         if (isListening || storeListening) {
-          console.log('[VoiceService] 상태 불일치 감지 - 리셋 후 재시작');
+          if (import.meta.env.DEV) {
+            console.log('[VoiceService] 상태 불일치 감지 - 리셋 후 재시작');
+          }
           isListening = false;
           useVoiceStore.getState().setListening(false);
           recognitionInstance = null;
@@ -155,9 +161,13 @@ class VoiceServiceClass {
               const grammar = `#JSGF V1.0; grammar answers; public <answer> = ${limitedAnswers.join(' | ')};`;
               grammarList.addFromString(grammar, 1.0);
               recognition.grammars = grammarList;
-              console.log('[VoiceService] 정답 목록을 제어어로 등록:', limitedAnswers.length, '개');
+              if (import.meta.env.DEV) {
+                console.log('[VoiceService] 정답 목록을 제어어로 등록:', limitedAnswers.length, '개');
+              }
             } catch (error) {
-              console.warn('[VoiceService] SpeechGrammarList 설정 실패:', error);
+              if (import.meta.env.DEV) {
+                console.warn('[VoiceService] SpeechGrammarList 설정 실패:', error);
+              }
             }
           }
 
@@ -172,21 +182,27 @@ class VoiceServiceClass {
           };
 
           recognition.onresult = (event: any) => {
-            console.log('[VoiceService] onresult 호출:', {
-              resultIndex: event.resultIndex,
-              resultsLength: event.results.length,
-            });
+            // 개발 환경에서만 로그 출력 (디버깅용)
+            if (import.meta.env.DEV) {
+              console.log('[VoiceService] onresult 호출:', {
+                resultIndex: event.resultIndex,
+                resultsLength: event.results.length,
+              });
+            }
             
             const alternatives: Array<{ transcript: string; confidence?: number }> = [];
             let finalTranscript = '';
 
             for (let i = event.resultIndex; i < event.results.length; i++) {
               const result = event.results[i];
-              console.log('[VoiceService] result:', {
-                isFinal: result.isFinal,
-                length: result.length,
-                transcript: result[0]?.transcript,
-              });
+              // 개발 환경에서만 로그 출력
+              if (import.meta.env.DEV) {
+                console.log('[VoiceService] result:', {
+                  isFinal: result.isFinal,
+                  length: result.length,
+                  transcript: result[0]?.transcript,
+                });
+              }
               
               // interimResults가 true일 때는 모든 결과 처리
               for (let j = 0; j < result.length; j++) {
@@ -249,14 +265,18 @@ class VoiceServiceClass {
             if (code === 'aborted') {
               // 이미 onend가 호출되었거나 의도적으로 중단된 경우
               if (hasEnded || isIntentionallyStopped) {
-                console.log('[VoiceService] 음성 인식이 정상적으로 종료되었습니다.');
+                if (import.meta.env.DEV) {
+                  console.log('[VoiceService] 음성 인식이 정상적으로 종료되었습니다.');
+                }
                 isListening = false;
                 useVoiceStore.getState().setListening(false);
                 recognitionInstance = null; // 인스턴스 리셋
                 return;
               }
               // 그 외의 경우는 브라우저가 자동으로 중단한 것으로 간주 (음성 미감지 등, 에러 아님)
-              console.log('[VoiceService] 음성 인식이 자동으로 중단되었습니다 (음성 미감지).');
+              if (import.meta.env.DEV) {
+                console.log('[VoiceService] 음성 인식이 자동으로 중단되었습니다 (음성 미감지).');
+              }
               isListening = false;
               useVoiceStore.getState().setListening(false);
               recognitionInstance = null; // 인스턴스 리셋
@@ -541,7 +561,10 @@ class VoiceServiceClass {
   async startSTT(options?: StartSTTOptions): Promise<void> {
     // 이미 리스닝 중이면 무시 (중복 시작 방지)
     if (this.sttProvider?.isListening()) {
-      console.log('[VoiceService] 이미 리스닝 중 - 무시');
+      // 개발 환경에서만 로그 출력
+      if (import.meta.env.DEV) {
+        console.log('[VoiceService] 이미 리스닝 중 - 무시');
+      }
       return;
     }
     
@@ -598,7 +621,10 @@ class VoiceServiceClass {
   stopSTT(): void {
     // 이미 중지되었으면 무시 (중복 중지 방지)
     if (!this.sttProvider?.isListening()) {
-      console.log('[VoiceService] 이미 중지됨 - 무시');
+      // 개발 환경에서만 로그 출력
+      if (import.meta.env.DEV) {
+        console.log('[VoiceService] 이미 중지됨 - 무시');
+      }
       return;
     }
     
@@ -691,7 +717,10 @@ class VoiceServiceClass {
    */
   setAnswerList(answers: string[]): void {
     this.currentAnswerList = answers;
-    console.log('[VoiceService] 정답 목록 설정:', answers.length, '개');
+    // 개발 환경에서만 로그 출력
+    if (import.meta.env.DEV) {
+      console.log('[VoiceService] 정답 목록 설정:', answers.length, '개');
+    }
   }
 }
 

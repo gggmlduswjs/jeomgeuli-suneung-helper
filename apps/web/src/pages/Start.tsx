@@ -5,9 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { progressAPI } from '../services/progress';
-import { unitsAPI } from '../services/units';
-import { booksAPI } from '../services/books';
-import { lessonsAPI } from '../services/lessons';
+import { unitsAPI, booksAPI, lessonsAPI } from '../services/api/client';
 import type { Progress } from '../types/progress';
 import type { Unit } from '../types/unit';
 import type { Book } from '../types/book';
@@ -74,7 +72,7 @@ export default function Start() {
 
         try {
           // lesson_id로 첫 번째 유효한 unit 찾기
-          const allUnits = await unitsAPI.list(progress.lesson_id);
+          const allUnits = await unitsAPI.listByLesson(progress.lesson_id);
           const questions = allUnits.filter(u => u.type === 'QUESTION');
 
           if (questions.length === 0) {
@@ -126,7 +124,7 @@ export default function Start() {
       const book = await booksAPI.get(lesson.book_id);
 
       // Get all units in lesson to calculate question number
-      const allUnits = await unitsAPI.list(unit.lesson_id);
+      const allUnits = await unitsAPI.listByLesson(unit.lesson_id);
       const questions = allUnits.filter(u => u.type === 'QUESTION');
       const currentQuestionIndex = questions.findIndex(q => q.unit_id === unit.unit_id);
       const questionNumber = currentQuestionIndex >= 0 ? currentQuestionIndex + 1 : 1;
@@ -179,7 +177,7 @@ export default function Start() {
     }
 
     // Navigate to the current unit
-    navigate(`/learn/${resumeInfo.book.book_id}/${resumeInfo.lesson.lesson_id}/${resumeInfo.unit.unit_id}`);
+    navigate(`/unit/${resumeInfo.unit.unit_id}`);
   };
 
   const handleNewStart = () => {

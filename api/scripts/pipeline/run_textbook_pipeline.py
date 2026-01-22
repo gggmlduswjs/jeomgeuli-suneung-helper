@@ -8,7 +8,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root / "api"))
 
-from app.services.textbook_pipeline import TextbookPipeline
+from app.processing.pipeline import UnifiedPipeline
+from app.core.config import settings
 
 def main():
     """교재 PDF 파이프라인 실행"""
@@ -113,33 +114,38 @@ def main():
     
     print(f"    설정: pdfplumber={use_pdfplumber}, 병렬={use_parallel}, AI={use_ai}, DPI={dpi}, 최대페이지={max_pages or '전체'}")
     
-    # 파이프라인 실행 (최적화 옵션 적용)
-    pipeline = TextbookPipeline(
+    # 파이프라인 실행 (UnifiedPipeline 직접 사용)
+    config_path = settings.API_DIR / "data" / subject / "config.json"
+    
+    pipeline = UnifiedPipeline(
         subject=subject,
-        dpi=dpi,  # 최적화: 300 → 200
+        use_ocr=not use_pdfplumber,  # pdfplumber 사용 시 OCR=False
+        use_ml_postprocess=False,  # ML 후처리는 아직 비활성화
+        config_path=config_path,
+        save_results=True,  # JSON 저장 활성화
+        dpi=dpi,
+        lang='kor+eng',
         use_parallel=use_parallel,  # 병렬 처리
-        use_ai_postprocess=use_ai,  # AI 후처리
-        use_cache=True,  # 캐싱 활성화
+        max_workers=None,  # CPU 코어 수 자동
         max_pages=max_pages,  # 페이지 제한
-        use_pdfplumber=use_pdfplumber  # pdfplumber 사용 (텍스트 레이어 추출)
     )
-    result = pipeline.process_pdf(pdf_path)
+    result = pipeline.process(pdf_path)
     
     print(f"\n[결과]")
-    print(f"  처리된 페이지: {result['pages_processed']}개")
-    print(f"  생성된 강의: {len(result['lectures'])}개")
-    print(f"  생성된 문제: {len(result['problems'])}개")
+    lectures = result.get('lectures', [])
+    problems = result.get('problems', [])
+    lecture_contents = result.get('lecture_contents', [])
+    print(f"  생성된 강의: {len(lectures)}개")
+    print(f"  생성된 문제: {len(problems)}개")
+    print(f"  강의 콘텐츠: {len(lecture_contents)}개")
     
-    # 성능 통계 출력
-    if 'stats' in result:
-        stats = result['stats']
+    # 성능 통계 출력 (metadata에서)
+    metadata = result.get('metadata', {})
+    if metadata:
         print(f"\n[성능 통계]")
-        print(f"  총 처리 시간: {stats.get('total_time', 0):.1f}초")
-        print(f"  OCR 시간: {stats.get('ocr_time', 0):.1f}초")
-        if stats.get('ai_postprocess_time', 0) > 0:
-            print(f"  AI 후처리 시간: {stats.get('ai_postprocess_time', 0):.1f}초")
-        print(f"  캐시 히트: {stats.get('cache_hits', 0)}개")
-        print(f"  캐시 미스: {stats.get('cache_misses', 0)}개")
+        print(f"  총 강의 수: {metadata.get('total_lectures', 0)}개")
+        print(f"  총 문제 수: {metadata.get('total_problems', 0)}개")
+        print(f"  상태: {metadata.get('status', 'unknown')}")
     
     print(f"\n[생성된 파일]")
     print(f"  강의 목록: data/{subject}/lectures/lectures.json")

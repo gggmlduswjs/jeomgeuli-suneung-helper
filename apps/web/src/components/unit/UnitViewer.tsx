@@ -49,14 +49,14 @@ export default function UnitViewer({ unit, onSpeak, readingMode = 'braille-only'
           <h3 className="text-xl font-bold mb-2">{unit.title}</h3>
         </div>
 
-        {/* 요약 내용 */}
-        {unit.content_text && (
+        {/* 요약 내용 - 텍스트 표시 제거 (TTS로만 제공) */}
+        {/* {unit.content_text && (
           <div className="prose max-w-none">
             <div className="whitespace-pre-wrap text-base leading-relaxed bg-card border border-border rounded-lg p-4">
               {unit.content_text}
             </div>
           </div>
-        )}
+        )} */}
 
         {/* 점자 키워드 */}
         {unit.braille_keywords && unit.braille_keywords.length > 0 && (
@@ -102,24 +102,15 @@ export default function UnitViewer({ unit, onSpeak, readingMode = 'braille-only'
           </div>
         )}
         
+        {/* 문제 지문 제거 (이미지에 포함됨) - 선택지만 표시 */}
         <div className="prose max-w-none">
-          {/* 문제 지문 표시 (이미지가 없거나 텍스트가 더미가 아닌 경우) */}
-          {unit.question.stem && !unit.question.stem.includes('(페이지') && (
-            <div 
-              className="border border-border/50 rounded-2xl p-5 mb-4 shadow-soft"
-              style={{ background: 'linear-gradient(135deg, rgb(249, 250, 251) 0%, rgb(255, 255, 255) 100%)' }}
-            >
-              <p className="text-base leading-relaxed text-fg whitespace-pre-wrap">{unit.question.stem}</p>
-            </div>
-          )}
-          
-          {/* 선택지 표시 */}
+          {/* 선택지 표시 (답안 선택용으로 필요) */}
           {unit.question.choices && unit.question.choices.length > 0 && (
             <div className="space-y-3">
               {unit.question.choices.map((choice, index) => (
-                <div 
-                  key={index} 
-                  className="p-4 border border-border/50 rounded-xl hover:bg-accent/10 
+                <div
+                  key={index}
+                  className="p-4 border border-border/50 rounded-xl hover:bg-accent/10
                              hover:border-accent/30 transition-all duration-300 hover:shadow-soft
                              cursor-pointer hover:scale-[1.01]"
                   style={{ background: 'linear-gradient(135deg, rgb(249, 250, 251) 0%, rgb(255, 255, 255) 100%)' }}

@@ -35,7 +35,7 @@ from fastapi.responses import FileResponse
 from fastapi import Request
 from app.core.config import settings
 from app.db.session import init_db
-from app.routers import health, subjects, books, lessons, units, progress, answers, curriculum, ai, literature
+from app.routers import health, subjects, books, lessons, units, progress, answers, curriculum, ai, literature, braille
 
 # 데이터베이스 초기화 (오류 발생 시에도 앱은 시작)
 try:
@@ -70,13 +70,8 @@ app.include_router(answers.router, prefix="/api/v1", tags=["answers"])
 app.include_router(curriculum.router, prefix="/api/v1", tags=["curriculum"])
 app.include_router(ai.router, prefix="/api/v1", tags=["ai"])
 app.include_router(literature.router, prefix="/api/v1", tags=["literature"])
-
-# 문학 AI 강의 라우터
-try:
-    from app.routers import literature_ai
-    app.include_router(literature_ai.router, prefix="/api/v1", tags=["literature-ai"])
-except ImportError:
-    pass
+app.include_router(braille.router, prefix="/api", tags=["braille"])  # /api/braille/convert 경로 지원
+# literature_ai.py의 기능은 ai.py로 통합됨 (호환성을 위해 /literature/ai/* 경로 유지)
 
 # 정적 파일 서빙 (PDF 캡쳐 이미지)
 # 두 경로 모두 확인: data/pdfs/captures와 api/data/pdfs/captures

@@ -11,23 +11,19 @@ import useSTT from '../hooks/useSTT';
 import useVoiceCommands from '../hooks/useVoiceCommands';
 import ToastA11y from '../components/system/ToastA11y';
 import BookUpload from '../components/textbook/BookUpload';
-import { booksAPI } from '../services/books';
-import { lessonsAPI } from '../services/lessons';
-import { curriculumAPI } from '../services/curriculum';
+import { booksAPI, lessonsAPI, curriculumAPI, unitsAPI } from '../services/api/client';
 import { literatureAPI, type LiteratureLectureSummary } from '../services/literature';
 import { Subject } from '../types/book';
 import type { Book } from '../types/book';
-import type { Subject as CurriculumSubject } from '../types/curriculum';
 import type { Lesson } from '../types/lesson';
 import { useBookStore } from '../store/bookStore';
-import { useLessonStore } from '../store/lessonStore';
 
 export default function Book() {
   const navigate = useNavigate();
   const { bookId } = useParams<{ bookId: string }>();
   const [searchParams] = useSearchParams();
   const { speak, stop: stopTTS } = useTTS();
-  const { start: startSTT, stop: stopSTT, isListening, transcript } = useSTT();
+  const { stop: stopSTT, isListening, transcript } = useSTT();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   
@@ -52,6 +48,12 @@ export default function Book() {
   // 교재 ID가 있으면 상세 조회, subject만 있으면 교재 목록, 둘 다 없으면 업로드 모드
   useEffect(() => {
     if (bookId) {
+      // 이전 데이터 완전히 클리어
+      setLessons([]);
+      setLiteratureLectures([]);
+      setError(null);
+      setBook(null); // 이전 교재 정보도 클리어
+      
       loadBook(bookId);
       loadLessons(bookId);
       
@@ -60,21 +62,41 @@ export default function Book() {
         try {
           const status = await booksAPI.getParseStatus(bookId);
           setParseProgress(status.progress);
-          if (status.status === 'DONE' || status.status === 'FAILED') {
-            clearInterval(interval);
-            await loadBook(bookId); // 교재 정보 새로고침 (상태 업데이트)
-            if (status.status === 'DONE') {
-              // 강 목록 새로고침 및 검증
-              await loadLessons(bookId);
-              // DONE이지만 lessons가 비어있는 경우는 파싱 실패가 아니라 데이터 준비 중일 수 있음
-              // 에러 메시지는 표시하지 않고, UI에서 적절한 안내만 표시
-            } else if (status.status === 'FAILED') {
-              // 진짜 파싱 실패 시에만 에러 메시지 표시
-              const errorMsg = 'PDF 파싱이 실패했습니다. 파일을 확인하거나 재파싱을 시도해보세요.';
-              setError(errorMsg);
-              speak(errorMsg);
+            if (status.status === 'DONE' || status.status === 'FAILED') {
+              clearInterval(interval);
+              await loadBook(bookId); // 교재 정보 새로고침 (상태 업데이트)
+              if (status.status === 'DONE') {
+                // 강 목록 새로고침 및 검증
+                await loadLessons(bookId);
+                
+                // DONE이지만 lessons가 비어있는 경우 자동으로 JSON 동기화 시도
+                const currentLessons = await lessonsAPI.listByBook(bookId);
+                if (currentLessons.length === 0) {
+                  console.log('[Book] 파싱 완료되었지만 강의가 없음. 자동 JSON 동기화 시도...');
+                  try {
+                    const syncResult = await booksAPI.syncFromJson(bookId);
+                    if (syncResult.ok) {
+                      console.log('[Book] ✅ 자동 JSON 동기화 성공:', syncResult.message);
+                      await loadLessons(bookId); // 동기화 후 다시 로드
+                      await loadBook(bookId); // 교재 정보도 새로고침
+                      showToastMessage('JSON 파일이 자동으로 동기화되었습니다.');
+                    } else {
+                      console.warn('[Book] ⚠️ 자동 JSON 동기화 실패:', syncResult.message);
+                    }
+                  } catch (syncErr) {
+                    console.error('[Book] 자동 JSON 동기화 중 오류:', syncErr);
+                    // 자동 동기화 실패는 조용히 처리 (사용자가 수동으로 시도할 수 있음)
+                  }
+                }
+                // DONE이지만 lessons가 비어있는 경우는 파싱 실패가 아니라 데이터 준비 중일 수 있음
+                // 에러 메시지는 표시하지 않고, UI에서 적절한 안내만 표시
+              } else if (status.status === 'FAILED') {
+                // 진짜 파싱 실패 시에만 에러 메시지 표시
+                const errorMsg = 'PDF 파싱이 실패했습니다. 파일을 확인하거나 재파싱을 시도해보세요.';
+                setError(errorMsg);
+                speak(errorMsg);
+              }
             }
-          }
         } catch (err) {
           console.error('[Book] 파싱 상태 조회 실패:', err);
         }
@@ -112,7 +134,7 @@ export default function Book() {
 
   const loadLessons = async (id: string) => {
     try {
-      const data = await lessonsAPI.list(id);
+      const data = await lessonsAPI.listByBook(id);
       setLessons(data);
       console.log(`[Book] 강 목록 로드 완료: ${data.length}개`);
       // 강의가 있지만 일부가 섹션이 없는 경우 로그
@@ -186,8 +208,7 @@ export default function Book() {
   const handleBookSelect = async (selectedBook: Book) => {
     try {
       // book의 subject를 사용하여 커리큘럼 찾기 (과목 필터링)
-      // Book.Subject와 Curriculum.Subject는 같은 enum 값이므로 타입 캐스팅
-      const curricula = await curriculumAPI.list(selectedBook.subject as CurriculumSubject, selectedBook.book_id);
+      const curricula = await curriculumAPI.list({ subject: String(selectedBook.subject) });
       if (curricula.length > 0) {
         // 첫 번째 커리큘럼으로 이동
         navigate(`/curriculum/${curricula[0].curriculum_id}`);
@@ -208,8 +229,23 @@ export default function Book() {
     await loadBook(uploadedBook.book_id);
   };
 
-  const handleLessonSelect = (lesson: Lesson) => {
-    navigate(`/lesson/${lesson.lesson_id}`);
+  const handleLessonSelect = async (lesson: Lesson) => {
+    try {
+      // 강의의 첫 번째 unit으로 바로 이동
+      const units = await unitsAPI.listByLesson(lesson.lesson_id);
+      if (units.length > 0) {
+        // 첫 번째 unit으로 이동
+        navigate(`/unit/${units[0].unit_id}`);
+        showToastMessage(`${lesson.title} 학습을 시작합니다.`);
+        speak(`${lesson.title} 학습을 시작합니다.`);
+      } else {
+        showToastMessage('학습 단위가 없습니다.');
+        speak('학습 단위가 없습니다.');
+      }
+    } catch (err) {
+      console.error('[Book] 강의 선택 실패:', err);
+      showToastMessage('강의를 불러오는 중 오류가 발생했습니다.');
+    }
   };
 
   const handleReparse = async () => {
@@ -233,6 +269,23 @@ export default function Book() {
               await loadBook(bookId);
               if (status.status === 'DONE') {
                 await loadLessons(bookId);
+                
+                // 재파싱 완료 후에도 강의가 없으면 자동 JSON 동기화 시도
+                const currentLessons = await lessonsAPI.listByBook(bookId);
+                if (currentLessons.length === 0) {
+                  console.log('[Book] 재파싱 완료되었지만 강의가 없음. 자동 JSON 동기화 시도...');
+                  try {
+                    const syncResult = await booksAPI.syncFromJson(bookId);
+                    if (syncResult.ok) {
+                      console.log('[Book] ✅ 자동 JSON 동기화 성공:', syncResult.message);
+                      await loadLessons(bookId);
+                      await loadBook(bookId);
+                      showToastMessage('JSON 파일이 자동으로 동기화되었습니다.');
+                    }
+                  } catch (syncErr) {
+                    console.error('[Book] 자동 JSON 동기화 중 오류:', syncErr);
+                  }
+                }
               } else if (status.status === 'FAILED') {
                 // 재파싱 중 실패한 경우
                 const errorMsg = '재파싱이 실패했습니다.';
@@ -278,6 +331,31 @@ export default function Book() {
       const errorMsg = err.message || '커리큘럼 재생성 중 오류가 발생했습니다.';
       setError(errorMsg);
       showToastMessage(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSyncFromJson = async () => {
+    if (!bookId) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await booksAPI.syncFromJson(bookId);
+      showToastMessage(result.message);
+      speak(result.message);
+      if (result.ok) {
+        // 강의 목록 새로고침
+        await loadLessons(bookId);
+        // 교재 정보 새로고침
+        await loadBook(bookId);
+      }
+    } catch (err: any) {
+      const errorMsg = err.message || 'JSON 동기화 중 오류가 발생했습니다.';
+      setError(errorMsg);
+      showToastMessage(errorMsg);
+      speak(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -347,10 +425,32 @@ export default function Book() {
                         {literatureLectures.map((lecture) => (
                           <button
                             key={lecture.lecture_id}
-                            onClick={() => {
+                            onClick={async () => {
                               stopTTS();
-                              navigate(`/textbook?subject=korean`);
-                              showToastMessage(`${lecture.title} 학습을 시작합니다.`);
+                              // 문학 강의는 이미 Unit으로 변환되어 있으므로 해당 Lesson의 첫 번째 Unit으로 이동
+                              try {
+                                // lecture_id에 해당하는 Lesson 찾기
+                                const lessons = await lessonsAPI.listByBook(book!.book_id);
+                                const targetLesson = lessons.find(l => 
+                                  l.title.includes(`${lecture.lecture_id}강`) || 
+                                  l.title.includes(lecture.title)
+                                );
+                                
+                                if (targetLesson) {
+                                  const units = await unitsAPI.listByLesson(targetLesson.lesson_id);
+                                  if (units.length > 0) {
+                                    navigate(`/unit/${units[0].unit_id}`);
+                                    showToastMessage(`${lecture.title} 학습을 시작합니다.`);
+                                  } else {
+                                    showToastMessage('학습 단위가 없습니다.');
+                                  }
+                                } else {
+                                  showToastMessage('해당 강의를 찾을 수 없습니다.');
+                                }
+                              } catch (err) {
+                                console.error('[Book] 문학 강의 이동 실패:', err);
+                                showToastMessage('강의를 불러오는 중 오류가 발생했습니다.');
+                              }
                             }}
                             className="w-full p-4 text-left bg-card border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
                           >
@@ -442,18 +542,28 @@ export default function Book() {
                     </div>
                   )}
 
-                  {/* 커리큘럼 재생성 버튼 */}
+                  {/* 커리큘럼 재생성 및 JSON 동기화 버튼 */}
                   {book.parse_status === 'DONE' && (
-                    <div className="mt-4">
-                      <button
-                        onClick={handleRecreateCurriculum}
-                        disabled={loading}
-                        className="w-full px-4 py-2 bg-warning/10 text-warning border border-warning rounded-lg hover:bg-warning/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {loading ? '커리큘럼 재생성 중...' : '커리큘럼 재생성'}
-                      </button>
-                      <p className="text-xs text-muted mt-2">
-                        기존 커리큘럼을 삭제하고 파이프라인 데이터로부터 새로 생성합니다.
+                    <div className="mt-4 space-y-2">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSyncFromJson}
+                          disabled={loading}
+                          className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {loading ? '동기화 중...' : 'JSON 동기화'}
+                        </button>
+                        <button
+                          onClick={handleRecreateCurriculum}
+                          disabled={loading}
+                          className="flex-1 px-4 py-2 bg-warning/10 text-warning border border-warning rounded-lg hover:bg-warning/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {loading ? '재생성 중...' : '커리큘럼 재생성'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-muted">
+                        <strong>JSON 동기화:</strong> JSON 파일을 읽어서 DB에 저장 (빠름)<br/>
+                        <strong>커리큘럼 재생성:</strong> 전체 파이프라인 데이터로부터 재생성
                       </p>
                     </div>
                   )}
@@ -493,15 +603,28 @@ export default function Book() {
                     <p className="text-warning font-medium mb-2">강의 데이터를 찾을 수 없습니다.</p>
                     <p className="text-xs text-muted mb-3">
                       파싱은 완료되었지만 강의가 생성되지 않았을 수 있습니다. 
-                      커리큘럼 재생성을 시도해보세요.
+                      JSON 파일에서 DB로 동기화를 시도해보세요.
                     </p>
-                    <button
-                      onClick={handleRecreateCurriculum}
-                      disabled={loading}
-                      className="px-4 py-2 bg-warning/20 text-warning border border-warning rounded-lg hover:bg-warning/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-                    >
-                      {loading ? '재생성 중...' : '커리큘럼 재생성'}
-                    </button>
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={handleSyncFromJson}
+                        disabled={loading}
+                        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                      >
+                        {loading ? '동기화 중...' : 'JSON 동기화'}
+                      </button>
+                      <button
+                        onClick={handleRecreateCurriculum}
+                        disabled={loading}
+                        className="px-4 py-2 bg-warning/20 text-warning border border-warning rounded-lg hover:bg-warning/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                      >
+                        {loading ? '재생성 중...' : '커리큘럼 재생성'}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted mt-2">
+                      JSON 동기화: JSON 파일을 읽어서 DB에 저장 (빠름)<br/>
+                      커리큘럼 재생성: 전체 파이프라인 데이터로부터 재생성
+                    </p>
                   </div>
                 )}
               </div>

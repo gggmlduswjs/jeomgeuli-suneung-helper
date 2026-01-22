@@ -11,8 +11,7 @@ import useSTT from '../hooks/useSTT';
 import useVoiceCommands from '../hooks/useVoiceCommands';
 import ToastA11y from '../components/system/ToastA11y';
 import LessonList from '../components/lesson/LessonList';
-import { lessonsAPI } from '../services/lessons';
-import { unitsAPI } from '../services/units';
+import { lessonsAPI, unitsAPI } from '../services/api/client';
 import { useAILectureTeacher } from '../hooks/useAILectureTeacher';
 import type { Lesson } from '../types/lesson';
 import type { Unit } from '../types/unit';
@@ -21,9 +20,14 @@ export default function Lesson() {
   const navigate = useNavigate();
   const { lessonId } = useParams<{ lessonId: string }>();
   const { speak, stop: stopTTS } = useTTS();
-  const { start: startSTT, stop: stopSTT, isListening, transcript } = useSTT();
+  const { stop: stopSTT, isListening, transcript } = useSTT();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  
+  const showToastMessage = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+  };
   
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -79,15 +83,22 @@ export default function Lesson() {
 
   const loadUnits = async (id: string) => {
     try {
-      const data = await unitsAPI.list(id);
+      const data = await unitsAPI.listByLesson(id);
       setUnits(data);
     } catch (err) {
       console.error('[Lesson] 학습 단위 목록 로드 실패:', err);
     }
   };
 
-  const handleUnitSelect = (unit: Unit) => {
-    navigate(`/unit/${unit.unit_id}`);
+  const handleUnitSelect = async (unit: Unit) => {
+    // Lesson 정보가 필요하므로 먼저 로드
+    if (lesson?.book_id) {
+      // bookId와 lessonId를 포함한 경로로 이동 (향후 QuestionLearning으로 통합 가능)
+      navigate(`/unit/${unit.unit_id}`);
+    } else {
+      // 레거시 경로
+      navigate(`/unit/${unit.unit_id}`);
+    }
   };
 
   // 음성 명령어
@@ -110,11 +121,6 @@ export default function Lesson() {
     if (!transcript) return;
     onSpeech(transcript);
   }, [transcript, onSpeech]);
-
-  const showToastMessage = (message: string) => {
-    setToastMessage(message);
-    setShowToast(true);
-  };
 
   return (
     <AppShellMobile title={lesson?.title || '강'} className="relative">
@@ -158,7 +164,7 @@ export default function Lesson() {
             )}
             
             {/* 순차적 수업 모드 */}
-            {lesson && lesson.lecture_script_text && aiTeacher && (
+            {lesson && (lesson as any).lecture_script_text && aiTeacher && (
               <div className="bg-card border border-border rounded-lg p-4 mb-4">
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="font-semibold">AI 순차적 수업</h4>

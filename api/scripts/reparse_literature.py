@@ -15,8 +15,8 @@ except:
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.services.textbook_pipeline import TextbookPipeline
-from app.assembly.lecture_assembler import JSONAssembler
+from app.processing.pipeline import UnifiedPipeline
+from app.core.config import settings
 
 def reparse_literature(max_pages=None):
     """
@@ -33,14 +33,19 @@ def reparse_literature(max_pages=None):
         print("페이지 범위: 전체")
     print("="*80)
 
-    # 파이프라인 생성
-    pipeline = TextbookPipeline(
+    # 파이프라인 생성 (UnifiedPipeline 직접 사용)
+    config_path = settings.API_DIR / "data" / "literature" / "config.json"
+    
+    pipeline = UnifiedPipeline(
         subject='literature',
+        use_ocr=True,  # OCR 사용 (pdfplumber/PyMuPDF의 CID 문제 해결)
+        use_ml_postprocess=False,  # ML 후처리 비활성화
+        config_path=config_path,
+        save_results=True,  # JSON 저장 활성화
         dpi=150,
-        use_parallel=True,
-        use_ai_postprocess=False,  # AI 비활성화 (빠른 처리)
-        use_cache=True,  # 캐시 사용
-        use_pdfplumber=True,
+        lang='kor+eng',
+        tesseract_cmd=r'C:\Program Files\Tesseract-OCR\tesseract.exe',
+        use_parallel=False,  # 순차 처리 (병렬 처리 오류 방지)
         max_pages=max_pages,
     )
 
@@ -85,24 +90,22 @@ def reparse_literature(max_pages=None):
     # 파싱 실행
     print("\n🔄 파싱 실행 중...")
     try:
-        result = pipeline.process_pdf(pdf_path)
+        result = pipeline.process(pdf_path)
 
         print(f"\n✅ 파싱 완료!")
-        print(f"  • 처리된 페이지: {result.get('total_pages', 0)}")
-        print(f"  • 생성된 블록: {result.get('total_blocks', 0)}")
+        lectures = result.get('lectures', [])
+        problems = result.get('problems', [])
+        lecture_contents = result.get('lecture_contents', [])
+        print(f"  • 생성된 강의: {len(lectures)}개")
+        print(f"  • 생성된 문제: {len(problems)}개")
+        print(f"  • 강의 콘텐츠: {len(lecture_contents)}개")
 
-        # IntermediateDocument 확인
-        intermediate_doc_path = test_output_dir / "intermediate_doc.json"
-        if intermediate_doc_path.exists():
-            import json
-            with open(intermediate_doc_path, 'r', encoding='utf-8') as f:
-                doc_data = json.load(f)
-
-            lectures = doc_data.get('lectures', [])
+        # 강의 목록 출력
+        if lectures:
             print(f"\n📚 감지된 강의 수: {len(lectures)}")
             for lec in lectures[:20]:  # 처음 20개만 표시
                 print(f"  • 강의 {lec.get('lecture_id')}: {lec.get('title', 'No title')[:60]} "
-                      f"(페이지 {lec.get('start_page')}-{lec.get('end_page')})")
+                      f"(페이지 {lec.get('page', '?')})")
 
             if len(lectures) > 20:
                 print(f"  ... 그 외 {len(lectures) - 20}개 강의")

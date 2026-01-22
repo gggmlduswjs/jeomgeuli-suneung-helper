@@ -27,6 +27,24 @@ from app.dl.math_recognizer import (
     MathPrediction,
     recognize_math_expression
 )
+try:
+    from app.dl.yolo_detector import (
+        YOLODetector,
+        RoboflowDetector,
+        DetectionResult,
+        PageDetection,
+        get_detector,
+        get_roboflow_detector
+    )
+    YOLO_AVAILABLE = True
+except ImportError:
+    YOLO_AVAILABLE = False
+    YOLODetector = None
+    RoboflowDetector = None
+    DetectionResult = None
+    PageDetection = None
+    get_detector = None
+    get_roboflow_detector = None
 from typing import List, Dict, Any, Optional
 from PIL import Image
 
@@ -38,7 +56,14 @@ __all__ = [
     "MathPrediction",
     "DLExtractionProcessor",
     "analyze_document_layout",
-    "recognize_math_expression"
+    "recognize_math_expression",
+    "YOLODetector",
+    "RoboflowDetector",
+    "DetectionResult",
+    "PageDetection",
+    "get_detector",
+    "get_roboflow_detector",
+    "YOLO_AVAILABLE"
 ]
 
 

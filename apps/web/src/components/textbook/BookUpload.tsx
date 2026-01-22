@@ -2,7 +2,7 @@
  * 교재 PDF 업로드 컴포넌트 (AI 옵션 포함)
  */
 import { useState } from 'react';
-import { booksAPI } from '../../services/books';
+import { booksAPI } from '../../services/api/client';
 import type { Book, AIProcessingOptions } from '../../types/book';
 import { Subject } from '../../types/book';
 

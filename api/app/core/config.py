@@ -86,6 +86,11 @@ class Settings(BaseSettings):
     MATHPIX_APP_ID: Optional[str] = None
     MATHPIX_APP_KEY: Optional[str] = None
     
+    # Roboflow API 설정 (YOLO 모델 사용 시)
+    ROBOFLOW_API_KEY: Optional[str] = None
+    ROBOFLOW_WORKSPACE_ID: Optional[str] = None
+    ROBOFLOW_PROJECT_ID: Optional[str] = None
+    
     model_config = SettingsConfigDict(
         # .env 파일은 api/ 폴더에 있음
         env_file=str(_env_file_path),

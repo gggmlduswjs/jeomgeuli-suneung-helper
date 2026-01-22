@@ -2,11 +2,9 @@
  * Book Selection Screen - Simplified single-flow design
  * Show books as numbered list with keyboard navigation
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { booksAPI } from '../services/books';
-import { lessonsAPI } from '../services/lessons';
-import { unitsAPI } from '../services/units';
+import { booksAPI, lessonsAPI, unitsAPI } from '../services/api/client';
 import type { Book } from '../types/book';
 import { useKeyboardShortcuts } from '../contexts/KeyboardContext';
 import { useAutoGuidance } from '../hooks/useAutoGuidance';
@@ -25,10 +23,20 @@ export default function BookSelect() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [reparsingBookId, setReparsingBookId] = useState<string | null>(null);
+  const [parsingBookId, setParsingBookId] = useState<string | null>(null);
+  const parseStatusIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load books
   useEffect(() => {
     loadBooks();
+    
+    // 컴포넌트 언마운트 시 interval 정리
+    return () => {
+      if (parseStatusIntervalRef.current) {
+        clearInterval(parseStatusIntervalRef.current);
+        parseStatusIntervalRef.current = null;
+      }
+    };
   }, []);
 
   const loadBooks = async () => {
@@ -131,36 +139,10 @@ export default function BookSelect() {
     }
 
     showToastMsg(`${book.title} 선택`);
+    speak(`${book.title} 교재 상세 페이지로 이동합니다.`);
 
-    try {
-      // Get lessons for this book
-      const lessons = await lessonsAPI.list(book.book_id);
-
-      if (lessons.length === 0) {
-        showToastMsg('강의가 없습니다.');
-        return;
-      }
-
-      // Get first lesson
-      const firstLesson = lessons[0];
-
-      // Get units in first lesson
-      const units = await unitsAPI.list(firstLesson.lesson_id);
-
-      // Find first question
-      const firstQuestion = units.find(u => u.type === 'QUESTION');
-
-      if (!firstQuestion) {
-        showToastMsg('문제가 없습니다.');
-        return;
-      }
-
-      // Navigate to first question
-      navigate(`/learn/${book.book_id}/${firstLesson.lesson_id}/${firstQuestion.unit_id}`);
-    } catch (err) {
-      console.error('[BookSelect] Failed to select book:', err);
-      showToastMsg('교재 선택 중 오류가 발생했습니다.');
-    }
+    // 교재 상세 페이지로 이동
+    navigate(`/book/${book.book_id}`);
   };
 
   const handleAddBook = () => {
@@ -170,7 +152,60 @@ export default function BookSelect() {
   const handleUploadComplete = async (uploadedBook: Book) => {
     setShowUpload(false);
     await loadBooks();
-    showToastMsg(`${uploadedBook.title} 교재가 추가되었습니다.`);
+    
+    // 업로드된 교재가 파싱 중이면 상태 폴링 시작
+    if (uploadedBook.parse_status === 'PROCESSING') {
+      setParsingBookId(uploadedBook.book_id);
+      showToastMsg(`${uploadedBook.title} 교재가 추가되었습니다. 파싱이 진행 중입니다...`);
+      speak(`${uploadedBook.title} 교재가 추가되었습니다. 파싱이 진행 중입니다.`);
+      
+      // 기존 interval 정리
+      if (parseStatusIntervalRef.current) {
+        clearInterval(parseStatusIntervalRef.current);
+      }
+      
+      // 파싱 상태 폴링 (5초마다)
+      parseStatusIntervalRef.current = setInterval(async () => {
+        try {
+          const status = await booksAPI.getParseStatus(uploadedBook.book_id);
+          // 개발 환경에서만 로그 출력 (상태 변경 시에만)
+          if (import.meta.env.DEV && status.progress % 10 === 0) {
+            console.log('[BookSelect] Upload parse status:', status);
+          }
+          
+          if (status.status === 'DONE' || status.status === 'FAILED') {
+            if (parseStatusIntervalRef.current) {
+              clearInterval(parseStatusIntervalRef.current);
+              parseStatusIntervalRef.current = null;
+            }
+            setParsingBookId(null);
+            await loadBooks(); // 교재 목록 새로고침
+            
+            if (status.status === 'DONE') {
+              showToastMsg('파싱이 완료되었습니다!');
+              speak('파싱이 완료되었습니다.');
+            } else {
+              showToastMsg('파싱이 실패했습니다. 재파싱을 시도해보세요.');
+              speak('파싱이 실패했습니다.');
+            }
+          }
+        } catch (err) {
+          console.error('[BookSelect] Failed to check parse status:', err);
+        }
+      }, 5000);
+      
+      // 컴포넌트 언마운트 시 정리
+      setTimeout(() => {
+        if (parseStatusIntervalRef.current) {
+          clearInterval(parseStatusIntervalRef.current);
+          parseStatusIntervalRef.current = null;
+        }
+        setParsingBookId(null);
+      }, 600000); // 10분 후 자동 정리
+    } else {
+      showToastMsg(`${uploadedBook.title} 교재가 추가되었습니다.`);
+      speak(`${uploadedBook.title} 교재가 추가되었습니다.`);
+    }
   };
 
   const handleDelete = async (bookId: string, bookTitle: string) => {
@@ -183,18 +218,42 @@ export default function BookSelect() {
 
     try {
       const result = await booksAPI.delete(bookId);
-      if (result.ok) {
-        showToastMsg('교재가 삭제되었습니다.');
-        speak('교재가 삭제되었습니다.');
+      if (result && result.ok) {
+        showToastMsg(result.message || '교재가 삭제되었습니다.');
+        speak(result.message || '교재가 삭제되었습니다.');
         await loadBooks();
       } else {
-        throw new Error(result.message || '삭제 실패');
+        throw new Error(result?.message || '삭제 실패');
       }
     } catch (err: any) {
       console.error('[BookSelect] Failed to delete book:', err);
       const errorMsg = err.message || '교재 삭제 중 오류가 발생했습니다.';
       showToastMsg(errorMsg);
       speak(errorMsg);
+    }
+  };
+
+  const handleSyncFromJson = async (bookId: string) => {
+    showToastMsg('JSON 파일을 동기화합니다...');
+    speak('JSON 파일을 동기화합니다.');
+
+    try {
+      const result = await booksAPI.syncFromJson(bookId);
+      if (result.ok) {
+        showToastMsg(result.message || 'JSON 동기화가 완료되었습니다!');
+        speak(result.message || 'JSON 동기화가 완료되었습니다.');
+        await loadBooks(); // 교재 목록 새로고침
+      } else {
+        throw new Error(result.message || 'JSON 동기화 실패');
+      }
+    } catch (err: any) {
+      console.error('[BookSelect] Failed to sync from JSON:', err);
+      const errorMsg = err.response?.data?.message
+        || err.response?.data?.detail
+        || err.message
+        || 'JSON 동기화 중 오류가 발생했습니다.';
+      showToastMsg(errorMsg);
+      speak('JSON 동기화 중 오류가 발생했습니다.');
     }
   };
 
@@ -212,20 +271,34 @@ export default function BookSelect() {
         showToastMsg('재파싱이 시작되었습니다.');
         speak('재파싱이 시작되었습니다. 완료까지 1-2분 정도 걸립니다.');
 
+        // 기존 interval 정리
+        if (parseStatusIntervalRef.current) {
+          clearInterval(parseStatusIntervalRef.current);
+        }
+        
         // 5초마다 상태 체크
-        const checkInterval = setInterval(async () => {
+        parseStatusIntervalRef.current = setInterval(async () => {
           try {
             const status = await booksAPI.getParseStatus(bookId);
-            console.log('[BookSelect] Parse status:', status);
+            // 개발 환경에서만 로그 출력 (상태 변경 시에만)
+            if (import.meta.env.DEV && status.progress % 10 === 0) {
+              console.log('[BookSelect] Parse status:', status);
+            }
 
             if (status.status === 'DONE') {
-              clearInterval(checkInterval);
+              if (parseStatusIntervalRef.current) {
+                clearInterval(parseStatusIntervalRef.current);
+                parseStatusIntervalRef.current = null;
+              }
               setReparsingBookId(null);
               await loadBooks();
               showToastMsg('재파싱이 완료되었습니다!');
               speak('재파싱이 완료되었습니다.');
             } else if (status.status === 'FAILED') {
-              clearInterval(checkInterval);
+              if (parseStatusIntervalRef.current) {
+                clearInterval(parseStatusIntervalRef.current);
+                parseStatusIntervalRef.current = null;
+              }
               setReparsingBookId(null);
               showToastMsg('재파싱이 실패했습니다.');
               speak('재파싱이 실패했습니다. 관리자에게 문의하세요.');
@@ -237,7 +310,10 @@ export default function BookSelect() {
 
         // 5분 후 타임아웃
         setTimeout(() => {
-          clearInterval(checkInterval);
+          if (parseStatusIntervalRef.current) {
+            clearInterval(parseStatusIntervalRef.current);
+            parseStatusIntervalRef.current = null;
+          }
           setReparsingBookId(null);
         }, 300000);
       } else {
@@ -336,7 +412,7 @@ export default function BookSelect() {
             <div className="space-y-3 flex-1">
               {books.map((book, index) => {
                 const isParsed = book.parse_status === 'DONE';
-                const isProcessing = book.parse_status === 'PROCESSING';
+                const isProcessing = book.parse_status === 'PROCESSING' || parsingBookId === book.book_id;
                 const isFailed = book.parse_status === 'FAILED';
                 const isReparsing = reparsingBookId === book.book_id;
 
@@ -390,30 +466,52 @@ export default function BookSelect() {
                     </button>
 
                     {/* Action buttons */}
-                    <div className="px-4 pb-4 flex gap-2">
-                      {/* Delete button for processing/failed books */}
-                      {(isProcessing || isFailed || (book.lesson_count === 0 && isParsed)) && !isReparsing && (
+                    <div className="px-4 pb-4 flex gap-2 flex-wrap">
+                      {/* JSON 동기화 버튼 (파싱 완료된 모든 교재에 표시) */}
+                      {isParsed && !isReparsing && (
                         <button
-                          onClick={() => handleDelete(book.book_id, book.title)}
-                          className="flex-1 px-4 py-2.5 text-sm bg-danger/10 text-danger border border-danger/30 rounded-xl 
-                                     hover:bg-danger/20 hover:border-danger/50 transition-all duration-300 
-                                     hover:shadow-soft font-medium"
-                          aria-label="D키: 삭제"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSyncFromJson(book.book_id);
+                          }}
+                          className="flex-1 px-4 py-2.5 text-sm bg-primary/10 text-primary border border-primary/30 rounded-xl
+                                     hover:bg-primary/20 hover:border-primary/50 transition-all duration-300
+                                     hover:shadow-soft font-medium min-w-[120px]"
+                          aria-label="JSON 동기화"
                         >
-                          [D] 삭제
+                          JSON 동기화
                         </button>
                       )}
-                      
-                      {/* Reparse button for failed books */}
+
+                      {/* Reparse button for failed books or when no lessons */}
                       {(isFailed || (book.lesson_count === 0 && isParsed)) && !isReparsing && (
                         <button
-                          onClick={() => handleReparse(book.book_id)}
-                          className="flex-1 px-4 py-2.5 text-sm bg-warning/10 text-warning border border-warning/30 rounded-xl 
-                                     hover:bg-warning/20 hover:border-warning/50 transition-all duration-300 
-                                     hover:shadow-soft font-medium"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReparse(book.book_id);
+                          }}
+                          className="flex-1 px-4 py-2.5 text-sm bg-warning/10 text-warning border border-warning/30 rounded-xl
+                                     hover:bg-warning/20 hover:border-warning/50 transition-all duration-300
+                                     hover:shadow-soft font-medium min-w-[120px]"
                           aria-label="R키: 재파싱"
                         >
                           [R] 재파싱
+                        </button>
+                      )}
+
+                      {/* Delete button for all books (when selected) */}
+                      {!isReparsing && selectedIndex === index && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(book.book_id, book.title);
+                          }}
+                          className="flex-1 px-4 py-2.5 text-sm bg-danger/10 text-danger border border-danger/30 rounded-xl
+                                     hover:bg-danger/20 hover:border-danger/50 transition-all duration-300
+                                     hover:shadow-soft font-medium min-w-[120px]"
+                          aria-label="D키: 삭제"
+                        >
+                          [D] 삭제
                         </button>
                       )}
                     </div>
@@ -457,6 +555,8 @@ export default function BookSelect() {
             키보드로 조작: 1-{Math.min(books.length, 9)} (선택), + (추가), D (삭제), R (재파싱),
             <br />
             ↑↓ (이동), Enter (선택), B (뒤로)
+            <br />
+            <span className="text-primary">💡 파싱 완료된 교재는 "JSON 동기화" 버튼을 클릭하세요</span>
           </p>
         </div>
       </div>

@@ -1,6 +1,7 @@
 """
 문학 학습용 AI 강의 API
-생성된 PDF 파이프라인 데이터를 기반으로 AI 강의 제공
+[DEPRECATED] 이 파일의 기능은 ai.py로 통합되었습니다.
+호환성을 위해 유지되지만, 새로운 기능은 ai.py에 추가하세요.
 """
 from fastapi import APIRouter, HTTPException, Body
 from typing import Optional, Dict, Any

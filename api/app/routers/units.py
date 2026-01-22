@@ -114,6 +114,29 @@ async def get_unit(unit_id: str, db: Session = Depends(get_db)):
     if not unit:
         raise HTTPException(status_code=404, detail="학습 단위를 찾을 수 없습니다.")
     
+    # Lesson 존재 확인 및 데이터 일관성 검증
+    lesson = db.query(Lesson).filter(Lesson.lesson_id == unit.lesson_id).first()
+    if not lesson:
+        logging.warning(f"[units] Unit {unit_id}의 Lesson {unit.lesson_id}를 찾을 수 없습니다.")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"학습 단위의 강(레슨)을 찾을 수 없습니다. (lesson_id: {unit.lesson_id})"
+        )
+    
+    # Book 존재 확인
+    from app.db.models import Book
+    book = db.query(Book).filter(Book.book_id == lesson.book_id).first()
+    if not book:
+        logging.warning(f"[units] Lesson {lesson.lesson_id}의 Book {lesson.book_id}를 찾을 수 없습니다.")
+        raise HTTPException(
+            status_code=404,
+            detail=f"강의 교재를 찾을 수 없습니다. (book_id: {lesson.book_id})"
+        )
+    
+    # 데이터 일관성 경고 (로깅만, 에러는 발생시키지 않음)
+    if unit.lesson_id != lesson.lesson_id:
+        logging.warning(f"[units] Unit {unit_id}의 lesson_id 불일치: unit.lesson_id={unit.lesson_id}, lesson.lesson_id={lesson.lesson_id}")
+    
     unit_data = {
         "unit_id": unit.unit_id,
         "lesson_id": unit.lesson_id,

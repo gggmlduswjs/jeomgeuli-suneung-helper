@@ -5,9 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { progressAPI } from '../services/progress';
-import { unitsAPI } from '../services/units';
-import { lessonsAPI } from '../services/lessons';
-import { booksAPI } from '../services/books';
+import { unitsAPI, lessonsAPI, booksAPI } from '../services/api/client';
 import type { Progress } from '../types/progress';
 import type { Book } from '../types/book';
 import type { Lesson } from '../types/lesson';
@@ -38,6 +36,7 @@ export default function LearningSummary() {
   });
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [totalQuestions, setTotalQuestions] = useState(0);
 
   // Load summary data
   useEffect(() => {
@@ -83,6 +82,27 @@ export default function LearningSummary() {
 
   useAutoGuidance(autoAnnounceMessage, [loading, sessionStats]);
 
+  // Load total questions count
+  useEffect(() => {
+    const loadTotalQuestions = async () => {
+      if (lesson?.lesson_id) {
+        try {
+          const units = await unitsAPI.listByLesson(lesson.lesson_id);
+          const questionCount = units.filter(u => u.type === 'QUESTION').length;
+          setTotalQuestions(questionCount);
+        } catch (err) {
+          console.error('[LearningSummary] Failed to load units:', err);
+          // Fallback to lesson.question_count if available
+          setTotalQuestions(lesson.question_count || 0);
+        }
+      } else {
+        setTotalQuestions(lesson?.question_count || 0);
+      }
+    };
+    
+    loadTotalQuestions();
+  }, [lesson]);
+
   // Keyboard shortcuts
   useKeyboardShortcuts(
     {
@@ -93,15 +113,66 @@ export default function LearningSummary() {
   );
 
   const handleContinue = async () => {
-    if (!currentProgress?.unit_id || !lesson?.book_id || !lesson?.lesson_id) {
+    if (!lesson?.book_id || !lesson?.lesson_id) {
       showToastMsg('이어할 학습이 없습니다.');
       return;
     }
 
     try {
-      // Try to find next lesson
-      // For now, just go back to current position
-      navigate(`/learn/${lesson.book_id}/${lesson.lesson_id}/${currentProgress.unit_id}`);
+      // Get all lessons for this book
+      const allLessons = await lessonsAPI.listByBook(lesson.book_id);
+      
+      // Find current lesson index
+      const currentLessonIndex = allLessons.findIndex(
+        l => l.lesson_id === lesson.lesson_id
+      );
+      
+      // Find next lesson
+      const nextLessonIndex = currentLessonIndex + 1;
+      
+      if (nextLessonIndex < allLessons.length) {
+        // Go to next lesson
+        const nextLesson = allLessons[nextLessonIndex];
+        
+        // Get first unit (preferably QUESTION) from next lesson
+        const units = await unitsAPI.listByLesson(nextLesson.lesson_id);
+        
+        if (units.length === 0) {
+          showToastMsg('다음 강의에 학습 단위가 없습니다.');
+          return;
+        }
+        
+        // Find first question or first unit
+        const firstQuestion = units.find(u => u.type === 'QUESTION');
+        const firstUnit = firstQuestion || units[0];
+        
+        // Navigate to next lesson - use first available unit
+        const targetUnit = firstQuestion || firstUnit;
+        navigate(`/unit/${targetUnit.unit_id}`);
+        
+        showToastMsg(`${nextLesson.title}로 이동합니다.`);
+      } else {
+        // No next lesson, go to first lesson or home
+        if (allLessons.length > 0) {
+          const firstLesson = allLessons[0];
+          const units = await unitsAPI.listByLesson(firstLesson.lesson_id);
+          
+            if (units.length > 0) {
+              const firstQuestion = units.find(u => u.type === 'QUESTION');
+              const firstUnit = firstQuestion || units[0];
+              const targetUnit = firstQuestion || firstUnit;
+              navigate(`/unit/${targetUnit.unit_id}`);
+            
+            showToastMsg('모든 강의를 완료했습니다. 첫 번째 강의로 이동합니다.');
+          } else {
+            navigate('/');
+            showToastMsg('모든 강의를 완료했습니다.');
+          }
+        } else {
+          navigate('/');
+          showToastMsg('강의가 없습니다.');
+        }
+      }
     } catch (err) {
       console.error('[LearningSummary] Failed to continue:', err);
       showToastMsg('다음 강의로 이동하는 중 오류가 발생했습니다.');
@@ -131,29 +202,6 @@ export default function LearningSummary() {
     );
   }
 
-  // 실제 문제 수를 units에서 계산
-  const [totalQuestions, setTotalQuestions] = useState(0);
-  
-  useEffect(() => {
-    const loadTotalQuestions = async () => {
-      if (lesson?.lesson_id) {
-        try {
-          const units = await unitsAPI.list(lesson.lesson_id);
-          const questionCount = units.filter(u => u.type === 'QUESTION').length;
-          setTotalQuestions(questionCount);
-        } catch (err) {
-          console.error('[LearningSummary] Failed to load units:', err);
-          // Fallback to lesson.question_count if available
-          setTotalQuestions(lesson.question_count || 0);
-        }
-      } else {
-        setTotalQuestions(lesson?.question_count || 0);
-      }
-    };
-    
-    loadTotalQuestions();
-  }, [lesson]);
-  
   const progressPercentage = totalQuestions > 0
     ? Math.min(100, Math.round((sessionStats.questionsCompleted / totalQuestions) * 100))
     : 0;

@@ -10,12 +10,17 @@ from pathlib import Path
 import pickle
 from datetime import datetime, timedelta
 
+# sentence_transformers는 선택적 의존성 (torch 필요)
+SENTENCE_TRANSFORMERS_AVAILABLE = False
+SentenceTransformer = None
 try:
+    # torch import가 실패할 수 있으므로 모든 예외를 잡음
     from sentence_transformers import SentenceTransformer
     SENTENCE_TRANSFORMERS_AVAILABLE = True
-except ImportError:
+except Exception as e:
+    # torch, sentence_transformers 관련 모든 에러 무시 (선택적 의존성)
     SENTENCE_TRANSFORMERS_AVAILABLE = False
-    print("[MLContentSimilarity] sentence-transformers가 설치되지 않았습니다. pip install sentence-transformers")
+    SentenceTransformer = None
 
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
@@ -59,7 +64,7 @@ class MLContentSimilarity:
         self.use_gpu = use_gpu
         self.enable_cache = enable_cache
         self.cache_ttl_days = cache_ttl_days
-        self.model: Optional[SentenceTransformer] = None
+        self.model: Optional[Any] = None  # SentenceTransformer 타입 힌트 제거 (선택적 의존성)
         
         # 캐시 디렉토리 설정
         if cache_dir is None:
@@ -92,7 +97,10 @@ class MLContentSimilarity:
         
         try:
             print(f"[MLContentSimilarity] 모델 로딩 중: {self.model_name}")
-            self.model = SentenceTransformer(self.model_name)
+            if SENTENCE_TRANSFORMERS_AVAILABLE and SentenceTransformer is not None:
+                self.model = SentenceTransformer(self.model_name)
+            else:
+                raise ImportError("sentence-transformers가 사용 불가능합니다.")
             if self.use_gpu:
                 self.model = self.model.to('cuda')
             print("[MLContentSimilarity] 모델 로딩 완료")

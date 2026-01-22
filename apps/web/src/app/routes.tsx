@@ -7,8 +7,6 @@ import { lazy } from 'react';
 // NEW: Single-flow accessibility-first UI (Phase 2)
 const Start = lazy(() => import('../pages/Start'));
 const BookSelect = lazy(() => import('../pages/BookSelect'));
-const QuestionLearning = lazy(() => import('../pages/QuestionLearning'));
-const QuestionList = lazy(() => import('../pages/QuestionList'));
 const LearningSummary = lazy(() => import('../pages/LearningSummary'));
 
 // Lazy load pages for code splitting
@@ -19,9 +17,8 @@ const Lesson = lazy(() => import('../pages/Lesson'));
 const Unit = lazy(() => import('../pages/Unit'));
 
 // 레거시 페이지 (호환성 유지) - 존재하는 페이지만 import
-const Textbook = lazy(() => import('../pages/Textbook'));
-const Question = lazy(() => import('../pages/Question'));
 const Curriculum = lazy(() => import('../pages/Curriculum'));
+const LearnRedirect = lazy(() => import('../components/routing/LearnRedirect'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
 // 삭제된 페이지들 (주석 처리)
@@ -47,9 +44,10 @@ export const routes = [
   // NEW: Single-flow accessibility-first UI
   { path: '/', element: Start },
   { path: '/books', element: BookSelect },
-  { path: '/learn/:bookId/:lessonId/:questionId', element: QuestionLearning },
-  { path: '/questions/:lessonId', element: QuestionList },
   { path: '/summary', element: LearningSummary },
+
+  // Redirect legacy /learn route to /unit
+  { path: '/learn/:bookId/:lessonId/:questionId', element: LearnRedirect },
 
   // Legacy routes (compatibility maintained during transition)
   { path: '/main', element: Main }, // Old home page
@@ -59,9 +57,12 @@ export const routes = [
   { path: '/unit/:unitId', element: Unit },
 
   // Legacy routes (compatibility maintained)
-  { path: '/textbook', element: Textbook },
-  { path: '/question', element: Question },
   { path: '/curriculum', element: Curriculum },
+  
+  // Redirect legacy routes
+  { path: '/textbook', element: BookSelect }, // Textbook -> BookSelect로 리다이렉트
+  { path: '/question', element: NotFound }, // Question -> 404 (더 이상 사용 안 함)
+  { path: '/literature/lecture/:lectureId', element: NotFound }, // LiteratureLecture -> 404 (Unit으로 통합)
 ];
 
 /**
@@ -69,10 +70,10 @@ export const routes = [
  * 레거시 경로를 새 경로로 리다이렉트
  */
 export const legacyRedirects = [
-  { from: '/learn', to: '/textbook', element: Textbook },
-  { from: '/quiz', to: '/question', element: Question },
-  { from: '/review', to: '/question', element: Question },
-  { from: '/free-convert', to: '/textbook', element: Textbook },
+  { from: '/learn', to: '/books', element: BookSelect },
+  { from: '/quiz', to: '/books', element: BookSelect },
+  { from: '/review', to: '/books', element: BookSelect },
+  { from: '/free-convert', to: '/books', element: BookSelect },
 ];
 
 /**

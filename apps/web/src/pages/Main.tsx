@@ -12,7 +12,7 @@ import ContinueLearningCard from '../components/home/ContinueLearningCard';
 import SubjectSelectCard from '../components/home/SubjectSelectCard';
 import PDFManagementCard from '../components/home/PDFManagementCard';
 import BrailleDeviceCard from '../components/home/BrailleDeviceCard';
-import { booksAPI } from '../services/books';
+import { booksAPI } from '../services/api/client';
 import { progressAPI } from '../services/progress';
 import type { Book } from '../types/book';
 import type { Progress } from '../types/progress';
@@ -132,11 +132,27 @@ export default function Main() {
 
         {!loading && (
           <>
+            {/* 이어서 학습하기 카드 */}
+            <ContinueLearningCard
+              progress={currentProgress}
+              onContinue={() => {
+                if (currentProgress?.unit_id) {
+                  navigate(`/unit/${currentProgress.unit_id}`);
+                  showToastMessage('학습을 이어갑니다.');
+                  speak('학습을 이어갑니다.');
+                } else {
+                  showToastMessage('진행 중인 학습이 없습니다.');
+                  speak('진행 중인 학습이 없습니다.');
+                }
+              }}
+              onSpeak={speak}
+            />
+
             {/* 과목 선택 카드 */}
             <SubjectSelectCard
               onSubjectSelect={(subject) => {
-                // 교재 목록 페이지로 이동 (소문자로 전달)
-                navigate(`/textbook?subject=${subject}`);
+                // 교재 선택 페이지로 이동 (BookSelect로 통합)
+                navigate('/books');
               }}
             />
 
