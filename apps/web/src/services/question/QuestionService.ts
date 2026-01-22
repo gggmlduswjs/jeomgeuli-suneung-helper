@@ -2,7 +2,7 @@
  * 문제 관련 서비스
  * 문제 및 답안 제출 관련 비즈니스 로직
  */
-import { examAPI, type Question, type AnswerResult } from '../../lib/api/exam';
+import { examAPI, type Question, type AnswerResult } from '../../lib/api';
 
 export class QuestionService {
   /**

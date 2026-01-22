@@ -82,16 +82,13 @@ export default function AIExplanationCard({
     );
   }
 
-  if (hasContent) {
-    return (
-      <button
-        onClick={onLoadExplanation}
-        className={`w-full p-4 border-2 rounded-lg font-semibold transition-colors ${conceptStyles.buttonBg}`}
-      >
-        🤖 AI {isConcept ? '개념' : '내용'} 설명 생성하기
-      </button>
-    );
-  }
-
-  return null;
+  // 항상 표시 (hasContent가 false여도 생성 버튼 표시)
+  return (
+    <button
+      onClick={onLoadExplanation}
+      className={`w-full p-4 border-2 rounded-lg font-semibold transition-colors ${conceptStyles.buttonBg}`}
+    >
+      🤖 AI {isConcept ? '개념' : '내용'} 설명 생성하기
+    </button>
+  );
 }

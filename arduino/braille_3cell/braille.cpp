@@ -1,11 +1,6 @@
 #include "braille.h"
 
-// ============================================================================
-// 하드웨어 매핑 테이블
-// ============================================================================
-// 점자 번호 1~6번을 실제 하드웨어 비트(2~7)로 변환
-// 규칙: 1번점(비트2), 2번점(비트4), 3번점(비트6), 4번점(비트3), 5번점(비트5), 6번점(비트7)
-const uint8_t DOT_MAP[7] = {0, 2, 4, 6, 3, 5, 7}; // 인덱스 0은 사용 안 함, 1~6 사용
+const uint8_t DOT_MAP[7] = {0, 2, 4, 6, 3, 5, 7};
 
 braille::braille(int dataPin, int latchPin, int clockPin, int no_module) {
   this->dataPin = dataPin;
@@ -27,12 +22,16 @@ void braille::begin() {
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   
+  // 초기 상태를 명확하게 설정
   digitalWrite(latchPin, LOW);
   digitalWrite(clockPin, LOW);
   digitalWrite(dataPin, LOW);
+  delay(10);  // 핀 설정 후 안정화 시간
   
+  // 모든 셀을 명확하게 끄기
   all_off();
   refresh();
+  delay(20);  // 초기화 후 안정화 시간
 }
 
 void braille::all_off() {
@@ -44,26 +43,23 @@ void braille::all_off() {
 void braille::refresh() {
   digitalWrite(latchPin, LOW);
   
-  // 셀3 → 셀2 → 셀1 순서로 전송 (왼쪽 → 중간 → 오른쪽 표시)
-  // MSBFIRST 사용 (하드웨어 세팅에 맞춤)
   for (int i = no_module - 1; i >= 0; i--) {
     shiftOut(dataPin, clockPin, MSBFIRST, cellBuffer[i]);
   }
   
+  // Latch 신호를 명확하게 전달하기 위해 충분한 시간 확보
   digitalWrite(latchPin, HIGH);
-  delayMicroseconds(10);
+  delayMicroseconds(50);  // 10us -> 50us로 증가 (안정성 향상)
   digitalWrite(latchPin, LOW);
+  delayMicroseconds(10);  // 추가 안정화 시간
 }
 
 void braille::on(int module, int dot) {
   if (module >= 0 && module < no_module && dot >= 0 && dot < 6) {
-    // dot은 0-5 (인덱스)
-    // 역순 매핑: dot 0 → Dot 6번, dot 1 → Dot 5번, ..., dot 5 → Dot 1번
-    uint8_t dotNumber = 6 - dot; // 6~1 (역순)
+    uint8_t dotNumber = 6 - dot;
     
-    // DOT_MAP을 사용하여 실제 하드웨어 비트 위치 찾기
     if (dotNumber >= 1 && dotNumber <= 6) {
-      uint8_t hardwareBit = DOT_MAP[dotNumber]; // 2, 4, 6, 3, 5, 7 중 하나
+      uint8_t hardwareBit = DOT_MAP[dotNumber];
       cellBuffer[module] |= (1 << hardwareBit);
     }
   }
@@ -71,15 +67,11 @@ void braille::on(int module, int dot) {
 
 void braille::off(int module, int dot) {
   if (module >= 0 && module < no_module && dot >= 0 && dot < 6) {
-    // dot은 0-5 (인덱스)
-    // 역순 매핑: dot 0 → Dot 6번, dot 1 → Dot 5번, ..., dot 5 → Dot 1번
-    uint8_t dotNumber = 6 - dot; // 6~1 (역순)
+    uint8_t dotNumber = 6 - dot;
     
-    // DOT_MAP을 사용하여 실제 하드웨어 비트 위치 찾기
     if (dotNumber >= 1 && dotNumber <= 6) {
-      uint8_t hardwareBit = DOT_MAP[dotNumber]; // 2, 4, 6, 3, 5, 7 중 하나
+      uint8_t hardwareBit = DOT_MAP[dotNumber];
       cellBuffer[module] &= ~(1 << hardwareBit);
     }
   }
 }
-

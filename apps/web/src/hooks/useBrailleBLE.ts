@@ -201,7 +201,7 @@ export function useBrailleBLE(config: BrailleBLEConfig = {}) {
 
     try {
       // API를 통해 점자 변환 (또는 로컬 변환)
-      const response = await fetch('/api/braille/convert/', {
+      const response = await fetch('/api/braille/convert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })

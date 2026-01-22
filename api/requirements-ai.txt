@@ -24,6 +24,9 @@ numpy>=1.24.0
 # PaddleOCR (오픈소스, 무료)
 paddleocr>=2.7.0
 
+# YOLO Object Detection (선택적)
+ultralytics>=8.0.0
+
 # 참고:
 # 1. Tesseract OCR은 별도 설치 필요 (Windows: https://github.com/UB-Mannheim/tesseract/wiki)
 # 2. OpenAI API 키는 환경변수(OPENAI_API_KEY) 또는 .env 파일에 설정 필요

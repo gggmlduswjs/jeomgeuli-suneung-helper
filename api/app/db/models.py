@@ -25,7 +25,8 @@ class UnitType(str, enum.Enum):
     CONCEPT_CORE = "CONCEPT_CORE"
     CONCEPT_FORM = "CONCEPT_FORM"
     CONCEPT_CONTENT = "CONCEPT_CONTENT"
-    PASSAGE = "PASSAGE"
+    CONCEPT_SUMMARY = "CONCEPT_SUMMARY"  # 단원 요약
+    PASSAGE = "PASSAGE"  # 본문/지문
     QUESTION = "QUESTION"
 
 
@@ -73,9 +74,13 @@ class Unit(Base):
     order = Column(Integer, nullable=False)
     content_text = Column(Text)  # 개념/지문 텍스트
     braille_text = Column(Text)  # 점자 변환 결과
+    image_path = Column(String)  # 이미지 경로 (단일, 하위호환용)
+    content_image_paths = Column(Text)  # JSON 배열: 여러 이미지 경로
     question_stem = Column(Text)  # 문제 지문
     question_choices = Column(Text)  # JSON: ["① ...", "② ..."]
     question_answer = Column(Integer)  # 정답 번호
+    ai_explanation = Column(Text)  # AI 튜터 설명
+    braille_keywords = Column(Text)  # JSON 배열: 점자 키워드
     created_at = Column(DateTime, default=datetime.utcnow)
     
     lesson = relationship("Lesson", back_populates="units")

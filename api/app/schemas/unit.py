@@ -20,8 +20,12 @@ class UnitResponse(BaseModel):
     order: int
     content_text: Optional[str] = None
     braille_text: Optional[str] = None
+    image_path: Optional[str] = None  # 단일 이미지 경로 (하위호환)
+    content_image_paths: Optional[List[str]] = None  # 여러 이미지 경로
+    ai_explanation: Optional[str] = None  # AI 튜터 설명
+    braille_keywords: Optional[List[str]] = None  # 점자 키워드
     question: Optional[UnitQuestion] = None
-    
+
     class Config:
         from_attributes = True
         

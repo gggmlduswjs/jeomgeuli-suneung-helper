@@ -260,7 +260,10 @@ function useTTS(): TTSHookReturn {
     // Mic Mode에서는 기본적으로 안내 음성 차단 (옵션으로만 허용)
     const allowDuringMic = 'allowDuringMic' in options && options.allowDuringMic === true;
     if (micModeRef.current && !allowDuringMic) {
-      console.log('[TTS] Mic Mode 활성화로 인해 TTS 차단');
+      // 개발 환경에서만 로그 출력
+      if (import.meta.env.DEV) {
+        console.log('[TTS] Mic Mode 활성화로 인해 TTS 차단');
+      }
       return;
     }
     
@@ -277,11 +280,14 @@ function useTTS(): TTSHookReturn {
         return;
       }
 
-      console.log('[TTS] speak 호출:', { 
-        textLength: texts.join(' ').length, 
-        textPreview: texts[0]?.substring(0, 50) + '...',
-        queueLength: utteranceQueue.current.length 
-      });
+      // 개발 환경에서만 로그 출력 (디버깅용)
+      if (import.meta.env.DEV) {
+        console.log('[TTS] speak 호출:', { 
+          textLength: texts.join(' ').length, 
+          textPreview: texts[0]?.substring(0, 50) + '...',
+          queueLength: utteranceQueue.current.length 
+        });
+      }
 
       // 새 요청이 들어오면 기존 재생은 정리 후 새 큐로 교체
       hardReset();

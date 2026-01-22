@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import VoiceService from "../../services/VoiceService";
+import VoiceService from "../../services/voice";
 import { useVoiceStore } from "../../store/voice";
 
 type Props = {

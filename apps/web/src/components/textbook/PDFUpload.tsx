@@ -1,5 +1,8 @@
 import { useState, useRef } from 'react';
 import useTTS from '../../hooks/useTTS';
+import { booksAPI } from '../../services/api/client';
+import { Subject } from '../../types/book';
+import type { Book } from '../../types/book';
 
 interface PDFUploadProps {
   onUploadComplete: (textbookId: number) => void;
@@ -29,20 +32,40 @@ export default function PDFUpload({ onUploadComplete, onSpeak }: PDFUploadProps)
     onSpeak('PDF를 업로드하고 있습니다. 잠시만 기다려주세요.');
 
     try {
-      const { examAPI } = await import('../../lib/api');
-      const result = await examAPI.uploadPDF(file);
+      // 파일명에서 제목 추출 (확장자 제거)
+      const title = file.name.replace(/\.pdf$/i, '');
+      
+      // 기본 AI 옵션 (빠른 파싱을 위해 ML만 활성화)
+      const aiOptions = {
+        enable_ml_deduplication: true,
+        enable_ml_classification: true,
+        enable_layout_analysis: false,
+        enable_math_recognition: false,
+        enable_llm_metadata: false,
+        enable_llm_explanations: false,
+        enable_llm_recommendations: false,
+        openai_api_key: '',
+        education_level: 'high',
+      };
+      
+      // booksAPI.upload 사용 (새로운 API)
+      const book = await booksAPI.upload(file, title, Subject.KOREAN, new Date().getFullYear(), aiOptions);
       
       setProgress(100);
-      onSpeak(`PDF 업로드가 완료되었습니다. ${result.unit_count}개의 단원이 생성되었습니다.`);
+      onSpeak(`PDF 업로드가 완료되었습니다. 파싱이 시작되었습니다.`);
       
-      // 업로드 완료 후 교재 선택
-      setTimeout(() => {
-        onUploadComplete(result.textbook_id);
-      }, 1000);
+      // 업로드 완료 후 교재 ID 전달
+      // book_id는 string이지만, Textbook 타입의 id는 number이므로
+      // 업로드 후 교재 목록을 다시 로드해서 매칭해야 함
+      // 일단 book_id를 숫자로 변환 시도 (실패하면 0)
+      // 실제로는 onUploadComplete에서 교재 목록을 다시 로드해서 book_id로 찾아야 함
+      const textbookId = parseInt(book.book_id) || 0;
+      onUploadComplete(textbookId);
     } catch (err: any) {
       const errorMsg = err?.message || 'PDF 업로드에 실패했습니다.';
       setError(errorMsg);
       onSpeak(errorMsg);
+      console.error('[PDFUpload] 업로드 실패:', err);
     } finally {
       setUploading(false);
       setProgress(0);

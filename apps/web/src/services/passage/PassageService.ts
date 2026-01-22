@@ -2,7 +2,7 @@
  * 지문 관련 서비스
  * 지문 분석 및 구조 파악 관련 비즈니스 로직
  */
-import { examAPI, type PassageStructure } from '../../lib/api/exam';
+import { examAPI, type PassageStructure } from '../../lib/api';
 
 export class PassageService {
   /**

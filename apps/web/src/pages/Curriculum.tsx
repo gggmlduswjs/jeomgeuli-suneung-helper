@@ -4,7 +4,7 @@ import AppShellMobile from '../components/ui/AppShellMobile';
 import SpeechBar from '../components/input/SpeechBar';
 import useTTS from '../hooks/useTTS';
 import useSTT from '../hooks/useSTT';
-import { curriculumAPI } from '../services/curriculum';
+import { curriculumAPI } from '../services/api/client';
 import type { Curriculum, Subject } from '../types/curriculum';
 
 export default function CurriculumPage() {

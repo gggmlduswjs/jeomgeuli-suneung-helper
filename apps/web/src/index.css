@@ -1,3 +1,5 @@
+@import './styles/animations.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -99,13 +101,19 @@ body {
     min-height: 48px;
   }
 
-  /* 프라이머리 버튼: hover:bg-primary/90 사용 가능(위 config 반영됨) */
+  /* 프라이머리 버튼: 그라데이션과 부드러운 호버 효과 */
   .btn-primary {
-    @apply btn bg-primary text-white shadow-lg hover:bg-primary/90;
+    @apply btn text-white shadow-lg hover:shadow-glow 
+           transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]
+           hover:brightness-110;
+    background: linear-gradient(135deg, rgb(49, 130, 246) 0%, rgb(96, 165, 250) 100%);
   }
 
   .btn-accent {
-    @apply btn bg-accent text-white shadow-lg hover:bg-accent/90;
+    @apply btn text-white shadow-lg hover:shadow-glow
+           transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]
+           hover:brightness-110;
+    background: linear-gradient(135deg, rgb(42, 193, 188) 0%, rgb(94, 234, 212) 100%);
   }
 
   .btn-danger {
@@ -117,12 +125,29 @@ body {
   }
 
   .btn-ghost {
-    @apply btn bg-transparent border-2 border-border text-fg hover:bg-card;
+    @apply btn bg-transparent border-2 border-border text-fg 
+           hover:bg-card hover:border-primary/30 hover:text-primary
+           transition-all duration-300 hover:shadow-soft;
   }
   
-  /* 라이트 카드 */
+  /* 세컨더리 버튼 - 부드러운 스타일 */
+  .btn-secondary {
+    @apply btn bg-card border border-border text-fg shadow-soft
+           hover:bg-card-hover hover:shadow-soft-lg hover:border-primary/20
+           transition-all duration-300 hover:scale-[1.01] active:scale-[0.99];
+  }
+  
+  /* 라이트 카드 - 글래스모피즘 스타일 */
   .card {
-    @apply bg-card shadow-card rounded-2xl border border-border;
+    @apply shadow-soft rounded-2xl border border-border/50
+           backdrop-blur-sm transition-all duration-300
+           hover:shadow-soft-lg hover:border-border;
+    background: linear-gradient(135deg, rgb(249, 250, 251) 0%, rgb(255, 255, 255) 100%);
+  }
+  
+  /* 카드 호버 효과 */
+  .card-hover {
+    @apply card hover:bg-card-hover hover:scale-[1.01] cursor-pointer;
   }
 
   /* 칩 */
