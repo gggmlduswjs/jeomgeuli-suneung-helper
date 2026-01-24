@@ -4,7 +4,7 @@
 """
 import re
 import logging
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Optional, Tuple
 from dataclasses import dataclass, field
 
 from .base import BaseParser
@@ -13,6 +13,7 @@ from .font_classifier import FontBasedClassifier
 from .layout_validator import LayoutBasedValidator
 from .problem_pattern_matcher import ProblemPatternMatcher
 from .section_spacing_validator import SectionSpacingValidator
+from app.infrastructure.pdf.types import OCRPageData, SectionData, LectureInfo, JSONDict
 
 logger = logging.getLogger(__name__)
 
@@ -20,17 +21,17 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SectionExtractionResult:
     """섹션 추출 결과
-    
+
     Attributes:
         sections: 추출된 섹션 리스트
         confidence: 추출 신뢰도 (0.0-1.0)
         method: 사용된 추출 방법 ('pattern', 'ai', 'heuristic', 'combined')
         metadata: 추가 메타데이터
     """
-    sections: List[Dict[str, Any]]
+    sections: List[SectionData]
     confidence: float
     method: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: JSONDict = field(default_factory=dict)
 
 
 class ImprovedSectionExtractor:
@@ -44,7 +45,7 @@ class ImprovedSectionExtractor:
     
     def __init__(
         self,
-        config: Dict[str, Any],
+        config: JSONDict,
         parser: Optional[BaseParser] = None,
         enable_ai: bool = False,
         api_key: Optional[str] = None
@@ -111,12 +112,12 @@ class ImprovedSectionExtractor:
                 r'^\d+\s+[가-힣]{2,}\s*[가-힣]*$'
             ]
     
-    def _get_lecture_info_for_page(self, page_num: int) -> Optional[Dict[str, Any]]:
+    def _get_lecture_info_for_page(self, page_num: int) -> Optional[LectureInfo]:
         """페이지 번호로 해당 강의 정보 조회
-        
+
         Args:
             page_num: 페이지 번호
-            
+
         Returns:
             강의 정보 딕셔너리 또는 None
             {
@@ -167,15 +168,15 @@ class ImprovedSectionExtractor:
         self,
         y_ratio: float,
         page_height: float = 1400.0,
-        lecture_info: Optional[Dict[str, Any]] = None
+        lecture_info: Optional[LectureInfo] = None
     ) -> Optional[Tuple[str, float]]:
         """region_hints를 사용하여 y 좌표 기반 단위 분류 (개선된 버전)
-        
+
         Args:
             y_ratio: y 좌표의 페이지 비율 (0.0-1.0)
             page_height: 페이지 높이 (픽셀, 기본값 1400)
             lecture_info: 강의 정보 (선택, 있으면 강의 내 위치 고려)
-            
+
         Returns:
             (단위 타입, 신뢰도) 튜플 또는 None
             - 단위 타입: 'concept', 'passage', 'problem'
@@ -242,15 +243,15 @@ class ImprovedSectionExtractor:
     
     def _classify_all_text_blocks(
         self,
-        lecture_ocr_data: List[Dict[str, Any]],
-        existing_sections: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData],
+        existing_sections: List[SectionData]
+    ) -> List[SectionData]:
         """전체 페이지의 모든 텍스트 블록을 개념/본문/문제로 분류
-        
+
         Args:
             lecture_ocr_data: 강의에 해당하는 OCR 데이터 리스트
             existing_sections: 이미 추출된 섹션 리스트
-            
+
         Returns:
             분류된 텍스트 블록 리스트
         """
@@ -373,13 +374,13 @@ class ImprovedSectionExtractor:
 
     def extract(
         self,
-        lecture_ocr_data: List[Dict[str, Any]]
+        lecture_ocr_data: List[OCRPageData]
     ) -> SectionExtractionResult:
         """섹션 추출 (다중 전략)
-        
+
         Args:
             lecture_ocr_data: 강의에 해당하는 OCR 데이터 리스트
-            
+
         Returns:
             SectionExtractionResult
         """
@@ -464,10 +465,10 @@ class ImprovedSectionExtractor:
     
     def _extract_by_pattern(
         self,
-        lecture_ocr_data: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        lecture_ocr_data: List[OCRPageData]
+    ) -> JSONDict:
         """패턴 기반 섹션 추출
-        
+
         기존 LiteratureParser의 extract_sections 로직 개선
         """
         try:
@@ -916,10 +917,10 @@ class ImprovedSectionExtractor:
     
     def _extract_by_ai(
         self,
-        lecture_ocr_data: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        lecture_ocr_data: List[OCRPageData]
+    ) -> JSONDict:
         """AI 기반 섹션 추출
-        
+
         LLM을 사용하여 섹션 구조 분석
         """
         if not self.parser or not hasattr(self.parser, 'extract_sections'):
@@ -944,8 +945,8 @@ class ImprovedSectionExtractor:
     
     def _extract_by_heuristic(
         self,
-        lecture_ocr_data: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        lecture_ocr_data: List[OCRPageData]
+    ) -> JSONDict:
         """휴리스틱 기반 폴백 추출
 
         레이아웃 및 폰트 크기 분석을 통한 섹션 추출
@@ -1067,9 +1068,9 @@ class ImprovedSectionExtractor:
     
     def _extract_sections_by_region_hints_only(
         self,
-        lecture_ocr_data: List[Dict[str, Any]],
+        lecture_ocr_data: List[OCRPageData],
         start_page: int
-    ) -> List[Dict[str, Any]]:
+    ) -> List[SectionData]:
         """region_hints만 사용하여 Y좌표 기반 섹션 추출 (새로운 폴백 전략)
 
         region_text_examples가 없어도 region_hints의 Y좌표 범위를 사용하여
@@ -1207,15 +1208,15 @@ class ImprovedSectionExtractor:
 
     def _merge_sections(
         self,
-        sections1: List[Dict[str, Any]],
-        sections2: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        sections1: List[SectionData],
+        sections2: List[SectionData]
+    ) -> List[SectionData]:
         """두 섹션 리스트 병합 (중복 제거)
-        
+
         Args:
             sections1: 첫 번째 섹션 리스트
             sections2: 두 번째 섹션 리스트
-            
+
         Returns:
             병합된 섹션 리스트
         """
