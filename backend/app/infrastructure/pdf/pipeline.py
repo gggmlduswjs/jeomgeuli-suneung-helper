@@ -4,10 +4,11 @@ extraction + parsing을 단일 플로우로 처리
 """
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Union, Tuple
+from typing import Optional, List, Union, Tuple
 from PIL import Image
 
 from app.infrastructure.pdf.extractors import PdfplumberExtractor, OCRExtractor, PyMuPDFExtractor
+from app.infrastructure.pdf.types import OCRPageData, ParsingResult, JSONDict
 # 통합 파서 사용으로 변경됨 (UnifiedTemplateParser)
 from app.infrastructure.pdf.parsers.hybrid_router import HybridRouter
 from app.infrastructure.pdf.lecture_contents_extractor import LectureContentsExtractor
@@ -147,7 +148,7 @@ class UnifiedPipeline:
         dpi = getattr(self.extractor, 'dpi', 300) if hasattr(self, 'extractor') else 300
         return ExtractorFactory.create_ocr_extractor(self._extractor_only_kwargs, dpi=dpi)
 
-    def _should_switch_to_ocr(self, sample_ocr_data: List[Dict[str, Any]]) -> bool:
+    def _should_switch_to_ocr(self, sample_ocr_data: List[OCRPageData]) -> bool:
         """pdfplumber 결과가 빈약/깨졌으면 OCR로 전환"""
         return ExtractorFactory.should_switch_to_ocr(sample_ocr_data)
 
@@ -163,7 +164,7 @@ class UnifiedPipeline:
             enable_ai_parsing=False
         )
 
-    def process(self, pdf_path: Path) -> Dict[str, Any]:
+    def process(self, pdf_path: Path) -> ParsingResult:
         """
         PDF 전체 파이프라인 실행
 

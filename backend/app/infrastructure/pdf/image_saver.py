@@ -5,12 +5,13 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Optional, Callable
 from PIL import Image
 
 from app.core.config import settings
 from app.infrastructure.pdf.exceptions import ImageProcessingError
 from app.infrastructure.pdf.image_cache import ImageCache
+from app.infrastructure.pdf.types import OCRPageData, SectionData, JSONDict
 
 logger = logging.getLogger(__name__)
 
@@ -56,10 +57,10 @@ class ImageSaver:
     
     def save_images(
         self,
-        items: List[Dict[str, Any]],
+        items: List[JSONDict],
         item_type: str,
-        ocr_data: List[Dict[str, Any]],
-        filename_generator: Optional[Callable[[Dict[str, Any], int, int], str]] = None,
+        ocr_data: List[OCRPageData],
+        filename_generator: Optional[Callable[[JSONDict, int, int], str]] = None,
         save_metadata: bool = False
     ) -> int:
         """
@@ -167,7 +168,7 @@ class ImageSaver:
         
         return saved_count
     
-    def _get_page_image(self, page_num: int, ocr_data: List[Dict[str, Any]]) -> Optional[Image.Image]:
+    def _get_page_image(self, page_num: int, ocr_data: List[OCRPageData]) -> Optional[Image.Image]:
         """페이지 이미지 가져오기 (캐싱 지원)
         
         Args:
@@ -221,7 +222,7 @@ class ImageSaver:
     def _default_filename_generator(
         self,
         item_type: str,
-        item: Dict[str, Any],
+        item: JSONDict,
         page_num: int,
         idx: int
     ) -> str:
@@ -248,7 +249,7 @@ class ImageSaver:
     
     def _save_metadata(
         self,
-        item: Dict[str, Any],
+        item: JSONDict,
         page_num: int,
         bbox: List[float],
         images_dir: Path,
@@ -282,8 +283,8 @@ class ImageSaver:
     
     def save_problem_images(
         self,
-        problems: List[Dict[str, Any]],
-        ocr_data: List[Dict[str, Any]]
+        problems: List[JSONDict],
+        ocr_data: List[OCRPageData]
     ) -> int:
         """문제 이미지 저장
         
@@ -308,8 +309,8 @@ class ImageSaver:
     
     def save_concept_images(
         self,
-        lecture_contents: List[Dict[str, Any]],
-        ocr_data: List[Dict[str, Any]]
+        lecture_contents: List[JSONDict],
+        ocr_data: List[OCRPageData]
     ) -> int:
         """개념 이미지 저장
         
@@ -342,8 +343,8 @@ class ImageSaver:
     
     def save_content_images(
         self,
-        lecture_contents: List[Dict[str, Any]],
-        ocr_data: List[Dict[str, Any]]
+        lecture_contents: List[JSONDict],
+        ocr_data: List[OCRPageData]
     ) -> int:
         """본문 이미지 저장
         

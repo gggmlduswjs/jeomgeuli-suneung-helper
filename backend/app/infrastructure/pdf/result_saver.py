@@ -5,7 +5,9 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List
+
+from app.infrastructure.pdf.types import LectureInfo, JSONDict
 
 logger = logging.getLogger(__name__)
 
@@ -74,9 +76,9 @@ class ResultSaver:
     
     def save(
         self,
-        lectures: List[Dict[str, Any]],
-        lecture_contents: List[Dict[str, Any]],
-        problems: List[Dict[str, Any]]
+        lectures: List[LectureInfo],
+        lecture_contents: List[JSONDict],
+        problems: List[JSONDict]
     ):
         """
         결과를 JSON 파일로 저장
@@ -95,7 +97,7 @@ class ResultSaver:
         # 3. problem_XX.json 저장 (필요시)
         # self._save_problems(problems)
     
-    def _save_lectures_list(self, lectures: List[Dict[str, Any]]):
+    def _save_lectures_list(self, lectures: List[LectureInfo]):
         """강의 목록 저장 (기존 데이터는 이미 clear()에서 삭제됨)"""
         lectures_json_path = self.lectures_dir / "lectures.json"
         
@@ -115,9 +117,9 @@ class ResultSaver:
         logger.info(f"강의 목록 저장: {len(lecture_list)}개")
     
     def _save_lecture_contents(
-        self, 
-        lecture_contents: List[Dict[str, Any]],
-        problems: List[Dict[str, Any]]
+        self,
+        lecture_contents: List[JSONDict],
+        problems: List[JSONDict]
     ):
         """강의 콘텐츠 저장 (processing 모듈에서 이미 처리된 섹션 사용)"""
         saved_count = 0
