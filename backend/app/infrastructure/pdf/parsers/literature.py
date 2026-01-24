@@ -11,7 +11,7 @@ import re
 import logging
 import warnings
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 
 from .base import BaseParser
 from .config_manager import ParserConfigManager
@@ -19,6 +19,15 @@ from .template_manager import TemplateManager
 from .template import ParsingTemplate
 from .section_extractor import ImprovedSectionExtractor
 from app.core.config import settings
+from app.infrastructure.pdf.types import (
+    OCRPageData,
+    ParsingResult,
+    LectureInfo,
+    ProblemInfo,
+    SectionData,
+    ParagraphData,
+    JSONDict,
+)
 from app.infrastructure.pdf.constants import (
     DEFAULT_TOC_END_PAGE,
     DEFAULT_CONTENT_START_PAGE,
@@ -81,12 +90,12 @@ class LiteratureParser(BaseParser):
         else:
             self.config = ParserConfigManager.load_config('literature', config_path)
     
-    def _template_to_config(self, template: ParsingTemplate) -> Dict[str, Any]:
+    def _template_to_config(self, template: ParsingTemplate) -> JSONDict:
         """템플릿을 config 형식으로 변환
-        
+
         Args:
             template: ParsingTemplate 인스턴스
-            
+
         Returns:
             config 딕셔너리
         """
@@ -151,13 +160,13 @@ class LiteratureParser(BaseParser):
         
         return config
     
-    def try_match_template(self, ocr_data: List[Dict[str, Any]], threshold: float = 0.85) -> Optional[ParsingTemplate]:
+    def try_match_template(self, ocr_data: List[OCRPageData], threshold: float = 0.85) -> Optional[ParsingTemplate]:
         """OCR 데이터에서 템플릿 매칭 시도
-        
+
         Args:
             ocr_data: 페이지별 OCR 결과 리스트
             threshold: 최소 신뢰도 임계값
-            
+
         Returns:
             매칭된 템플릿 또는 None
         """
@@ -197,7 +206,7 @@ class LiteratureParser(BaseParser):
         return None
 
 
-    def parse(self, ocr_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def parse(self, ocr_data: List[OCRPageData]) -> ParsingResult:
         """
         OCR 데이터를 파싱하여 문학 콘텐츠 추출
 
@@ -252,7 +261,7 @@ class LiteratureParser(BaseParser):
 
     def _merge_adjacent_texts(
         self,
-        ocr_page: Dict[str, Any],
+        ocr_page: OCRPageData,
         y_threshold: int = DEFAULT_LINE_Y_THRESHOLD,
         x_threshold: int = DEFAULT_WORD_X_THRESHOLD
     ) -> List[str]:
@@ -322,7 +331,7 @@ class LiteratureParser(BaseParser):
 
         return merged_texts
 
-    def extract_lectures(self, ocr_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def extract_lectures(self, ocr_data: List[OCRPageData]) -> List[LectureInfo]:
         """
         강의 목록 추출
 
@@ -504,13 +513,13 @@ class LiteratureParser(BaseParser):
             logger.error(f"강의 추출 중 오류 발생: {e}", exc_info=True)
             return []
 
-    def extract_problems(self, ocr_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def extract_problems(self, ocr_data: List[OCRPageData]) -> List[ProblemInfo]:
         """
         문제 추출
-        
+
         Args:
             ocr_data: 페이지별 OCR 결과 리스트
-            
+
         Returns:
             문제 리스트
         """
@@ -546,18 +555,18 @@ class LiteratureParser(BaseParser):
 
     def extract_sections(
         self,
-        lecture_ocr_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData]
+    ) -> List[SectionData]:
         """
         섹션 추출 (개선된 다중 전략 사용)
-        
+
         추출 대상:
         1. 메인 개념 섹션: "1. 시적 표현", "2. 시의 형식" (type: "concept")
         2. 본문 섹션: "작품으로 이해하기 - 박두진 [해]" (type: "content")
-        
+
         Args:
             lecture_ocr_data: 강의에 해당하는 OCR 데이터 리스트
-            
+
         Returns:
             섹션 리스트
         """
@@ -602,10 +611,10 @@ class LiteratureParser(BaseParser):
     
     def _extract_sections_fallback(
         self,
-        lecture_ocr_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData]
+    ) -> List[SectionData]:
         """폴백 섹션 추출 (기존 방식)
-        
+
         개선된 추출기가 실패할 경우 사용
         """
         sections = []
@@ -688,18 +697,18 @@ class LiteratureParser(BaseParser):
 
     def extract_content_paragraphs(
         self,
-        lecture_ocr_data: List[Dict[str, Any]],
-        sections: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData],
+        sections: List[SectionData]
+    ) -> List[ParagraphData]:
         """
         섹션별 문단 추출
-        
+
         각 섹션에 해당하는 문단들을 추출하여 섹션별로 그룹화
-        
+
         Args:
             lecture_ocr_data: 강의에 해당하는 OCR 데이터 리스트
             sections: 이미 추출된 섹션 리스트
-            
+
         Returns:
             문단 리스트
         """
