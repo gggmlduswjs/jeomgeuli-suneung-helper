@@ -48,6 +48,8 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
     end_page: number | null;
   }> | null>(null);
   const [parsingLectures, setParsingLectures] = useState(false);
+  const [tocPages, setTocPages] = useState<string>('3,4,5');
+  const [extractingTocText, setExtractingTocText] = useState(false);
 
   const defaultName = useMemo(() => {
     const safeYear = year?.trim() || String(new Date().getFullYear());
@@ -81,6 +83,39 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
     },
     [tocLectureExamplesText, expectedLectureCount, tocNonLectureExamplesText]
   );
+
+  const handleExtractTocText = async () => {
+    if (!pdfFile) {
+      onSpeak?.('먼저 PDF 파일을 업로드해주세요.');
+      return;
+    }
+
+    if (!tocPages.trim()) {
+      onSpeak?.('목차 페이지 번호를 입력해주세요 (예: 3,4,5).');
+      return;
+    }
+
+    setExtractingTocText(true);
+    try {
+      const result = await templatesAPI.extractTocText(pdfFile, tocPages);
+      setTocText(result.toc_text);
+
+      const pageCount = result.pages_extracted.length;
+      const lineCount = result.total_lines;
+
+      if (lineCount === 0) {
+        onSpeak?.('목차 텍스트를 추출하지 못했습니다. 페이지 번호를 확인해주세요.');
+      } else {
+        onSpeak?.(`${pageCount}개 페이지에서 ${lineCount}줄의 목차 텍스트를 추출했습니다. 검토 후 수정하세요.`);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '목차 텍스트 추출 중 오류가 발생했습니다.';
+      onSpeak?.(message);
+      console.error('목차 텍스트 추출 오류:', err);
+    } finally {
+      setExtractingTocText(false);
+    }
+  };
 
   const handleParseTocLectures = async () => {
     if (!tocText || tocText.trim().length < 20) {
@@ -348,10 +383,15 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
         <p className="text-sm text-muted-foreground">목차 텍스트를 붙여넣고 GPT로 템플릿 초안을 만듭니다.</p>
       </div>
 
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-sm font-medium mb-1">과목</label>
+      <div className="space-y-4">
+        {/* 1. 기본 정보 */}
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <h3 className="text-base font-semibold mb-3">1. 기본 정보</h3>
+
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm font-medium mb-1">과목</label>
             <select
               value={subject}
               onChange={(e) => setSubject(e.target.value as any)}
@@ -396,10 +436,12 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
             placeholder="예: 2026 수능특강 문학 TOC 기반 템플릿"
           />
         </div>
+          </div>
+        </div>
 
-        {/* 커리큘럼 구조 설문 */}
+        {/* 2. 커리큘럼 구조 설문 */}
         <div className="border border-border rounded-lg p-4 bg-card">
-          <h3 className="text-sm font-semibold mb-3">커리큘럼 구조 설문 (선택)</h3>
+          <h3 className="text-base font-semibold mb-3">2. 커리큘럼 구조 설문 (선택)</h3>
           <div className="space-y-3">
             <div>
               <label className="flex items-center gap-2">
@@ -431,11 +473,9 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
           </div>
         </div>
 
-        {/* PDF 업로드 및 텍스트 자동 추출 */}
+        {/* 3. PDF 업로드 */}
         <div className="border border-border rounded-lg p-4 bg-card">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold">PDF 업로드 및 텍스트 자동 추출 (선택, 권장)</h3>
-          </div>
+          <h3 className="text-base font-semibold mb-3">3. PDF 업로드 (필수)</h3>
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium mb-1">PDF 파일</label>
@@ -521,10 +561,10 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
           </div>
         </div>
 
-        {/* 파싱 가이드 영역 (bbox 마킹) - 선택적 고급 기능 */}
+        {/* 4. 영역 마킹 (고급, 선택) */}
         <details className="border border-border rounded-lg p-4 bg-card">
-          <summary className="text-sm font-semibold cursor-pointer hover:text-primary transition-colors">
-            고급: 영역 마킹 (선택)
+          <summary className="text-base font-semibold cursor-pointer hover:text-primary transition-colors">
+            4. 영역 마킹 (고급, 선택)
           </summary>
           <div className="mt-3 space-y-2">
             <div className="flex items-center justify-end mb-2">
@@ -604,42 +644,72 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
           </div>
         </details>
 
-        {/* 목차 텍스트 입력 (메인) */}
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-1">
-            목차 텍스트 (필수)
-            <span className="ml-2 text-xs font-normal text-muted-foreground">
-              - 목차만 입력하면 자동으로 강의 개수와 예시를 추출합니다
-            </span>
-          </label>
-          <textarea
-            value={tocText}
-            onChange={(e) => setTocText(e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background font-mono text-sm"
-            rows={15}
-            placeholder="PDF 목차 페이지를 복사해서 붙여넣으세요.&#10;&#10;예시:&#10;1강 | 시의 표현과 형식&#10;해 (박두진) 009&#10;2강 | 시의 내용&#10;..."
-          />
-          <p className="mt-1 text-xs text-muted-foreground">
-            목차 텍스트를 붙여넣으면 자동으로 강의 개수와 예시를 추출합니다. 필요시 아래에서 수정할 수 있습니다.
-          </p>
+        {/* 5. 목차 입력 */}
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <h3 className="text-base font-semibold mb-4">5. 목차 입력</h3>
 
-          {/* 강의 목록 분석 버튼 */}
-          <button
-            onClick={handleParseTocLectures}
-            disabled={parsingLectures || !tocText.trim()}
-            className="w-full px-4 py-3 bg-secondary hover:bg-secondary/80 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50 mt-3"
-          >
-            <Sparkles className="w-4 h-4" />
-            {parsingLectures ? '분석 중...' : '목차에서 강의 목록 및 페이지 범위 추출'}
-          </button>
+          <div className="space-y-4">
+            {/* 5-1. 목차 페이지 번호 입력 및 텍스트 추출 */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                목차 페이지 번호 (쉼표로 구분)
+              </label>
+              <input
+                type="text"
+                value={tocPages}
+                onChange={(e) => setTocPages(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
+                placeholder="3,4,5"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                목차가 있는 PDF 페이지 번호를 입력하세요 (예: 3,4,5)
+              </p>
+
+              <button
+                onClick={handleExtractTocText}
+                disabled={extractingTocText || !pdfFile}
+                className="w-full mt-2 px-4 py-3 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50"
+              >
+                <Sparkles className="w-4 h-4" />
+                {extractingTocText ? '추출 중...' : 'PDF에서 목차 텍스트 추출'}
+              </button>
+            </div>
+
+            {/* 5-2. 추출된 목차 텍스트 표시 및 편집 */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                목차 텍스트 (검토 및 수정)
+              </label>
+              <textarea
+                value={tocText}
+                onChange={(e) => setTocText(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background font-mono text-sm"
+                rows={12}
+                placeholder="위 버튼을 클릭하여 목차 텍스트를 자동으로 추출하거나, 직접 붙여넣으세요.&#10;&#10;예시:&#10;1강 | 시의 표현과 형식&#10;해 (박두진) 009&#10;2강 | 시의 내용&#10;..."
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                추출된 텍스트가 올바른지 확인하고 필요시 수정하세요.
+              </p>
+            </div>
+
+            {/* 5-3. 강의 목록 분석 버튼 */}
+            <button
+              onClick={handleParseTocLectures}
+              disabled={parsingLectures || !tocText.trim()}
+              className="w-full px-4 py-3 bg-secondary hover:bg-secondary/80 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50"
+            >
+              <Sparkles className="w-4 h-4" />
+              {parsingLectures ? '분석 중...' : '목차에서 강의 목록 및 페이지 범위 추출'}
+            </button>
+          </div>
         </div>
 
-        {/* 추출된 강의 목록 (편집 가능) */}
+        {/* 6. 추출된 강의 목록 검토 및 수정 */}
         {parsedLectures && parsedLectures.length > 0 && (
           <div className="border border-border rounded-lg p-4 bg-card">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold">
-                추출된 강의 목록 ({parsedLectures.length}개) - 검토 및 수정
+              <h3 className="text-base font-semibold">
+                6. 강의 목록 검토 및 수정 ({parsedLectures.length}개)
               </h3>
               <button
                 onClick={() => setParsedLectures(null)}

@@ -325,4 +325,28 @@ export const templatesAPI = {
       lectures_with_pages: number;
     }>('/templates/parse-toc-lectures', { toc_text: tocText });
   },
+
+  /**
+   * PDF에서 목차 페이지 텍스트 자동 추출
+   */
+  async extractTocText(
+    pdfFile: File,
+    tocPages: string
+  ): Promise<{
+    ok: boolean;
+    toc_text: string;
+    pages_extracted: number[];
+    total_lines: number;
+  }> {
+    const formData = new FormData();
+    formData.append('pdf_file', pdfFile);
+    formData.append('toc_pages', tocPages);
+
+    return api.postFormData<{
+      ok: boolean;
+      toc_text: string;
+      pages_extracted: number[];
+      total_lines: number;
+    }>('/templates/extract-toc-text', formData);
+  },
 };
