@@ -4,18 +4,26 @@
 """
 import re
 import logging
-from typing import List, Dict, Any
+from typing import List, Optional, Tuple
 from pathlib import Path
 
 from app.infrastructure.pdf.parsers.lecture_title_validator import LectureTitleValidator
+from app.infrastructure.pdf.parsers.base import BaseParser
+from app.infrastructure.pdf.types import (
+    OCRPageData,
+    LectureInfo,
+    SectionData,
+    ParagraphData,
+    JSONDict,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class LectureContentsExtractor:
     """강의별 목차 및 콘텐츠 추출기"""
-    
-    def __init__(self, subject: str, config: Dict[str, Any] = None):
+
+    def __init__(self, subject: str, config: Optional[JSONDict] = None):
         """
         Args:
             subject: 과목명
@@ -41,18 +49,18 @@ class LectureContentsExtractor:
     
     def extract(
         self,
-        all_ocr_data: List[Dict[str, Any]],
-        lectures: List[Dict[str, Any]],
-        parser: Any  # BaseParser 인스턴스
-    ) -> List[Dict[str, Any]]:
+        all_ocr_data: List[OCRPageData],
+        lectures: List[LectureInfo],
+        parser: BaseParser
+    ) -> List[JSONDict]:
         """
         강의별 목차 및 콘텐츠 추출
-        
+
         Args:
             all_ocr_data: 전체 OCR 데이터
             lectures: 강의 목록
             parser: 파서 인스턴스 (섹션 추출용)
-        
+
         Returns:
             강의 콘텐츠 리스트 (각 섹션에 content 포함)
         """
@@ -163,13 +171,13 @@ class LectureContentsExtractor:
     
     def _match_content_to_sections(
         self,
-        sections: List[Dict[str, Any]],
-        content_paragraphs: List[Dict[str, Any]],
-        lecture_ocr_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        sections: List[SectionData],
+        content_paragraphs: List[ParagraphData],
+        lecture_ocr_data: List[OCRPageData]
+    ) -> List[SectionData]:
         """
         섹션별 content 매칭
-        
+
         각 섹션에 해당하는 문단들을 찾아서 섹션의 content 필드에 할당
         """
         sections_with_content = []
@@ -302,11 +310,11 @@ class LectureContentsExtractor:
         self,
         lecture_id: int,
         lecture_title: str,
-        all_ocr_data: List[Dict[str, Any]],
-        search_start_hint: int = None
+        all_ocr_data: List[OCRPageData],
+        search_start_hint: Optional[int] = None
     ) -> int:
         """실제 시작 페이지 찾기 (개선된 버전)
-        
+
         Args:
             lecture_id: 강의 ID
             lecture_title: 강의 제목
@@ -407,11 +415,11 @@ class LectureContentsExtractor:
     
     def _find_lecture_page_range(
         self,
-        lecture: Dict[str, Any],
-        lectures: List[Dict[str, Any]],
-        all_ocr_data: List[Dict[str, Any]],
+        lecture: LectureInfo,
+        lectures: List[LectureInfo],
+        all_ocr_data: List[OCRPageData],
         start_page: int
-    ) -> tuple:
+    ) -> Tuple[int, int]:
         """강의 페이지 범위 찾기"""
         # start_page 유효성 검증
         if start_page is None or not isinstance(start_page, int):
