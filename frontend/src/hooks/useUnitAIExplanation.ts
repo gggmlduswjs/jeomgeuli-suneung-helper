@@ -179,17 +179,19 @@ export function useUnitAIExplanation({
         ) {
           hasSpokenRef.current = true;
           
-          // AI 설명만 읽기 (TTS 완료 시 다음 섹션으로 이동)
+          // AI 설명만 읽기
           setTimeout(() => {
             if (onSpeakRef.current) {
-              onSpeakRef.current(explanation, {
-                onEnd: () => {
-                  if (import.meta.env.DEV) console.log('[useUnitAIExplanation] AI 설명 TTS 완료 - 다음 섹션으로 이동');
-                  if (onTTSCompleteRef.current) {
-                    onTTSCompleteRef.current();
-                  }
-                }
-              });
+              onSpeakRef.current(explanation);
+              // TTS 완료 콜백은 onSpeak이 단순 함수이므로 직접 호출
+              if (onTTSCompleteRef.current) {
+                // TTS 재생 시간을 추정하여 콜백 호출 (대략 계산)
+                const estimatedDuration = explanation.length * 100; // 문자당 100ms 가정
+                setTimeout(() => {
+                  if (import.meta.env.DEV) console.log('[useUnitAIExplanation] AI 설명 TTS 완료 추정 - 다음 섹션으로 이동');
+                  onTTSCompleteRef.current?.();
+                }, estimatedDuration);
+              }
             }
           }, 300);
         }

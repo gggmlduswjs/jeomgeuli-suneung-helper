@@ -5,11 +5,11 @@ import { useState, useEffect } from 'react';
 import { useBrailleChunkReader } from './useBrailleChunkReader';
 import { BRAILLE_CHUNK_SIZE } from '../components/unit/constants';
 import type { Unit } from '../types/api';
-import type { SubjectStrategy } from '../strategies/subjectLearning';
+import type { SubjectLearningStrategy } from '../strategies/subjectLearning';
 
 interface UseUnitBrailleOptions {
   unit: Unit | null;
-  strategy: SubjectStrategy;
+  strategy: SubjectLearningStrategy;
   readingMode: 'braille-only' | 'audio-first' | 'mixed';
   isConnected: boolean;
   writeCells: (cells: number[][]) => void;

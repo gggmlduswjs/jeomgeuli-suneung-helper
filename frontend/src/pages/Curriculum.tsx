@@ -24,7 +24,8 @@ export default function CurriculumPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await curriculumAPI.list(selectedSubject);
+      const params = selectedSubject ? { subject: selectedSubject } : undefined;
+      const data = await curriculumAPI.list(params);
       setCurricula(data);
     } catch (err: unknown) {
       const errorMsg = '커리큘럼 목록을 불러오는 중 오류가 발생했습니다.';
@@ -60,7 +61,7 @@ export default function CurriculumPage() {
             전체
           </button>
           <button
-            onClick={() => setSelectedSubject('KOREAN')}
+            onClick={() => setSelectedSubject('KOREAN' as Subject)}
             className={`px-4 py-2 rounded-lg ${
               selectedSubject === 'KOREAN' ? 'btn-primary' : 'btn-ghost'
             }`}
@@ -68,7 +69,7 @@ export default function CurriculumPage() {
             문학
           </button>
           <button
-            onClick={() => setSelectedSubject('MATH')}
+            onClick={() => setSelectedSubject('MATH' as Subject)}
             className={`px-4 py-2 rounded-lg ${
               selectedSubject === 'MATH' ? 'btn-primary' : 'btn-ghost'
             }`}
@@ -76,7 +77,7 @@ export default function CurriculumPage() {
             수1
           </button>
           <button
-            onClick={() => setSelectedSubject('ENGLISH')}
+            onClick={() => setSelectedSubject('ENGLISH' as Subject)}
             className={`px-4 py-2 rounded-lg ${
               selectedSubject === 'ENGLISH' ? 'btn-primary' : 'btn-ghost'
             }`}

@@ -41,7 +41,7 @@ export function normalizeCells(cells: unknown): DotArray[] {
     else if (typeof cell === 'number') {
       dots = [];
       for (let i = 0; i < 6; i++) {
-        dots.push((cell >> i) & 1 === 1);
+        dots.push(((cell >> i) & 1) === 1);
       }
     }
     // Case 4: 객체 형태 { dots: number }
@@ -49,7 +49,7 @@ export function normalizeCells(cells: unknown): DotArray[] {
       const dotValue = (cell as { dots: number }).dots;
       dots = [];
       for (let i = 0; i < 6; i++) {
-        dots.push((dotValue >> i) & 1 === 1);
+        dots.push(((dotValue >> i) & 1) === 1);
       }
     }
     // Case 5: 알 수 없는 형태 - 빈 셀로 처리

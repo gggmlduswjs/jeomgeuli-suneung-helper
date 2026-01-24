@@ -433,7 +433,7 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
 
     // 마이크 중지 (이미 마이크가 켜져 있는 경우)
     if (isListening && !wasShortPress) {
-      micMode.requestStop();
+      VoiceService.stopSTT();
     }
 
     // 상태 리셋
@@ -509,7 +509,7 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
   const handlePointerCancel = useCallback((e: PointerEvent) => {
     if (activePointerRef.current && activePointerRef.current.pointerId === e.pointerId) {
       if (isListening) {
-        micMode.requestStop();
+        VoiceService.stopSTT();
       }
       activePointerRef.current = null;
       setIsLongPressing(false);
