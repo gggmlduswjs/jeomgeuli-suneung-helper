@@ -4,7 +4,9 @@ OCR 결과의 품질을 향상시키고 섹션 추출 정확도를 높임
 """
 import re
 import logging
-from typing import List, Dict, Any, Tuple
+from typing import List
+
+from app.infrastructure.pdf.types import OCRPageData
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +95,7 @@ class TextPreprocessor:
         return max(0.0, min(1.0, score))
     
     @staticmethod
-    def preprocess_ocr_data(ocr_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def preprocess_ocr_data(ocr_data: List[OCRPageData]) -> List[OCRPageData]:
         """OCR 데이터 전처리
         
         Args:

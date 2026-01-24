@@ -3,7 +3,9 @@
 기존 ml/deduplicator.py를 래핑
 """
 import logging
-from typing import List, Dict, Any
+from typing import List, Optional
+
+from app.infrastructure.pdf.types import BlockData
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +28,10 @@ class Deduplicator:
             logger.info("Deduplicator 초기화 완료")
         except Exception as e:
             logger.warning(f"Deduplicator 초기화 실패: {e}")
-            self.deduplicator = None
+            self.deduplicator: Optional[object] = None
             self.available = False
 
-    def deduplicate(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def deduplicate(self, items: List[BlockData]) -> List[BlockData]:
         """
         항목 중복 제거
 

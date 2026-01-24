@@ -1,19 +1,21 @@
 """
 PDF 파싱 관련 커스텀 예외 클래스
 """
-from typing import Optional, Dict, Any
+from typing import Optional
+
+from app.infrastructure.pdf.types import ErrorDetails
 
 
 class ParsingError(Exception):
     """파싱 관련 기본 예외
-    
+
     모든 PDF 파싱 관련 예외의 기본 클래스
     """
-    
+
     def __init__(
         self,
         message: str,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[ErrorDetails] = None,
         original_error: Optional[Exception] = None
     ):
         """

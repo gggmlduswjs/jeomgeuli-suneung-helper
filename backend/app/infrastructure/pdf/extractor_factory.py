@@ -4,10 +4,10 @@ OCR 추출기 생성 및 전환 로직 분리
 """
 import logging
 import multiprocessing as mp
-from typing import List, Dict, Any, Optional
-from pathlib import Path
+from typing import List
 
 from app.infrastructure.pdf.extractors import PdfplumberExtractor, OCRExtractor
+from app.infrastructure.pdf.types import OCRPageData, JSONDict
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 
 class ExtractorFactory:
     """추출기 팩토리
-    
+
     OCR 추출기 생성 및 pdfplumber → OCR 전환 판단 로직
     """
-    
+
     @staticmethod
     def create_ocr_extractor(
-        extractor_kwargs: Dict[str, Any],
+        extractor_kwargs: JSONDict,
         dpi: int = 300
     ) -> OCRExtractor:
         """OCRExtractor 생성
@@ -52,7 +52,7 @@ class ExtractorFactory:
         return OCRExtractor(**ocr_kwargs)
     
     @staticmethod
-    def should_switch_to_ocr(sample_ocr_data: List[Dict[str, Any]]) -> bool:
+    def should_switch_to_ocr(sample_ocr_data: List[OCRPageData]) -> bool:
         """pdfplumber 결과가 빈약/깨졌으면 OCR로 전환
         
         Args:

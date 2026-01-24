@@ -5,7 +5,7 @@ extraction/extractors.py를 processing/으로 이동 및 통합
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from PIL import Image
 
 from app.infrastructure.pdf.constants import (
@@ -18,6 +18,7 @@ from app.infrastructure.pdf.constants import (
     PAGE_LOG_INTERVAL,
     PROGRESS_LOG_INTERVAL_PERCENT,
 )
+from app.infrastructure.pdf.types import OCRPageData
 
 logger = logging.getLogger(__name__)
 
@@ -40,20 +41,11 @@ class TextExtractor(ABC):
     """
     텍스트 추출기 기본 인터페이스
 
-    모든 추출기는 동일한 OCR 형식의 데이터를 반환해야 함:
-    {
-        'page_num': int,
-        'text': List[str],
-        'left': List[int],
-        'top': List[int],
-        'width': List[int],
-        'height': List[int],
-        'color': List[tuple]  # Optional
-    }
+    모든 추출기는 동일한 OCR 형식의 데이터를 반환해야 함 (OCRPageData)
     """
 
     @abstractmethod
-    def extract(self, source: Any, **kwargs) -> List[Dict[str, Any]]:
+    def extract(self, source: object, **object) -> List[OCRPageData]:
         """
         텍스트 추출
 
@@ -95,7 +87,7 @@ class PdfplumberExtractor(TextExtractor):
         first_page: int = 1,
         last_page: Optional[int] = None,
         **kwargs
-    ) -> List[Dict[str, Any]]:
+    ) -> List[OCRPageData]:
         """
         pdfplumber로 텍스트 추출
 
@@ -297,7 +289,7 @@ class OCRExtractor(TextExtractor):
         """OCR 진행률 업데이트 콜백 설정"""
         self.progress_callback = callback
 
-    def extract(self, page_images: List[Image.Image], **kwargs) -> List[Dict[str, Any]]:
+    def extract(self, page_images: List[Image.Image], **kwargs) -> List[OCRPageData]:
         """
         OCR로 텍스트 추출
 
@@ -322,7 +314,7 @@ class OCRExtractor(TextExtractor):
         else:
             return self._ocr_pages_sequential(preprocessed_images)
 
-    def _ocr_pages_parallel(self, page_images: List[Image.Image]) -> List[Dict[str, Any]]:
+    def _ocr_pages_parallel(self, page_images: List[Image.Image]) -> List[OCRPageData]:
         """병렬 OCR 처리"""
         import multiprocessing as mp
         from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -389,7 +381,7 @@ class OCRExtractor(TextExtractor):
         logger.info(f"[OCR] 병렬 처리 완료: {total_pages}개 페이지")
         return all_ocr_data
 
-    def _ocr_pages_sequential(self, page_images: List[Image.Image]) -> List[Dict[str, Any]]:
+    def _ocr_pages_sequential(self, page_images: List[Image.Image]) -> List[OCRPageData]:
         """순차 OCR 처리"""
         # Tesseract 경로 설정
         if self.tesseract_cmd:
@@ -436,7 +428,7 @@ class OCRExtractor(TextExtractor):
         logger.info(f"[OCR] 순차 처리 완료: {total_pages}개 페이지")
         return all_ocr_data
 
-    def _ocr_page(self, page_image: Image.Image, page_num: int) -> Dict[str, Any]:
+    def _ocr_page(self, page_image: Image.Image, page_num: int) -> OCRPageData:
         """단일 페이지 OCR"""
         # Tesseract 경로 설정 (병렬이 아닐 때)
         if self.tesseract_cmd:
@@ -461,7 +453,7 @@ def _init_ocr_worker(tesseract_cmd: Optional[str], lang: str):
         pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
 
-def _ocr_page_worker(args: tuple) -> Dict[str, Any]:
+def _ocr_page_worker(args: tuple) -> OCRPageData:
     """OCR 워커 함수"""
     page_image, page_num, lang, tesseract_cmd = args
 
@@ -509,7 +501,7 @@ class PyMuPDFExtractor(TextExtractor):
         first_page: int = 1,
         last_page: Optional[int] = None,
         **kwargs
-    ) -> List[Dict[str, Any]]:
+    ) -> List[OCRPageData]:
         """
         PyMuPDF로 텍스트 추출
 

@@ -3,7 +3,9 @@
 기존 ml/block_classifier.py를 래핑
 """
 import logging
-from typing import List, Dict, Any
+from typing import List, Optional
+
+from app.infrastructure.pdf.types import BlockData
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +25,10 @@ class BlockClassifier:
             logger.info("BlockClassifier 초기화 완료")
         except Exception as e:
             logger.warning(f"BlockClassifier 초기화 실패: {e}")
-            self.classifier = None
+            self.classifier: Optional[object] = None
             self.available = False
 
-    def classify(self, blocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def classify(self, blocks: List[BlockData]) -> List[BlockData]:
         """
         블록 리스트 분류
 
