@@ -243,29 +243,30 @@ class HybridRouter:
         """
         if not ocr_data:
             return None
-        
+
         # 첫 3-5페이지의 텍스트 추출
         sample_pages = ocr_data[:5]
         sample_texts = []
-        
+
         for page_data in sample_pages:
             texts = page_data.get('text', [])
             if texts:
-                # 상위 50개 텍스트만 사용 (성능 최적화)
-                page_text = ' '.join(str(t) for t in texts[:50])
+                # 영역 마킹 활용을 위해 텍스트 개수 증가 (50 → 200)
+                page_text = ' '.join(str(t) for t in texts[:200])
                 sample_texts.append(page_text)
-        
+
         pdf_text = '\n'.join(sample_texts)
-        
+
         if not pdf_text or len(pdf_text) < 100:
             return None
-        
-        # 템플릿 매칭
+
+        # 템플릿 매칭 (OCR 데이터도 함께 전달하여 영역 유사도 계산)
         return self.template_manager.match_template(
             pdf_text=pdf_text,
             subject=subject,
             threshold=self.template_threshold,
-            book_id=book_id
+            book_id=book_id,
+            pdf_ocr_data=sample_pages  # ← OCR 데이터 전달 (영역 유사도 계산용)
         )
     
     def _create_parser_with_template(
