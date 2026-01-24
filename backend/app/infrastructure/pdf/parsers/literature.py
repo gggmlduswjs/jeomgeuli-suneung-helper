@@ -19,6 +19,22 @@ from .template_manager import TemplateManager
 from .template import ParsingTemplate
 from .section_extractor import ImprovedSectionExtractor
 from app.core.config import settings
+from app.infrastructure.pdf.constants import (
+    DEFAULT_TOC_END_PAGE,
+    DEFAULT_CONTENT_START_PAGE,
+    DEFAULT_PARAGRAPH_Y_THRESHOLD,
+    DEFAULT_LINE_Y_THRESHOLD,
+    DEFAULT_WORD_X_THRESHOLD,
+    TEMPLATE_MATCH_SAMPLE_SIZE,
+    TEMPLATE_MATCH_PAGE_SAMPLE,
+    DEBUG_TOC_PAGES,
+    DEBUG_CONTENT_PAGES,
+    DEBUG_TOC_TEXT_LIMIT,
+    DEBUG_CONTENT_TEXT_LIMIT,
+    LECTURE_TITLE_CHECK_LIMIT,
+    APPROX_CHAR_WIDTH_PIXELS,
+    MAX_VALID_LECTURE_NUMBER,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -84,12 +100,12 @@ class LiteratureParser(BaseParser):
             config['content_header_patterns'] = template.patterns.get('content_header_patterns', [])
             config['section_title_patterns'] = template.patterns.get('section_title_patterns', [])
             config['problem_number_pattern'] = template.patterns.get('problem_number_pattern', r'^\d{2}$')
-        
+
         # 설정 매핑
         if template.config:
-            config['toc_end_page'] = template.config.get('toc_end_page', 7)
-            config['start_content_page'] = template.config.get('start_content_page', 8)
-            config['paragraph_y_threshold'] = template.config.get('paragraph_y_threshold', 25)
+            config['toc_end_page'] = template.config.get('toc_end_page', DEFAULT_TOC_END_PAGE)
+            config['start_content_page'] = template.config.get('start_content_page', DEFAULT_CONTENT_START_PAGE)
+            config['paragraph_y_threshold'] = template.config.get('paragraph_y_threshold', DEFAULT_PARAGRAPH_Y_THRESHOLD)
             config['unit_order'] = template.config.get('unit_order', ['concept', 'passage', 'problem'])
             region_hints = template.config.get('region_hints', {})
             config['region_hints'] = region_hints
@@ -147,16 +163,16 @@ class LiteratureParser(BaseParser):
         """
         if not ocr_data:
             return None
-        
-        # 첫 3-5페이지의 텍스트 추출
-        sample_pages = ocr_data[:5]
+
+        # 첫 TEMPLATE_MATCH_PAGE_SAMPLE 페이지의 텍스트 추출
+        sample_pages = ocr_data[:TEMPLATE_MATCH_PAGE_SAMPLE]
         sample_texts = []
         
         for page_data in sample_pages:
             texts = page_data.get('text', [])
             if texts:
                 # 텍스트를 줄 단위로 결합
-                page_text = ' '.join(str(t) for t in texts[:50])  # 상위 50개만
+                page_text = ' '.join(str(t) for t in texts[:TEMPLATE_MATCH_SAMPLE_SIZE])
                 sample_texts.append(page_text)
         
         pdf_text = '\n'.join(sample_texts)
@@ -234,7 +250,12 @@ class LiteratureParser(BaseParser):
                 }
             }
 
-    def _merge_adjacent_texts(self, ocr_page: Dict[str, Any], y_threshold: int = 10, x_threshold: int = 50) -> List[str]:
+    def _merge_adjacent_texts(
+        self,
+        ocr_page: Dict[str, Any],
+        y_threshold: int = DEFAULT_LINE_Y_THRESHOLD,
+        x_threshold: int = DEFAULT_WORD_X_THRESHOLD
+    ) -> List[str]:
         """
         인접한 텍스트를 합쳐서 단어/문장 만들기
 
@@ -278,7 +299,7 @@ class LiteratureParser(BaseParser):
                 continue
 
             current_text = line_items[0][0]
-            prev_right = line_items[0][1] + len(line_items[0][0]) * 10  # 대략적인 문자 너비
+            prev_right = line_items[0][1] + len(line_items[0][0]) * APPROX_CHAR_WIDTH_PIXELS
 
             for i in range(1, len(line_items)):
                 text, left, top = line_items[i]
@@ -293,7 +314,7 @@ class LiteratureParser(BaseParser):
                         merged_texts.append(current_text.strip())
                     current_text = text
 
-                prev_right = left + len(text) * 10
+                prev_right = left + len(text) * APPROX_CHAR_WIDTH_PIXELS
 
             # 마지막 텍스트 추가
             if current_text.strip():
@@ -313,8 +334,8 @@ class LiteratureParser(BaseParser):
         """
         try:
             lectures = []
-            START_PAGE = self.config.get('start_content_page', 8)
-            TOC_END_PAGE = self.config.get('toc_end_page', 7)
+            START_PAGE = self.config.get('start_content_page', DEFAULT_CONTENT_START_PAGE)
+            TOC_END_PAGE = self.config.get('toc_end_page', DEFAULT_TOC_END_PAGE)
             content_patterns = self.config.get('lecture_title_patterns', [])
             toc_patterns = self.config.get('toc_lecture_patterns', [])
             
@@ -362,9 +383,9 @@ class LiteratureParser(BaseParser):
                     continue
 
                 # 디버깅: TOC 페이지의 텍스트 출력
-                if page_num in [4, 5, 6]:
-                    logger.debug(f"TOC Page {page_num} 상위 30개 텍스트:")
-                    for i, text in enumerate(merged_texts[:30]):
+                if page_num in DEBUG_TOC_PAGES:
+                    logger.debug(f"TOC Page {page_num} 상위 {DEBUG_TOC_TEXT_LIMIT}개 텍스트:")
+                    for i, text in enumerate(merged_texts[:DEBUG_TOC_TEXT_LIMIT]):
                         logger.debug(f"  [{i}] {text[:80]}")
 
                 # TOC에서 강의 제목 찾기
@@ -381,6 +402,10 @@ class LiteratureParser(BaseParser):
                             lecture_num_match = re.search(r'^(\d+)', cleaned)
                             if lecture_num_match:
                                 lecture_id = int(lecture_num_match.group(1))
+
+                                # 유효한 강의 번호인지 확인
+                                if lecture_id > MAX_VALID_LECTURE_NUMBER:
+                                    continue
 
                                 # 제목 정리 (페이지 번호 등 제거)
                                 title = cleaned
@@ -436,14 +461,14 @@ class LiteratureParser(BaseParser):
                     if not merged_texts:
                         continue
 
-                    # 디버깅: 페이지 8, 9, 10의 합쳐진 텍스트 출력
-                    if page_num in [8, 9, 10]:
-                        logger.debug(f"Content Page {page_num} 합쳐진 상위 20개 텍스트:")
-                        for i, text in enumerate(merged_texts[:20]):
+                    # 디버깅: 컨텐츠 페이지의 합쳐진 텍스트 출력
+                    if page_num in DEBUG_CONTENT_PAGES:
+                        logger.debug(f"Content Page {page_num} 합쳐진 상위 {DEBUG_CONTENT_TEXT_LIMIT}개 텍스트:")
+                        for i, text in enumerate(merged_texts[:DEBUG_CONTENT_TEXT_LIMIT]):
                             logger.debug(f"  [{i}] {text}")
 
-                    # 상위 50개 텍스트 확인 (페이지 상단)
-                    for text in merged_texts[:50]:
+                    # 상위 LECTURE_TITLE_CHECK_LIMIT개 텍스트 확인 (페이지 상단)
+                    for text in merged_texts[:LECTURE_TITLE_CHECK_LIMIT]:
                         cleaned = text.strip()
                         if not cleaned:
                             continue
@@ -491,7 +516,7 @@ class LiteratureParser(BaseParser):
         """
         try:
             problems = []
-            START_PAGE = self.config.get('start_content_page', 8)
+            START_PAGE = self.config.get('start_content_page', DEFAULT_CONTENT_START_PAGE)
             problem_pattern = self.config.get('problem_number_pattern', r'^\d{2}$')
             
             for ocr_page in ocr_data:
@@ -680,7 +705,7 @@ class LiteratureParser(BaseParser):
         """
         try:
             all_paragraphs = []
-            threshold = self.config.get('paragraph_y_threshold', 25)
+            threshold = self.config.get('paragraph_y_threshold', DEFAULT_PARAGRAPH_Y_THRESHOLD)
             
             for ocr_data in lecture_ocr_data:
                 page_num = ocr_data.get('page_num', 0)

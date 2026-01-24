@@ -8,6 +8,17 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 from PIL import Image
 
+from app.infrastructure.pdf.constants import (
+    PDF_STANDARD_DPI,
+    DEFAULT_PROCESSING_DPI,
+    DEFAULT_X_TOLERANCE,
+    DEFAULT_Y_TOLERANCE,
+    CHAR_WORD_MATCH_TOLERANCE,
+    RGB_MAX_VALUE,
+    PAGE_LOG_INTERVAL,
+    PROGRESS_LOG_INTERVAL_PERCENT,
+)
+
 logger = logging.getLogger(__name__)
 
 # PDF 추출 라이브러리 import
@@ -63,10 +74,10 @@ class PdfplumberExtractor(TextExtractor):
     텍스트 레이어가 있는 PDF에 최적화
     - 빠름
     - 정확함
-    - 좌표계: PDF 포인트 (72 DPI) → 이미지 픽셀 (DPI) 변환
+    - 좌표계: PDF 포인트 (PDF_STANDARD_DPI) → 이미지 픽셀 (DPI) 변환
     """
 
-    def __init__(self, dpi: int = 200, max_pages: Optional[int] = None):
+    def __init__(self, dpi: int = DEFAULT_PROCESSING_DPI, max_pages: Optional[int] = None):
         """
         Args:
             dpi: 이미지 DPI (좌표 변환용)
@@ -121,8 +132,8 @@ class PdfplumberExtractor(TextExtractor):
 
                     # 단어 단위로 추출
                     words = page.extract_words(
-                        x_tolerance=3,
-                        y_tolerance=3,
+                        x_tolerance=DEFAULT_X_TOLERANCE,
+                        y_tolerance=DEFAULT_Y_TOLERANCE,
                         keep_blank_chars=False
                     )
 
@@ -149,9 +160,9 @@ class PdfplumberExtractor(TextExtractor):
                     heights = []
                     colors = []
 
-                    # PDF 포인트 (72 DPI) → 이미지 픽셀 (DPI) 변환
-                    scale_x = self.dpi / 72.0
-                    scale_y = self.dpi / 72.0
+                    # PDF 포인트 (PDF_STANDARD_DPI) → 이미지 픽셀 (DPI) 변환
+                    scale_x = self.dpi / PDF_STANDARD_DPI
+                    scale_y = self.dpi / PDF_STANDARD_DPI
 
                     # 문자-단어 매핑 생성
                     char_to_word_map = {}
@@ -165,8 +176,9 @@ class PdfplumberExtractor(TextExtractor):
                             char_x = char.get('x0', 0)
                             char_y = char.get('top', 0)
 
-                            if (word_x0 - 2 <= char_x <= word_x1 + 2 and
-                                word_y0 - 2 <= char_y <= word_y1 + 2):
+                            tolerance = CHAR_WORD_MATCH_TOLERANCE
+                            if (word_x0 - tolerance <= char_x <= word_x1 + tolerance and
+                                word_y0 - tolerance <= char_y <= word_y1 + tolerance):
                                 char_key = (char_x, char_y, char.get('text', ''))
                                 char_to_word_map[char_key] = word_idx
 
@@ -210,7 +222,7 @@ class PdfplumberExtractor(TextExtractor):
 
                                 if isinstance(main_color, (list, tuple)):
                                     if len(main_color) >= 3:
-                                        rgb = tuple(int(c * 255) if c <= 1.0 else int(c) for c in main_color[:3])
+                                        rgb = tuple(int(c * RGB_MAX_VALUE) if c <= 1.0 else int(c) for c in main_color[:3])
                                         colors.append(rgb)
                                     else:
                                         colors.append(None)
@@ -229,7 +241,7 @@ class PdfplumberExtractor(TextExtractor):
                         'color': colors
                     })
 
-                    if page_num % 10 == 0 or page_num == start:
+                    if page_num % PAGE_LOG_INTERVAL == 0 or page_num == start:
                         word_count = len(texts)
                         logger.debug(f"pdfplumber 추출: {page_num}/{end} 페이지 ({word_count}개 단어)")
 
@@ -251,7 +263,7 @@ class OCRExtractor(TextExtractor):
 
     def __init__(
         self,
-        dpi: int = 200,
+        dpi: int = DEFAULT_PROCESSING_DPI,
         lang: str = 'kor+eng',
         tesseract_cmd: Optional[str] = None,
         use_parallel: bool = True,
@@ -345,8 +357,9 @@ class OCRExtractor(TextExtractor):
                     ocr_data = future.result()
                     all_ocr_data[idx] = ocr_data
 
-                    # 10% 단위로 진행률 로그
-                    if completed % max(1, total_pages // 10) == 0 or completed == total_pages:
+                    # PROGRESS_LOG_INTERVAL_PERCENT 단위로 진행률 로그
+                    log_interval = max(1, total_pages // PROGRESS_LOG_INTERVAL_PERCENT)
+                    if completed % log_interval == 0 or completed == total_pages:
                         logger.info(f"[OCR] 진행: {completed}/{total_pages} ({progress_pct:.1f}%) - 완료: 페이지 {idx + 1}")
 
                     # 진행률 콜백 호출
@@ -387,9 +400,10 @@ class OCRExtractor(TextExtractor):
 
         for i, page_image in enumerate(page_images, 1):
             try:
-                # 10% 단위로 진행률 로그
+                # PROGRESS_LOG_INTERVAL_PERCENT 단위로 진행률 로그
                 progress_pct = (i / total_pages) * 100
-                if i % max(1, total_pages // 10) == 0 or i == total_pages:
+                log_interval = max(1, total_pages // PROGRESS_LOG_INTERVAL_PERCENT)
+                if i % log_interval == 0 or i == total_pages:
                     logger.info(f"[OCR] 진행: {i}/{total_pages} ({progress_pct:.1f}%)")
 
                 ocr_data = self._ocr_page(page_image, i)
@@ -471,10 +485,10 @@ class PyMuPDFExtractor(TextExtractor):
 
     pdfplumber의 CID 문제를 해결하기 위한 대안
     - 한글 폰트를 더 잘 처리
-    - 좌표계: PDF 포인트 (72 DPI) → 이미지 픽셀 (DPI) 변환
+    - 좌표계: PDF 포인트 (PDF_STANDARD_DPI) → 이미지 픽셀 (DPI) 변환
     """
 
-    def __init__(self, dpi: int = 200, max_pages: Optional[int] = None):
+    def __init__(self, dpi: int = DEFAULT_PROCESSING_DPI, max_pages: Optional[int] = None):
         """
         Args:
             dpi: 이미지 DPI (좌표 변환용)
@@ -527,9 +541,9 @@ class PyMuPDFExtractor(TextExtractor):
             pages_to_process = end - start + 1
             logger.info(f"   PyMuPDF: {pages_to_process}개 페이지 처리 중... (페이지 {start}-{end})")
 
-            # PDF 포인트 (72 DPI) → 이미지 픽셀 (DPI) 변환
-            scale_x = self.dpi / 72.0
-            scale_y = self.dpi / 72.0
+            # PDF 포인트 (PDF_STANDARD_DPI) → 이미지 픽셀 (DPI) 변환
+            scale_x = self.dpi / PDF_STANDARD_DPI
+            scale_y = self.dpi / PDF_STANDARD_DPI
 
             for page_num in range(start, end + 1):
                 page = pdf[page_num - 1]
@@ -588,7 +602,7 @@ class PyMuPDFExtractor(TextExtractor):
                     'color': colors
                 })
 
-                if page_num % 10 == 0 or page_num == start:
+                if page_num % PAGE_LOG_INTERVAL == 0 or page_num == start:
                     word_count = len(texts)
                     logger.debug(f"PyMuPDF 추출: {page_num}/{end} 페이지 ({word_count}개 단어)")
 
