@@ -3,13 +3,20 @@ AI 기반 파서
 LLM을 사용하여 PDF 구조를 자동 분석하고 파싱
 """
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from pathlib import Path
 
 from .base import BaseParser
 from app.infrastructure.ai.genai.structure_analyzer import StructureAnalyzer
 from .rule_generator import RuleGenerator
 from .unified_parser import UnifiedTemplateParser
+from app.infrastructure.pdf.types import (
+    OCRPageData,
+    ParsingResult,
+    SectionData,
+    ParagraphData,
+    JSONDict,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +33,7 @@ class AIParser(BaseParser):
     def __init__(
         self,
         subject: str,
-        ocr_data: List[Dict[str, Any]],
+        ocr_data: List[OCRPageData],
         config_path: Optional[Path] = None,
         api_key: Optional[str] = None,
         model_name: str = "gpt-4o-mini"
@@ -42,7 +49,7 @@ class AIParser(BaseParser):
         self.subject = subject
         self.ocr_data = ocr_data
         self.config_path = config_path
-        
+
         # LLM 구조 분석기
         try:
             self.structure_analyzer = StructureAnalyzer(
@@ -53,12 +60,12 @@ class AIParser(BaseParser):
         except Exception as e:
             logger.error(f"StructureAnalyzer 초기화 실패: {e}")
             raise
-        
+
         # 규칙 생성기
         self.rule_generator = RuleGenerator()
-        
+
         # 파싱 규칙 (구조 분석 후 생성됨)
-        self.config: Optional[Dict[str, Any]] = None
+        self.config: Optional[JSONDict] = None
         self.parser: Optional[BaseParser] = None
         
         # 구조 분석 및 파서 초기화
@@ -133,12 +140,12 @@ class AIParser(BaseParser):
             )
             logger.warning(f"[AIParser] 폴백 통합 파서 사용")
     
-    def parse(self, ocr_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def parse(self, ocr_data: List[OCRPageData]) -> ParsingResult:
         """OCR 데이터 파싱
-        
+
         Args:
             ocr_data: 페이지별 OCR 결과 리스트
-            
+
         Returns:
             파싱 결과 딕셔너리
         """
@@ -164,18 +171,18 @@ class AIParser(BaseParser):
     
     def extract_sections(
         self,
-        lecture_ocr_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData]
+    ) -> List[SectionData]:
         """섹션 추출 (BaseParser 구현)"""
         if not self.parser:
             raise RuntimeError("파서가 초기화되지 않았습니다")
         return self.parser.extract_sections(lecture_ocr_data)
-    
+
     def extract_content_paragraphs(
         self,
-        lecture_ocr_data: List[Dict[str, Any]],
-        sections: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData],
+        sections: List[SectionData]
+    ) -> List[ParagraphData]:
         """문단 추출 (BaseParser 구현)"""
         if not self.parser:
             raise RuntimeError("파서가 초기화되지 않았습니다")
