@@ -62,7 +62,8 @@ class HybridRouter:
         subject: str,
         ocr_data: List[OCRPageData],
         config_path: Optional[Path] = None,
-        book_id: Optional[str] = None
+        book_id: Optional[str] = None,
+        pdf_path: Optional[Path] = None
     ) -> Tuple[BaseParser, str, JSONDict]:
         """적합한 파서 선택 및 반환
 
@@ -70,6 +71,8 @@ class HybridRouter:
             subject: 과목명 ('literature', 'math1', 'english')
             ocr_data: 페이지별 OCR 결과 리스트
             config_path: config.json 경로 (폴백용)
+            book_id: 책 ID (섹션 이미지 크롭용)
+            pdf_path: PDF 파일 경로 (섹션 이미지 크롭용)
 
         Returns:
             (파서 인스턴스, 사용된 전략, 메타데이터) 튜플
@@ -100,7 +103,7 @@ class HybridRouter:
             
             if template_match:
                 template, confidence = template_match
-                parser = self._create_parser_with_template(subject, template, config_path)
+                parser = self._create_parser_with_template(subject, template, config_path, pdf_path, book_id)
                 elapsed = time.time() - start_time
                 
                 self.metrics['template_matches'] += 1
@@ -140,7 +143,7 @@ class HybridRouter:
                         f"[HybridRouter] 과목별 템플릿 {len(subject_templates)}개 발견 - "
                         f"최신 템플릿 강제 사용: {template.name} (영역 정보 활용)"
                     )
-                    parser = self._create_parser_with_template(subject, template, config_path)
+                    parser = self._create_parser_with_template(subject, template, config_path, pdf_path, book_id)
                     elapsed = time.time() - start_time
                     
                     self.metrics['template_matches'] += 1
@@ -176,7 +179,7 @@ class HybridRouter:
                             logger.info(f"[HybridRouter] AI 파서 캐시 히트: {book_id}")
                     
                     if not ai_parser:
-                        ai_parser = self._try_ai_parsing(subject, ocr_data, config_path, book_id)
+                        ai_parser = self._try_ai_parsing(subject, ocr_data, config_path, book_id, pdf_path)
                         # 캐시 저장
                         if ai_parser and self.enable_cache and book_id:
                             if cache_key is None:
@@ -206,7 +209,7 @@ class HybridRouter:
                     logger.warning(f"[HybridRouter] AI 파싱 실패, 폴백으로 전환: {e}")
             
             # 3단계: 폴백 - 기존 config.json 기반 파서
-            parser = self._create_fallback_parser(subject, config_path)
+            parser = self._create_fallback_parser(subject, config_path, pdf_path, book_id)
             elapsed = time.time() - start_time
             
             self.metrics['fallback_used'] += 1
@@ -227,7 +230,7 @@ class HybridRouter:
         except Exception as e:
             logger.error(f"[HybridRouter] 파서 선택 중 오류: {e}", exc_info=True)
             # 최종 폴백
-            parser = self._create_fallback_parser(subject, config_path)
+            parser = self._create_fallback_parser(subject, config_path, pdf_path, book_id)
             return parser, 'fallback', {'error': str(e), 'strategy': 'fallback'}
     
     def _try_template_matching(
@@ -273,7 +276,9 @@ class HybridRouter:
         self,
         subject: str,
         template: ParsingTemplate,
-        config_path: Optional[Path] = None
+        config_path: Optional[Path] = None,
+        pdf_path: Optional[Path] = None,
+        book_id: Optional[str] = None
     ) -> BaseParser:
         """템플릿을 사용하는 통합 파서 생성 (모든 과목 공통)"""
         # 통합 파서 사용 (모든 과목에서 동일한 프로세스)
@@ -281,7 +286,9 @@ class HybridRouter:
             subject=subject,
             config_path=config_path,
             template=template,
-            enable_ai_parsing=self.enable_ai_parsing
+            enable_ai_parsing=self.enable_ai_parsing,
+            pdf_path=pdf_path,
+            book_id=book_id
         )
     
     def _try_ai_parsing(
@@ -289,7 +296,8 @@ class HybridRouter:
         subject: str,
         ocr_data: List[OCRPageData],
         config_path: Optional[Path] = None,
-        book_id: Optional[str] = None
+        book_id: Optional[str] = None,
+        pdf_path: Optional[Path] = None
     ) -> Optional[BaseParser]:
         """AI 파싱 시도 (통합 파서 사용)
 
@@ -297,6 +305,8 @@ class HybridRouter:
             subject: 과목명
             ocr_data: OCR 데이터
             config_path: config.json 경로 (폴백용)
+            book_id: 책 ID (섹션 이미지 크롭용)
+            pdf_path: PDF 파일 경로 (섹션 이미지 크롭용)
 
         Returns:
             UnifiedTemplateParser 인스턴스 (AI 파싱 활성화) 또는 None
@@ -307,14 +317,16 @@ class HybridRouter:
             if not api_key:
                 logger.warning("[HybridRouter] OpenAI API 키가 설정되지 않아 AI 파싱을 건너뜁니다")
                 return None
-            
+
             logger.info(f"[HybridRouter] AI 파싱 시도 (과목: {subject}, 통합 파서 사용)")
             # 통합 파서 사용 (AI 파싱 활성화)
             return UnifiedTemplateParser(
                 subject=subject,
                 config_path=config_path,
                 template=None,  # AI 파싱은 템플릿 없이도 가능
-                enable_ai_parsing=True
+                enable_ai_parsing=True,
+                pdf_path=pdf_path,
+                book_id=book_id
             )
             
         except Exception as e:
@@ -324,7 +336,9 @@ class HybridRouter:
     def _create_fallback_parser(
         self,
         subject: str,
-        config_path: Optional[Path] = None
+        config_path: Optional[Path] = None,
+        pdf_path: Optional[Path] = None,
+        book_id: Optional[str] = None
     ) -> BaseParser:
         """폴백 파서 생성 (config.json 기반, 통합 파서 사용)
 
@@ -360,7 +374,9 @@ class HybridRouter:
             subject=subject,
             config_path=config_path,
             template=template_to_use,  # 템플릿이 있으면 사용
-            enable_ai_parsing=False
+            enable_ai_parsing=False,
+            pdf_path=pdf_path,
+            book_id=book_id
         )
     
     def _update_avg_time(self, metric_key: str, elapsed_time: float):

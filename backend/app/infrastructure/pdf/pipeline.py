@@ -314,7 +314,8 @@ class UnifiedPipeline:
                     subject=self.subject,
                     ocr_data=ocr_data,
                     config_path=self.config_path,
-                    book_id=self.book_id
+                    book_id=self.book_id,
+                    pdf_path=pdf_path
                 )
                 self.parser = parser
                 logger.info(f"   선택된 전략: {strategy}")

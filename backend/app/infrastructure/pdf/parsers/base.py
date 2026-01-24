@@ -4,7 +4,8 @@
 """
 import re
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional, Dict
+from pathlib import Path
 import logging
 
 from app.infrastructure.pdf.types import OCRPageData, ParsingResult, SectionData, ParagraphData, JSONDict
@@ -153,6 +154,128 @@ class BaseParser(ABC):
                 continue
 
         return False
+
+    @staticmethod
+    def crop_section_images(
+        pdf_path: Path,
+        sections: List[SectionData],
+        output_dir: Optional[Path] = None,
+        book_id: Optional[str] = None
+    ) -> List[SectionData]:
+        """
+        섹션별 이미지 크롭 및 저장
+
+        Args:
+            pdf_path: PDF 파일 경로
+            sections: 섹션 리스트 (bbox 포함)
+            output_dir: 이미지 저장 디렉토리 (None이면 자동 생성)
+            book_id: 책 ID (저장 디렉토리 이름에 사용)
+
+        Returns:
+            이미지 경로가 추가된 섹션 리스트
+        """
+        if not pdf_path or not pdf_path.exists():
+            logger.warning(f"[이미지 크롭] PDF 파일 없음: {pdf_path}")
+            return sections
+
+        if not sections:
+            return sections
+
+        try:
+            from pdf2image import convert_from_path
+            from PIL import Image
+            from app.core.config import settings
+
+            # 출력 디렉토리 설정
+            if not output_dir:
+                base_dir = Path("backend/data/parsing_results/images")
+                if book_id:
+                    output_dir = base_dir / book_id
+                else:
+                    output_dir = base_dir / "default"
+
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            # 페이지별로 섹션 그룹화
+            sections_by_page: Dict[int, List[SectionData]] = {}
+            for section in sections:
+                page_num = section.get('page')
+                if not page_num or not section.get('bbox'):
+                    continue
+
+                if page_num not in sections_by_page:
+                    sections_by_page[page_num] = []
+                sections_by_page[page_num].append(section)
+
+            # 각 페이지 처리
+            for page_num, page_sections in sections_by_page.items():
+                try:
+                    # PDF 페이지를 이미지로 변환
+                    convert_kwargs = {
+                        "dpi": 300,
+                        "first_page": page_num,
+                        "last_page": page_num,
+                    }
+                    if hasattr(settings, 'POPPLER_PATH') and settings.POPPLER_PATH:
+                        convert_kwargs["poppler_path"] = settings.POPPLER_PATH
+
+                    page_images = convert_from_path(str(pdf_path), **convert_kwargs)
+                    if not page_images:
+                        logger.warning(f"[이미지 크롭] 페이지 {page_num} 이미지 변환 실패")
+                        continue
+
+                    page_image = page_images[0]
+                    img_width, img_height = page_image.size
+
+                    # 해당 페이지의 모든 섹션 처리
+                    for idx, section in enumerate(page_sections):
+                        bbox = section.get('bbox')
+                        if not bbox or len(bbox) != 4:
+                            continue
+
+                        section_type = section.get('type', 'unknown')
+
+                        # bbox 좌표 검증 및 제한
+                        x_min, y_min, x_max, y_max = bbox
+                        left = max(0, min(int(x_min), img_width - 1))
+                        top = max(0, min(int(y_min), img_height - 1))
+                        right = max(left + 1, min(int(x_max), img_width))
+                        bottom = max(top + 1, min(int(y_max), img_height))
+
+                        # 영역 이미지 크롭
+                        try:
+                            region_image = page_image.crop((left, top, right, bottom))
+
+                            # 파일명 생성: {type}_p{page}_{index}.png
+                            filename = f"{section_type}_p{page_num:03d}_{idx:02d}.png"
+                            image_path = output_dir / filename
+                            region_image.save(image_path, 'PNG')
+
+                            # 섹션에 이미지 경로 추가
+                            section['image_path'] = str(image_path)
+
+                            logger.info(
+                                f"[이미지 크롭] {filename} 저장 "
+                                f"({section_type}, 페이지 {page_num})"
+                            )
+
+                        except Exception as e:
+                            logger.error(
+                                f"[이미지 크롭] 영역 크롭 실패 "
+                                f"(페이지 {page_num}, {section_type}): {e}"
+                            )
+
+                except Exception as e:
+                    logger.error(f"[이미지 크롭] 페이지 {page_num} 처리 실패: {e}")
+
+            return sections
+
+        except ImportError as e:
+            logger.warning(f"[이미지 크롭] 필수 라이브러리 없음: {e}")
+            return sections
+        except Exception as e:
+            logger.error(f"[이미지 크롭] 실패: {e}", exc_info=True)
+            return sections
 
     @abstractmethod
     def parse(self, ocr_data: List[OCRPageData]) -> ParsingResult:

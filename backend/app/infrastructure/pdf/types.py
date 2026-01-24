@@ -48,6 +48,7 @@ class SectionData(TypedDict, total=False):
     bbox: Optional[BoundingBox]      # 바운딩 박스
     text: Optional[str]              # 섹션 본문 (있는 경우)
     paragraphs: Optional[List['ParagraphData']]  # 문단 리스트
+    image_path: Optional[str]        # 섹션 이미지 경로 (크롭된 이미지)
 
 
 class ParagraphData(TypedDict, total=False):

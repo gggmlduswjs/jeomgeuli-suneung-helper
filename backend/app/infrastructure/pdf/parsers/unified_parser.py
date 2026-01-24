@@ -41,7 +41,9 @@ class UnifiedTemplateParser(BaseParser):
         subject: str,
         config_path: Optional[Path] = None,
         template: Optional[ParsingTemplate] = None,
-        enable_ai_parsing: bool = False
+        enable_ai_parsing: bool = False,
+        pdf_path: Optional[Path] = None,
+        book_id: Optional[str] = None
     ):
         """
         Args:
@@ -49,6 +51,8 @@ class UnifiedTemplateParser(BaseParser):
             config_path: config.json 경로 (템플릿이 없을 때만 사용)
             template: 사용할 템플릿 (None이면 자동 매칭 시도)
             enable_ai_parsing: AI 파싱 활성화 여부
+            pdf_path: PDF 파일 경로 (섹션 이미지 크롭용)
+            book_id: 책 ID (이미지 저장 디렉토리 이름용)
         """
         # 기본 region_hints (최후의 폴백)
         self._default_region_hints = {
@@ -73,6 +77,8 @@ class UnifiedTemplateParser(BaseParser):
         self.template = template
         self.template_manager = TemplateManager()
         self.enable_ai_parsing = enable_ai_parsing
+        self.pdf_path = pdf_path  # 섹션 이미지 크롭용
+        self.book_id = book_id  # 이미지 저장 디렉토리 이름용
         self._template_warning_logged = False  # 템플릿 없음 경고를 한 번만 로깅하기 위한 플래그
         
         # 템플릿이 제공되면 템플릿의 패턴 사용, 아니면 config.json 사용
@@ -595,7 +601,27 @@ class UnifiedTemplateParser(BaseParser):
                     f"템플릿 사용 여부: {self.template is not None}, "
                     f"region_text_examples: {bool(self.config.get('region_text_examples'))}"
                 )
-            
+
+            # 섹션 이미지 크롭 (PDF 경로가 제공된 경우)
+            if self.pdf_path and self.pdf_path.exists() and result.sections:
+                logger.info(f"[UnifiedParser] 섹션 이미지 크롭 시작: {len(result.sections)}개 섹션")
+                try:
+                    sections_with_images = self.crop_section_images(
+                        pdf_path=self.pdf_path,
+                        sections=result.sections,
+                        output_dir=None,  # 자동 생성
+                        book_id=self.book_id
+                    )
+                    logger.info(
+                        f"[UnifiedParser] 섹션 이미지 크롭 완료: "
+                        f"{sum(1 for s in sections_with_images if s.get('image_path'))}개 이미지 저장"
+                    )
+                    return sections_with_images
+                except Exception as e:
+                    logger.error(f"[UnifiedParser] 섹션 이미지 크롭 실패: {e}")
+                    # 이미지 크롭 실패해도 섹션은 반환
+                    return result.sections
+
             return result.sections
             
         except Exception as e:
