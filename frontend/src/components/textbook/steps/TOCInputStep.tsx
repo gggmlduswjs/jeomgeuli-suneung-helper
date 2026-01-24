@@ -52,7 +52,10 @@ export default function TOCInputStep({
         </p>
       </div>
 
-      <div className="space-y-4">
+      {/* 5-1. 목차 텍스트 추출 및 정제 */}
+      <div className="border border-border rounded-lg p-4 bg-card/50">
+        <h4 className="text-sm font-semibold mb-4 text-primary">목차 텍스트 추출 및 정제</h4>
+        <div className="space-y-4">
         {/* 목차 페이지 번호 입력 */}
         <div>
           <label className="block text-sm font-medium mb-2">
@@ -114,7 +117,15 @@ export default function TOCInputStep({
             </button>
           )}
         </div>
+        </div>
+      </div>
 
+      {/* 5-2. 템플릿 생성을 위한 추가 정보 (선택) */}
+      <details className="border border-border rounded-lg p-4 bg-card/50">
+        <summary className="text-sm font-semibold cursor-pointer hover:text-primary transition-colors">
+          추가 정보 (선택, 템플릿 생성 시 활용)
+        </summary>
+        <div className="mt-4 space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -159,14 +170,19 @@ export default function TOCInputStep({
         </div>
 
         {/* 텍스트 예시 추출 버튼 */}
-        <button
-          onClick={onExtractTextExamples}
-          disabled={extractingText}
-          className="w-full px-4 py-3 bg-secondary hover:bg-secondary/80 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-        >
-          <FileText className="w-4 h-4" />
-          {extractingText ? '추출 중...' : 'PDF에서 텍스트 예시 자동 추출'}
-        </button>
+        <div>
+          <button
+            onClick={onExtractTextExamples}
+            disabled={extractingText}
+            className="w-full px-4 py-3 bg-secondary hover:bg-secondary/80 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <FileText className="w-4 h-4" />
+            {extractingText ? '추출 중...' : '본문 페이지에서 영역별 텍스트 예시 추출'}
+          </button>
+          <p className="text-xs text-muted-foreground mt-2">
+            💡 개념/본문/문제 영역에서 텍스트 샘플을 추출하여 템플릿 생성에 활용합니다.
+          </p>
+        </div>
 
         {/* 추출된 텍스트 예시 표시 */}
         {extractedTextExamples && Object.keys(extractedTextExamples).length > 0 && (
@@ -193,7 +209,8 @@ export default function TOCInputStep({
             </p>
           </div>
         )}
-      </div>
+        </div>
+      </details>
     </div>
   );
 }

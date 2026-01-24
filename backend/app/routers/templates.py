@@ -1468,9 +1468,12 @@ async def test_template(
         raise HTTPException(status_code=400, detail=f"템플릿 테스트 실패: {str(e)}")
 
 
+class CleanTocTextRequest(BaseModel):
+    toc_text: str = Field(description="정제할 목차 텍스트")
+
 @router.post("/templates/clean-toc-text")
 async def clean_toc_text(
-    toc_text: str = Body(..., description="정제할 목차 텍스트"),
+    req: CleanTocTextRequest,
 ) -> Dict[str, Any]:
     """AI를 사용하여 목차 텍스트 정제
 
@@ -1491,6 +1494,8 @@ async def clean_toc_text(
         }
     """
     try:
+        toc_text = req.toc_text
+
         if not toc_text or len(toc_text.strip()) < 10:
             raise HTTPException(status_code=400, detail="목차 텍스트가 너무 짧습니다.")
 
