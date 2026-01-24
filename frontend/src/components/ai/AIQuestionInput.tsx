@@ -4,7 +4,6 @@
  */
 import { useState } from 'react';
 import { useAILearningAssistant } from '../../hooks/useAILearningAssistant';
-import useSTT from '../../hooks/useSTT';
 import MicButton from '../input/MicButton';
 
 interface AIQuestionInputProps {
@@ -13,14 +12,13 @@ interface AIQuestionInputProps {
   onAnswer?: (answer: string) => void;
 }
 
-export default function AIQuestionInput({ 
-  unitId, 
+export default function AIQuestionInput({
+  unitId,
   lessonId,
-  onAnswer 
+  onAnswer
 }: AIQuestionInputProps) {
   const [question, setQuestion] = useState('');
   const { askQuestion, isAnswering } = useAILearningAssistant(unitId, lessonId);
-  const { start: startSTT, stop: stopSTT, isListening, transcript } = useSTT();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,19 +30,6 @@ export default function AIQuestionInput({
     }
     setQuestion('');
   };
-
-  const handleVoiceInput = () => {
-    if (isListening) {
-      stopSTT();
-    } else {
-      startSTT();
-    }
-  };
-
-  // 음성 인식 결과가 있으면 질문에 자동 입력
-  if (transcript && !isListening && transcript !== question) {
-    setQuestion(transcript);
-  }
 
   return (
     <div className="bg-card border border-border rounded-lg p-4">
@@ -61,9 +46,7 @@ export default function AIQuestionInput({
             disabled={isAnswering}
           />
           <MicButton
-            onClick={handleVoiceInput}
-            isListening={isListening}
-            disabled={isAnswering}
+            onResult={(text) => setQuestion(text)}
           />
         </div>
         
@@ -75,12 +58,6 @@ export default function AIQuestionInput({
           {isAnswering ? '답변 생성 중...' : '질문하기'}
         </button>
       </form>
-      
-      {transcript && (
-        <div className="mt-2 text-sm text-muted">
-          인식된 음성: {transcript}
-        </div>
-      )}
     </div>
   );
 }
