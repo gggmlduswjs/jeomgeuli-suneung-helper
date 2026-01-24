@@ -283,7 +283,6 @@ export default function UnitPage() {
                   loadAIExplanation(unitId);
                 }
               }}
-              hasContent={true} // 항상 표시
             />
             
             {/* AI 질문 입력 (개념/작품인 경우) */}
@@ -302,7 +301,7 @@ export default function UnitPage() {
             {/* 문제인 경우 답안 입력 */}
             {unit.type === 'QUESTION' && unit.question && !answerResult && (
               <AnswerInput
-                choices={unit.question.choices}
+                maxChoice={unit.question.choices?.length || 5}
                 onAnswer={handleAnswer}
                 onSpeak={speak}
               />
