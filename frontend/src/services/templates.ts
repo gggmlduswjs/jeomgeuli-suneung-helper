@@ -165,6 +165,12 @@ export interface GenerateTemplateFromTOCRequest {
   toc_lecture_line_examples: string[];
   toc_nonlecture_line_examples?: string[];
   expected_lecture_count?: number;
+  toc_lecture_list?: Array<{
+    lecture_id: number;
+    title: string;
+    start_page: number | null;
+    end_page: number | null;
+  }>;
   save?: boolean;
   model_name?: string;
   confidence?: number;
@@ -291,5 +297,32 @@ export const templatesAPI = {
       pages_processed: number;
       total_examples: number;
     }>('/templates/extract-text-examples', formData);
+  },
+
+  /**
+   * 목차 텍스트에서 강의 목록 및 페이지 범위 추출
+   */
+  async parseTocLectures(tocText: string): Promise<{
+    ok: boolean;
+    lectures: Array<{
+      lecture_id: number;
+      title: string;
+      start_page: number | null;
+      end_page: number | null;
+    }>;
+    total_lectures: number;
+    lectures_with_pages: number;
+  }> {
+    return api.post<{
+      ok: boolean;
+      lectures: Array<{
+        lecture_id: number;
+        title: string;
+        start_page: number | null;
+        end_page: number | null;
+      }>;
+      total_lectures: number;
+      lectures_with_pages: number;
+    }>('/templates/parse-toc-lectures', { toc_text: tocText });
   },
 };

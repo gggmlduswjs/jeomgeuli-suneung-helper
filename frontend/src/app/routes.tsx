@@ -15,6 +15,7 @@ const Main = lazy(() => import('../pages/Main'));
 const Book = lazy(() => import('../pages/Book'));
 const Lesson = lazy(() => import('../pages/Lesson'));
 const Unit = lazy(() => import('../pages/Unit'));
+const UnitSwipe = lazy(() => import('../pages/UnitSwipe')); // NEW: 카드 스와이프 학습 페이지
 const LiteratureLectures = lazy(() => import('../pages/LiteratureLectures'));
 const LiteratureLectureDetail = lazy(() => import('../pages/LiteratureLectureDetail'));
 
@@ -59,7 +60,7 @@ export const routes = [
   { path: '/book', element: Book },
   { path: '/book/:bookId', element: Book },
   { path: '/lesson/:lessonId', element: Lesson },
-  { path: '/unit/:unitId', element: Unit },
+  { path: '/unit/:unitId', element: UnitSwipe }, // NEW: 스와이프 기반 학습 페이지
 
   // Literature routes
   { path: '/literature/lectures', element: LiteratureLectures },

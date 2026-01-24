@@ -82,7 +82,11 @@ class GenerateTemplateFromTOCRequest(BaseModel):
         ge=1,
         description="목차 기준 기대 강의 개수(선택). 제공되면 생성된 toc_lecture_patterns로 toc_text를 매칭했을 때 개수가 맞는지 검증합니다."
     )
-    
+    toc_lecture_list: Optional[List[Dict[str, Any]]] = Field(
+        default=None,
+        description="사용자가 편집한 강의 목록 (선택). 제공되면 TOC 텍스트 파싱을 건너뛰고 이 목록을 사용합니다."
+    )
+
     class Config:
         # Pydantic v2 호환성
         from_attributes = True
@@ -577,6 +581,7 @@ def _generate_template_from_toc_via_openai(
     confidence: float,
     defaults: Dict[str, Any],
     book_id: Optional[str] = None,
+    toc_lecture_list_override: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """OpenAI로 TOC 기반 템플릿 초안을 생성하고 ParsingTemplate dict로 반환."""
     client = get_openai_client()
@@ -696,8 +701,12 @@ def _generate_template_from_toc_via_openai(
             return default
     
     # TOC 텍스트에서 직접 강의 목록 추출 (간단하고 명확하게)
-    toc_lecture_list = []
-    if toc_text:
+    # 단, 사용자가 편집한 강의 목록이 제공되면 그것을 우선 사용
+    if toc_lecture_list_override:
+        toc_lecture_list = toc_lecture_list_override
+        logger.info(f"[템플릿 생성] 사용자 제공 강의 목록 사용: {len(toc_lecture_list)}개")
+    elif toc_text:
+        toc_lecture_list = []
         import re
         lines = toc_text.splitlines()
         logger.info(f"[템플릿 생성] TOC 텍스트에서 강의 목록 직접 추출 시작 (전체 {len(lines)}줄)")
@@ -1173,6 +1182,7 @@ async def generate_template_from_toc(
             model_name=req.model_name,
             confidence=req.confidence,
             defaults=req.defaults or {},
+            toc_lecture_list_override=req.toc_lecture_list,
             book_id=req.book_id,
         )
 
@@ -1456,6 +1466,133 @@ async def test_template(
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"템플릿 테스트 실패: {str(e)}")
+
+
+@router.post("/templates/parse-toc-lectures")
+async def parse_toc_lectures(
+    toc_text: str = Body(..., description="목차 텍스트"),
+) -> Dict[str, Any]:
+    """목차 텍스트에서 강의 목록과 페이지 범위 추출
+
+    Args:
+        toc_text: 목차 텍스트 (예: "1강 | 시의 표현과 형식\n해 (박두진) 009\n2강 | ...")
+
+    Returns:
+        {
+            "lectures": [
+                {
+                    "lecture_id": 1,
+                    "title": "시의 표현과 형식",
+                    "start_page": 9,
+                    "end_page": 11
+                },
+                ...
+            ],
+            "total_lectures": 80,
+            "lectures_with_pages": 75
+        }
+    """
+    import re
+
+    try:
+        toc_lecture_list = []
+        lines = toc_text.splitlines()
+        logger.info(f"[목차 파싱] TOC 텍스트에서 강의 목록 추출 시작 (전체 {len(lines)}줄)")
+
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            if not line:
+                i += 1
+                continue
+
+            # 간단한 규칙: "N강"으로 시작하는 라인만 추출
+            num_match = re.match(r'^(\d+)강', line)
+            if not num_match:
+                i += 1
+                continue
+
+            lecture_num = int(num_match.group(1))
+
+            # 제목 추출 (강의 번호 이후 부분)
+            title = re.sub(r'^\d+강\s*', '', line).strip()
+            # "|" 제거 (앞뒤 공백 포함) - title에는 순수한 제목만 저장
+            title = re.sub(r'^\|\s*', '', title).strip()  # 앞의 "| " 제거
+            title = re.sub(r'\s*\|\s*', ' ', title).strip()  # 중간의 "|"도 공백으로 변환
+
+            # 현재 라인에서 페이지 번호 추출 시도
+            start_page = None
+            page_match = re.search(r'\s+(\d{3,4})\s*$', line)
+            if page_match:
+                try:
+                    start_page = int(page_match.group(1))
+                    # 페이지 번호 제거 (제목에서)
+                    title = re.sub(r'\s+\d{3,4}\s*$', '', title).strip()
+                except ValueError:
+                    pass
+
+            # 현재 라인에 페이지 번호가 없으면 다음 줄 확인
+            # (예: "1강 | 시의 표현과 형식\n해 (박두진) 009")
+            if not start_page and i + 1 < len(lines):
+                next_line = lines[i + 1].strip()
+                # 다음 줄이 "N강"으로 시작하지 않고, 끝에 3-4자리 숫자가 있으면 페이지 번호로 간주
+                if not re.match(r'^\d+강', next_line):
+                    next_page_match = re.search(r'\s+(\d{3,4})\s*$', next_line)
+                    if next_page_match:
+                        try:
+                            start_page = int(next_page_match.group(1))
+                        except ValueError:
+                            pass
+
+            # 제목이 비어있지 않으면 추가
+            if title:
+                # 중복 체크 (같은 lecture_id가 이미 있으면 스킵)
+                if not any(l['lecture_id'] == lecture_num for l in toc_lecture_list):
+                    toc_lecture_list.append({
+                        "lecture_id": lecture_num,
+                        "title": title,
+                        "start_page": start_page,
+                        "end_page": None  # 일단 None으로 설정
+                    })
+
+            i += 1
+
+        logger.info(f"[목차 파싱] TOC에서 {len(toc_lecture_list)}개 강의 추출 완료")
+
+        # 강의별 페이지 범위 계산 (다음 강의 시작 페이지 - 1)
+        # 페이지 번호가 있는 강의들만 정렬
+        lectures_with_pages = [l for l in toc_lecture_list if l.get("start_page") is not None]
+        lectures_with_pages.sort(key=lambda x: x["lecture_id"])
+
+        # 각 강의의 종료 페이지 계산 (다음 강의 시작 - 1)
+        for i, lecture in enumerate(lectures_with_pages):
+            if i + 1 < len(lectures_with_pages):
+                next_lecture = lectures_with_pages[i + 1]
+                lecture["end_page"] = next_lecture["start_page"] - 1
+            else:
+                # 마지막 강의는 종료 페이지를 None으로 (전체 끝까지)
+                lecture["end_page"] = None
+
+        # 페이지 범위 정보를 전체 리스트에 반영
+        page_range_map = {l["lecture_id"]: (l.get("start_page"), l.get("end_page")) for l in lectures_with_pages}
+        for lecture in toc_lecture_list:
+            if lecture["lecture_id"] in page_range_map:
+                start, end = page_range_map[lecture["lecture_id"]]
+                lecture["start_page"] = start
+                lecture["end_page"] = end
+
+        logger.info(f"[목차 파싱] 페이지 범위가 있는 강의: {len(lectures_with_pages)}개")
+
+        return {
+            "ok": True,
+            "lectures": toc_lecture_list,
+            "total_lectures": len(toc_lecture_list),
+            "lectures_with_pages": len(lectures_with_pages)
+        }
+
+    except Exception as e:
+        logger.error(f"[목차 파싱] 오류 발생: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"목차 파싱 중 오류: {str(e)}")
 
 
 @router.post("/templates/extract-toc-text")

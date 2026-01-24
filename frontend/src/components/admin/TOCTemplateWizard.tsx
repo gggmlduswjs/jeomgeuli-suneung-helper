@@ -41,6 +41,13 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
   const [extractingText, setExtractingText] = useState(false);
   const [extractedTextExamples, setExtractedTextExamples] = useState<{ [key: string]: string[] } | null>(null);
   const [samplePagesForExtraction, setSamplePagesForExtraction] = useState<string>('15,30,50');
+  const [parsedLectures, setParsedLectures] = useState<Array<{
+    lecture_id: number;
+    title: string;
+    start_page: number | null;
+    end_page: number | null;
+  }> | null>(null);
+  const [parsingLectures, setParsingLectures] = useState(false);
 
   const defaultName = useMemo(() => {
     const safeYear = year?.trim() || String(new Date().getFullYear());
@@ -74,6 +81,38 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
     },
     [tocLectureExamplesText, expectedLectureCount, tocNonLectureExamplesText]
   );
+
+  const handleParseTocLectures = async () => {
+    if (!tocText || tocText.trim().length < 20) {
+      onSpeak?.('목차 텍스트를 먼저 입력해주세요.');
+      return;
+    }
+
+    setParsingLectures(true);
+    try {
+      const result = await templatesAPI.parseTocLectures(tocText);
+      setParsedLectures(result.lectures);
+
+      const withPages = result.lectures_with_pages;
+      const total = result.total_lectures;
+
+      if (total === 0) {
+        onSpeak?.('강의 목록을 추출하지 못했습니다. 목차 형식을 확인해주세요.');
+      } else if (withPages === 0) {
+        onSpeak?.(`${total}개 강의를 추출했지만 페이지 번호가 없습니다. 목차에 페이지 번호를 포함해주세요.`);
+      } else if (withPages < total) {
+        onSpeak?.(`${total}개 강의 중 ${withPages}개의 페이지 범위를 추출했습니다. 나머지는 수동으로 입력해주세요.`);
+      } else {
+        onSpeak?.(`${total}개 강의의 페이지 범위를 추출했습니다. 검토 후 수정하세요.`);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '강의 목록 추출 중 오류가 발생했습니다.';
+      onSpeak?.(message);
+      console.error('강의 목록 추출 오류:', err);
+    } finally {
+      setParsingLectures(false);
+    }
+  };
 
   const handleExtractTextExamples = async () => {
     if (!pdfFile) {
@@ -235,6 +274,7 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
         toc_lecture_line_examples: lectureExamples,
         toc_nonlecture_line_examples: nonLectureExamples,
         expected_lecture_count: parseInt(finalExpectedCount, 10),
+        toc_lecture_list: parsedLectures || undefined, // 사용자가 편집한 강의 목록
         save: false,
         model_name: 'gpt-4o-mini',
         confidence: 0.85,
@@ -582,7 +622,96 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
           <p className="mt-1 text-xs text-muted-foreground">
             목차 텍스트를 붙여넣으면 자동으로 강의 개수와 예시를 추출합니다. 필요시 아래에서 수정할 수 있습니다.
           </p>
+
+          {/* 강의 목록 분석 버튼 */}
+          <button
+            onClick={handleParseTocLectures}
+            disabled={parsingLectures || !tocText.trim()}
+            className="w-full px-4 py-3 bg-secondary hover:bg-secondary/80 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50 mt-3"
+          >
+            <Sparkles className="w-4 h-4" />
+            {parsingLectures ? '분석 중...' : '목차에서 강의 목록 및 페이지 범위 추출'}
+          </button>
         </div>
+
+        {/* 추출된 강의 목록 (편집 가능) */}
+        {parsedLectures && parsedLectures.length > 0 && (
+          <div className="border border-border rounded-lg p-4 bg-card">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold">
+                추출된 강의 목록 ({parsedLectures.length}개) - 검토 및 수정
+              </h3>
+              <button
+                onClick={() => setParsedLectures(null)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                초기화
+              </button>
+            </div>
+
+            <div className="max-h-96 overflow-y-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead className="sticky top-0 bg-card border-b border-border">
+                  <tr>
+                    <th className="px-2 py-2 text-left w-16">강의</th>
+                    <th className="px-2 py-2 text-left">제목</th>
+                    <th className="px-2 py-2 text-left w-24">시작 페이지</th>
+                    <th className="px-2 py-2 text-left w-24">종료 페이지</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {parsedLectures.map((lecture, idx) => (
+                    <tr key={idx} className="border-b border-border hover:bg-secondary/30">
+                      <td className="px-2 py-2 font-medium">{lecture.lecture_id}강</td>
+                      <td className="px-2 py-2">
+                        <input
+                          type="text"
+                          value={lecture.title}
+                          onChange={(e) => {
+                            const updated = [...parsedLectures];
+                            updated[idx].title = e.target.value;
+                            setParsedLectures(updated);
+                          }}
+                          className="w-full px-2 py-1 border border-border rounded bg-background text-xs"
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <input
+                          type="number"
+                          value={lecture.start_page ?? ''}
+                          onChange={(e) => {
+                            const updated = [...parsedLectures];
+                            updated[idx].start_page = e.target.value ? parseInt(e.target.value) : null;
+                            setParsedLectures(updated);
+                          }}
+                          className="w-full px-2 py-1 border border-border rounded bg-background text-xs"
+                          placeholder="-"
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <input
+                          type="number"
+                          value={lecture.end_page ?? ''}
+                          onChange={(e) => {
+                            const updated = [...parsedLectures];
+                            updated[idx].end_page = e.target.value ? parseInt(e.target.value) : null;
+                            setParsedLectures(updated);
+                          }}
+                          className="w-full px-2 py-1 border border-border rounded bg-background text-xs"
+                          placeholder="끝까지"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="mt-3 text-xs text-muted-foreground">
+              💡 <strong>팁:</strong> 강의 제목과 페이지 범위를 수정할 수 있습니다. 종료 페이지가 비어있으면 다음 강의 시작 전까지입니다.
+            </p>
+          </div>
+        )}
 
         {/* 자동 추출된 정보 (접을 수 있게) */}
         <details className="border border-border rounded-lg p-3 bg-card">
