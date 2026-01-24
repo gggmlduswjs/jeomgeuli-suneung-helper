@@ -1879,22 +1879,6 @@ def _extract_text_by_region_hints(
         "debug": debug_info if debug_info else None
     }
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"[텍스트 추출] 오류 발생: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"텍스트 추출 중 오류: {str(e)}")
-    finally:
-        # 임시 파일 삭제
-        try:
-            temp_pdf_path.unlink()
-        except Exception:
-            pass
-        raise
-    except Exception as e:
-        logger.error(f"[텍스트 추출] 오류 발생: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"텍스트 추출 중 오류: {str(e)}")
-
 
 @router.post("/templates/detect-patterns")
 async def detect_patterns(
