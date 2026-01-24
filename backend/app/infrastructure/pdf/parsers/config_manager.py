@@ -5,7 +5,9 @@
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Optional
+
+from app.infrastructure.pdf.types import JSONDict
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +79,7 @@ class ParserConfigManager:
         cls,
         subject: str,
         config_path: Optional[Path] = None
-    ) -> Dict[str, Any]:
+    ) -> JSONDict:
         """
         설정 로드 (파일이 있으면 파일 우선, 없으면 기본값 사용)
         

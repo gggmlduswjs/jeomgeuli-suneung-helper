@@ -5,7 +5,7 @@
 import re
 import logging
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict, Tuple
 from collections import Counter
 
 from .template import ParsingTemplate
