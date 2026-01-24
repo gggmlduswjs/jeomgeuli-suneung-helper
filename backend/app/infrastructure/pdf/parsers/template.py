@@ -3,9 +3,11 @@
 EBS 교재 파싱 패턴을 재사용 가능한 템플릿으로 정의
 """
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
+from typing import List, Optional
 from pathlib import Path
 import json
+
+from app.infrastructure.pdf.types import JSONDict
 
 
 @dataclass
@@ -49,15 +51,15 @@ class ParsingTemplate:
     subject: str
     version: str = ""
     description: str = ""
-    patterns: Dict[str, Any] = field(default_factory=dict)
-    config: Dict[str, Any] = field(default_factory=dict)
+    patterns: JSONDict = field(default_factory=dict)
+    config: JSONDict = field(default_factory=dict)
     confidence: float = 0.0
     sample_texts: List[str] = field(default_factory=list)
-    stats: Optional[Dict[str, Any]] = None
+    stats: Optional[JSONDict] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> JSONDict:
         """딕셔너리로 변환 (JSON 저장용)"""
         result = {
             "name": self.name,
@@ -77,7 +79,7 @@ class ParsingTemplate:
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ParsingTemplate":
+    def from_dict(cls, data: JSONDict) -> "ParsingTemplate":
         """딕셔너리에서 생성"""
         return cls(
             name=data.get("name", ""),
