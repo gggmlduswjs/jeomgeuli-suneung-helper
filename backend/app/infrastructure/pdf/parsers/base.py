@@ -4,8 +4,10 @@
 """
 import re
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
+from typing import List
 import logging
+
+from app.infrastructure.pdf.types import OCRPageData, ParsingResult, SectionData, ParagraphData, JSONDict
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +17,9 @@ class BaseParser(ABC):
 
     @staticmethod
     def group_lines(
-        ocr_data: Dict[str, Any],
+        ocr_data: OCRPageData,
         y_threshold: int = 10
-    ) -> List[List[Dict[str, Any]]]:
+    ) -> List[List[JSONDict]]:
         """
         OCR 데이터를 줄 단위로 그룹화
 
@@ -85,7 +87,7 @@ class BaseParser(ABC):
         return lines
 
     @staticmethod
-    def join_line_text(line: List[Dict[str, Any]]) -> str:
+    def join_line_text(line: List[JSONDict]) -> str:
         """
         줄의 단어들을 하나의 문자열로 결합
 
@@ -98,7 +100,7 @@ class BaseParser(ABC):
         return ' '.join(word['text'] for word in line)
 
     @staticmethod
-    def get_line_bbox(line: List[Dict[str, Any]]) -> List[int]:
+    def get_line_bbox(line: List[JSONDict]) -> List[int]:
         """
         줄의 bounding box 계산
 
@@ -153,7 +155,7 @@ class BaseParser(ABC):
         return False
 
     @abstractmethod
-    def parse(self, ocr_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def parse(self, ocr_data: List[OCRPageData]) -> ParsingResult:
         """
         OCR 데이터를 파싱하여 구조화된 데이터 반환
 
@@ -172,8 +174,8 @@ class BaseParser(ABC):
     @abstractmethod
     def extract_sections(
         self,
-        lecture_ocr_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData]
+    ) -> List[SectionData]:
         """
         섹션 추출 (메인 개념 + 본문)
         
@@ -190,9 +192,9 @@ class BaseParser(ABC):
     @abstractmethod
     def extract_content_paragraphs(
         self,
-        lecture_ocr_data: List[Dict[str, Any]],
-        sections: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData],
+        sections: List[SectionData]
+    ) -> List[ParagraphData]:
         """
         섹션별 문단 추출
         
