@@ -137,7 +137,6 @@ export default function Main() {
                   speak('진행 중인 학습이 없습니다.');
                 }
               }}
-              onSpeak={speak}
             />
 
             {/* 과목 선택 카드 */}
@@ -151,7 +150,6 @@ export default function Main() {
             {/* 교재 관리 (PDF 업로드) */}
             <PDFManagementCard
               books={books}
-              onSpeak={speak}
             />
 
             {/* 점자 디바이스 연결 */}
