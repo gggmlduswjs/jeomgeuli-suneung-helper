@@ -4,8 +4,10 @@ LLM 분석 결과를 config.json 형식으로 변환하고 검증
 """
 import logging
 import json
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 from pathlib import Path
+
+from app.infrastructure.pdf.types import JSONDict
 
 try:
     from app.infrastructure.ai.genai.structure_analyzer import PDFStructure
@@ -33,13 +35,13 @@ class RuleGenerator:
         self,
         structure: Any,  # PDFStructure
         validate: bool = True
-    ) -> Dict[str, Any]:
+    ) -> JSONDict:
         """PDFStructure를 config.json 형식으로 변환
-        
+
         Args:
             structure: LLM 분석 결과
             validate: 규칙 검증 여부
-            
+
         Returns:
             config.json 형식의 딕셔너리
         """
@@ -61,12 +63,12 @@ class RuleGenerator:
         
         return config
     
-    def _validate_config(self, config: Dict[str, Any]):
+    def _validate_config(self, config: JSONDict):
         """생성된 config 검증
-        
+
         Args:
             config: 검증할 config 딕셔너리
-            
+
         Raises:
             ValueError: 검증 실패 시
         """
@@ -102,16 +104,16 @@ class RuleGenerator:
             except re.error as e:
                 logger.warning(f"잘못된 문제 번호 패턴: {config['problem_number_pattern']}, 오류: {e}")
     
-    def optimize_config(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    def optimize_config(self, config: JSONDict) -> JSONDict:
         """생성된 config 최적화
-        
+
         - 중복 패턴 제거
         - 유사 패턴 통합
         - 불필요한 패턴 제거
-        
+
         Args:
             config: 최적화할 config 딕셔너리
-            
+
         Returns:
             최적화된 config 딕셔너리
         """
@@ -139,15 +141,15 @@ class RuleGenerator:
     
     def save_config(
         self,
-        config: Dict[str, Any],
+        config: JSONDict,
         output_path: Path
     ) -> Path:
         """config를 JSON 파일로 저장
-        
+
         Args:
             config: 저장할 config 딕셔너리
             output_path: 저장 경로
-            
+
         Returns:
             저장된 파일 경로
         """
@@ -165,15 +167,15 @@ class RuleGenerator:
         template_name: str,
         version: str = "",
         description: str = ""
-    ) -> Dict[str, Any]:
+    ) -> JSONDict:
         """PDFStructure를 템플릿 형식으로 변환
-        
+
         Args:
             structure: LLM 분석 결과
             template_name: 템플릿 이름
             version: 버전
             description: 설명
-            
+
         Returns:
             템플릿 딕셔너리 (ParsingTemplate.to_dict() 형식)
         """
