@@ -51,7 +51,7 @@ class CommandServiceClass {
   /**
    * 명령 캐싱
    */
-  private cacheCommand(text: string, _handlers: CommandHandlers): void {
+  private cacheCommand(_text: string, _handlers: CommandHandlers): void {
     // 캐시 크기 제한
     if (this.commandCache.size >= this.CACHE_SIZE_LIMIT) {
       // 가장 오래된 항목 제거 (FIFO)

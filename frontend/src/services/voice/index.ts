@@ -3,7 +3,6 @@ import VoiceEventBus, { VoiceEventType } from '../../lib/voice/VoiceEventBus';
 import micMode from '../../lib/voice/MicMode';
 import GoogleStreamingProvider from '../../stt/GoogleStreamingProvider';
 import { CircuitBreaker } from '../../lib/voice/CircuitBreaker';
-import { TranscriptProcessor } from '../../lib/voice/TranscriptProcessor';
 import { createWebSpeechSTTProvider } from './providers/WebSpeechSTTProvider';
 import { createWebSpeechTTSProvider } from './providers/WebSpeechTTSProvider';
 import type { STTProvider, TTSProvider, StartSTTOptions } from './types';
@@ -19,7 +18,6 @@ class VoiceServiceClass {
   private sttProvider: STTProvider | null = null;
   private ttsProvider: TTSProvider | null = null;
   private isInitialized = false;
-  private _transcriptProcessor: TranscriptProcessor | null = null;
   private circuitBreaker: CircuitBreaker | null = null;
   private currentAnswerList: string[] = [];
 
@@ -32,8 +30,7 @@ class VoiceServiceClass {
       return;
     }
 
-    // TranscriptProcessor 및 CircuitBreaker 초기화
-    this._transcriptProcessor = new TranscriptProcessor();
+    // CircuitBreaker 초기화
     this.circuitBreaker = new CircuitBreaker(3, 5000); // 최대 3회 실패, 5초 후 재시도
 
     this.sttProvider = sttProvider || this.createDefaultSTTProvider();
