@@ -130,6 +130,10 @@ class ExtractionStrategies:
             # Apply validators
             sections = self._apply_validators(sections)
 
+            # Reclassify uncertain sections using text similarity (NEW!)
+            if self.text_block_classifier.region_text_examples:
+                sections = self._reclassify_uncertain_sections(sections)
+
             # Calculate confidence
             confidence = self._calculate_confidence(
                 sections,
@@ -767,14 +771,49 @@ class ExtractionStrategies:
             if unit_type == 'content':
                 unit_type = 'passage'
 
+            # Verify classification with text similarity (NEW!)
+            final_type = unit_type
+            text_verified = False
+
+            # Collect all texts from this region for similarity check
+            region_full_text = ' '.join([item['text'] for item in text_items[:5]])  # Use top 5 texts
+
+            if self.text_block_classifier.region_text_examples:
+                text_result = self.text_block_classifier.classify_text(region_full_text)
+
+                if text_result.matched:
+                    text_verified = True
+
+                    # If text similarity strongly suggests different type, use it
+                    if text_result.match_type != unit_type:
+                        if text_result.score >= 0.7:  # High confidence threshold
+                            logger.info(
+                                f"[섹션 분류 보정] 페이지 {page_num}, Y좌표: {unit_type}, "
+                                f"텍스트 유사도: {text_result.match_type} (점수: {text_result.score:.2f}) "
+                                f"→ 텍스트 기반으로 보정"
+                            )
+                            final_type = text_result.match_type
+                        else:
+                            logger.debug(
+                                f"[섹션 분류 불일치] 페이지 {page_num}, Y좌표: {unit_type}, "
+                                f"텍스트: {text_result.match_type} (점수: {text_result.score:.2f}) "
+                                f"→ Y좌표 유지 (텍스트 점수 낮음)"
+                            )
+                    else:
+                        logger.debug(
+                            f"[섹션 분류 일치] 페이지 {page_num}, 타입: {unit_type}, "
+                            f"텍스트 점수: {text_result.score:.2f}"
+                        )
+
             section: SectionData = {
                 "title": candidate['text'][:self.config_obj.max_title_length],
-                "type": unit_type,
+                "type": final_type,
                 "page": page_num,
                 "bbox": candidate['bbox'],
                 "from_region_hint": True,
                 "region_confidence": candidate['confidence'],
-                "source": "region_hints_only"
+                "text_verified": text_verified,
+                "source": "region_hints_with_text_validation" if text_verified else "region_hints_only"
             }
 
             if lecture_info:
@@ -809,3 +848,138 @@ class ExtractionStrategies:
                 merged.append(section)
 
         return merged
+
+    def _reclassify_uncertain_sections(
+        self,
+        sections: List[SectionData]
+    ) -> List[SectionData]:
+        """Reclassify sections with low confidence using text similarity
+
+        This method uses region_text_examples to verify and potentially
+        correct section classifications when confidence is low.
+
+        Args:
+            sections: List of sections to reclassify
+
+        Returns:
+            List of sections with corrected classifications
+        """
+        if not sections or not self.text_block_classifier.region_text_examples:
+            return sections
+
+        reclassified_count = 0
+        verified_count = 0
+
+        for section in sections:
+            # Get section text
+            section_text = section.get('title', '')
+            if not section_text or len(section_text) < 3:
+                continue
+
+            # Check if section has low confidence or is from uncertain source
+            section_confidence = section.get('region_confidence', 1.0)
+            is_uncertain = (
+                section_confidence < 0.6 or
+                not section.get('from_region_hint', False)
+            )
+
+            if is_uncertain:
+                # Try text similarity classification
+                text_result = self.text_block_classifier.classify_text(section_text)
+
+                if text_result.matched:
+                    old_type = section.get('type')
+                    new_type = text_result.match_type
+
+                    if new_type != old_type and text_result.score >= 0.7:
+                        # Reclassify with high confidence
+                        logger.info(
+                            f"[섹션 재분류] 페이지 {section.get('page')}, "
+                            f"'{section_text[:30]}...' : {old_type} → {new_type} "
+                            f"(텍스트 유사도: {text_result.score:.2f})"
+                        )
+                        section['type'] = new_type
+                        section['text_reclassified'] = True
+                        section['text_similarity_score'] = text_result.score
+                        reclassified_count += 1
+                    elif new_type == old_type:
+                        # Verify existing classification
+                        section['text_verified'] = True
+                        section['text_similarity_score'] = text_result.score
+                        verified_count += 1
+                        logger.debug(
+                            f"[섹션 검증] 페이지 {section.get('page')}, "
+                            f"타입 {old_type} 확인 (점수: {text_result.score:.2f})"
+                        )
+                    else:
+                        # Low score, keep original
+                        logger.debug(
+                            f"[섹션 유지] 페이지 {section.get('page')}, "
+                            f"텍스트 제안: {new_type} (점수 낮음: {text_result.score:.2f})"
+                        )
+
+        if reclassified_count > 0 or verified_count > 0:
+            logger.info(
+                f"[텍스트 기반 재분류] 재분류: {reclassified_count}개, "
+                f"검증: {verified_count}개"
+            )
+
+        return sections
+
+    def _classify_section_with_boundary_check(
+        self,
+        section: SectionData,
+        y_ratio: float,
+        page_height: float
+    ) -> str:
+        """Classify section with special handling for boundary regions
+
+        If Y-coordinate is near region boundaries, use text similarity
+        to make final decision.
+
+        Args:
+            section: Section data
+            y_ratio: Y coordinate ratio (0.0-1.0)
+            page_height: Page height in pixels
+
+        Returns:
+            Final section type
+        """
+        # Define boundary zones (±5% around major boundaries)
+        boundaries = [
+            (0.25, 0.35),  # concept/passage boundary
+            (0.45, 0.55),  # passage/problem boundary
+            (0.65, 0.75),  # problem/concept boundary
+        ]
+
+        # Check if in boundary zone
+        is_boundary = any(
+            lower <= y_ratio <= upper
+            for lower, upper in boundaries
+        )
+
+        if is_boundary and self.text_block_classifier.region_text_examples:
+            # Use text similarity for boundary regions
+            section_text = section.get('title', '')
+            if section_text:
+                text_result = self.text_block_classifier.classify_text(section_text)
+
+                if text_result.matched and text_result.score >= 0.7:
+                    logger.info(
+                        f"[경계 영역] Y={y_ratio:.2f}, 텍스트 기반 분류: "
+                        f"{text_result.match_type} (점수: {text_result.score:.2f})"
+                    )
+                    return text_result.match_type
+
+        # Use Y-coordinate classification for non-boundary regions
+        hint_result = self.region_classifier.classify_by_region_hint(
+            y_ratio,
+            page_height,
+            None
+        )
+
+        if hint_result:
+            return hint_result[0]
+
+        # Fallback
+        return section.get('type', 'concept')
