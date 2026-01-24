@@ -3,7 +3,9 @@
 템플릿의 layout_info를 활용하여 섹션 경계 판별 및 필터링
 """
 import logging
-from typing import Dict, Any, List, Optional
+from typing import List, Optional
+
+from app.infrastructure.pdf.types import SectionData, JSONDict
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +13,7 @@ logger = logging.getLogger(__name__)
 class LayoutBasedValidator:
     """레이아웃 정보 기반 검증"""
     
-    def __init__(self, layout_info: Optional[Dict[str, Any]] = None, page_height: float = 1000.0):
+    def __init__(self, layout_info: Optional[JSONDict] = None, page_height: float = 1000.0):
         """
         Args:
             layout_info: 레이아웃 정보 딕셔너리
@@ -99,13 +101,13 @@ class LayoutBasedValidator:
     
     def filter_header_footer(
         self,
-        sections: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        sections: List[SectionData]
+    ) -> List[SectionData]:
         """헤더/푸터 영역 섹션 필터링
-        
+
         Args:
             sections: 섹션 리스트
-            
+
         Returns:
             필터링된 섹션 리스트
         """
@@ -159,17 +161,17 @@ class LayoutBasedValidator:
     
     def validate_section_spacing(
         self,
-        section1: Dict[str, Any],
-        section2: Dict[str, Any],
+        section1: SectionData,
+        section2: SectionData,
         min_spacing: float = 10.0
     ) -> bool:
         """두 섹션 간 간격 검증
-        
+
         Args:
             section1: 첫 번째 섹션
             section2: 두 번째 섹션
             min_spacing: 최소 간격 (픽셀)
-            
+
         Returns:
             간격이 충분하면 True
         """
