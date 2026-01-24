@@ -173,8 +173,12 @@ def convert_learning_units_to_units(
                         # 여러 개의 참조가 있는 경우
                         for ref in pdf_refs:
                             if isinstance(ref, dict):
-                                # 이미지 경로 추출
-                                if ref.get('image_filename'):
+                                # 우선순위 1: 파싱 단계에서 크롭한 이미지 경로 (image_path)
+                                if ref.get('image_path'):
+                                    image_paths.append(ref['image_path'])
+                                    print(f"[book_conversion] 파싱 단계 이미지 사용: {ref['image_path']}")
+                                # 우선순위 2: 기존 이미지 파일명 (image_filename)
+                                elif ref.get('image_filename'):
                                     page = ref.get('page', 0)
                                     # 과목별 디렉토리 결정
                                     curriculum = db.query(Curriculum).filter(
@@ -207,7 +211,12 @@ def convert_learning_units_to_units(
                                         full_work_content = lu.content
                     elif isinstance(pdf_refs, dict):
                         # 단일 참조
-                        if pdf_refs.get('image_filename'):
+                        # 우선순위 1: 파싱 단계에서 크롭한 이미지 경로
+                        if pdf_refs.get('image_path'):
+                            image_paths.append(pdf_refs['image_path'])
+                            print(f"[book_conversion] 파싱 단계 이미지 사용: {pdf_refs['image_path']}")
+                        # 우선순위 2: 기존 이미지 파일명
+                        elif pdf_refs.get('image_filename'):
                             curriculum = db.query(Curriculum).filter(
                                 Curriculum.curriculum_id == curriculum_id
                             ).first()

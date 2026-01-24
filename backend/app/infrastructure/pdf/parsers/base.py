@@ -160,7 +160,8 @@ class BaseParser(ABC):
         pdf_path: Path,
         sections: List[SectionData],
         output_dir: Optional[Path] = None,
-        book_id: Optional[str] = None
+        book_id: Optional[str] = None,
+        subject: Optional[str] = None
     ) -> List[SectionData]:
         """
         섹션별 이미지 크롭 및 저장
@@ -170,6 +171,7 @@ class BaseParser(ABC):
             sections: 섹션 리스트 (bbox 포함)
             output_dir: 이미지 저장 디렉토리 (None이면 자동 생성)
             book_id: 책 ID (저장 디렉토리 이름에 사용)
+            subject: 과목명 (경로 구성용)
 
         Returns:
             이미지 경로가 추가된 섹션 리스트
@@ -186,17 +188,12 @@ class BaseParser(ABC):
             from PIL import Image
             from app.core.config import settings
 
-            # 출력 디렉토리 설정
-            if not output_dir:
-                base_dir = Path("backend/data/parsing_results/images")
-                if book_id:
-                    output_dir = base_dir / book_id
-                else:
-                    output_dir = base_dir / "default"
+            # 과목명 정규화
+            subject_lower = subject.lower() if subject else 'default'
+            if subject_lower == 'korean':
+                subject_lower = 'literature'
 
-            output_dir.mkdir(parents=True, exist_ok=True)
-
-            # 페이지별로 섹션 그룹화
+            # 페이지별로 섹션 그룹화 (먼저 그룹화해서 디렉토리 최적화)
             sections_by_page: Dict[int, List[SectionData]] = {}
             for section in sections:
                 page_num = section.get('page')
@@ -235,6 +232,31 @@ class BaseParser(ABC):
 
                         section_type = section.get('type', 'unknown')
 
+                        # 섹션 타입별 디렉토리 결정
+                        if output_dir:
+                            # 명시적으로 지정된 경우 사용
+                            section_output_dir = output_dir
+                        else:
+                            # 표준 경로: backend/data/{subject}/{book_id}/{type}_images/
+                            base_dir = Path("backend/data") / subject_lower
+                            if book_id:
+                                base_dir = base_dir / book_id
+                            else:
+                                base_dir = base_dir / "default"
+
+                            # 섹션 타입에 따라 디렉토리 분리
+                            if section_type == 'concept':
+                                section_output_dir = base_dir / "concepts_images"
+                            elif section_type == 'problem':
+                                section_output_dir = base_dir / "problems_images"
+                            elif section_type in ['passage', 'content']:
+                                section_output_dir = base_dir / "content_images"
+                            else:
+                                section_output_dir = base_dir / f"{section_type}_images"
+
+                        # 디렉토리 생성
+                        section_output_dir.mkdir(parents=True, exist_ok=True)
+
                         # bbox 좌표 검증 및 제한
                         x_min, y_min, x_max, y_max = bbox
                         left = max(0, min(int(x_min), img_width - 1))
@@ -248,11 +270,13 @@ class BaseParser(ABC):
 
                             # 파일명 생성: {type}_p{page}_{index}.png
                             filename = f"{section_type}_p{page_num:03d}_{idx:02d}.png"
-                            image_path = output_dir / filename
+                            image_path = section_output_dir / filename
                             region_image.save(image_path, 'PNG')
 
-                            # 섹션에 이미지 경로 추가
-                            section['image_path'] = str(image_path)
+                            # API 경로로 변환하여 저장: /api/data/{subject}/{book_id}/{type}_images/{filename}
+                            api_path = f"/api/data/{subject_lower}/{book_id or 'default'}/{section_output_dir.name}/{filename}"
+                            section['image_path'] = api_path
+                            section['image_filename'] = filename  # 파일명도 저장
 
                             logger.info(
                                 f"[이미지 크롭] {filename} 저장 "

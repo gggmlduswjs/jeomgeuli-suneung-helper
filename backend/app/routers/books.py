@@ -727,7 +727,8 @@ def _create_curriculum_from_pipeline(
                         "lecture_title": lecture_title,
                         "section_index": idx,
                         "image_index": img_idx,
-                        "image_filename": img_path.name
+                        "image_filename": img_path.name,
+                        "image_path": section.get('image_path')  # 파싱 단계에서 크롭한 이미지 API 경로
                     }
 
                     learning_unit = LearningUnit(
@@ -752,7 +753,9 @@ def _create_curriculum_from_pipeline(
                     "lecture_id": lecture_id,
                     "lecture_number": lecture_number,
                     "lecture_title": lecture_title,
-                    "section_index": idx
+                    "section_index": idx,
+                    "image_filename": section.get('image_filename'),  # 파싱 단계 이미지 파일명
+                    "image_path": section.get('image_path')  # 파싱 단계에서 크롭한 이미지 API 경로
                 }
                 
                 learning_unit = LearningUnit(

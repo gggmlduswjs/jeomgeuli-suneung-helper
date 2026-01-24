@@ -610,7 +610,8 @@ class UnifiedTemplateParser(BaseParser):
                         pdf_path=self.pdf_path,
                         sections=result.sections,
                         output_dir=None,  # 자동 생성
-                        book_id=self.book_id
+                        book_id=self.book_id,
+                        subject=self.subject  # 과목명 전달
                     )
                     logger.info(
                         f"[UnifiedParser] 섹션 이미지 크롭 완료: "
