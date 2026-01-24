@@ -3,15 +3,17 @@
 템플릿의 section_spacing을 활용하여 섹션 경계 판별
 """
 import logging
-from typing import Dict, Any, List, Optional
+from typing import List, Optional
+
+from app.infrastructure.pdf.types import SectionData, JSONDict
 
 logger = logging.getLogger(__name__)
 
 
 class SectionSpacingValidator:
     """섹션 간 간격 검증기"""
-    
-    def __init__(self, section_spacing: Optional[Dict[str, Any]] = None):
+
+    def __init__(self, section_spacing: Optional[JSONDict] = None):
         """
         Args:
             section_spacing: 섹션 간격 정보 딕셔너리
@@ -75,15 +77,15 @@ class SectionSpacingValidator:
     
     def validate_spacing(
         self,
-        section1: Dict[str, Any],
-        section2: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        section1: SectionData,
+        section2: SectionData
+    ) -> JSONDict:
         """두 섹션 간 간격 검증
-        
+
         Args:
             section1: 첫 번째 섹션
             section2: 두 번째 섹션
-            
+
         Returns:
             {
                 'valid': 검증 통과 여부,
@@ -143,13 +145,13 @@ class SectionSpacingValidator:
     
     def validate_section_height(
         self,
-        section: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        section: SectionData
+    ) -> JSONDict:
         """섹션 높이 검증
-        
+
         Args:
             section: 섹션 정보
-            
+
         Returns:
             {
                 'valid': 검증 통과 여부,
@@ -193,13 +195,13 @@ class SectionSpacingValidator:
     
     def find_section_boundaries(
         self,
-        sections: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        sections: List[SectionData]
+    ) -> List[SectionData]:
         """섹션 경계 찾기 (간격 기반)
-        
+
         Args:
             sections: 섹션 리스트
-            
+
         Returns:
             경계가 검증된 섹션 리스트
         """
