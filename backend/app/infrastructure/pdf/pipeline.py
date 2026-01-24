@@ -453,7 +453,7 @@ class UnifiedPipeline:
                 original_error=e
             ) from e
     
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> JSONDict:
         """config.json 로드"""
         if not self.config_path or not self.config_path.exists():
             return {}
@@ -495,8 +495,8 @@ class UnifiedPipeline:
             return None
         
         from pdf2image import convert_from_path
-        
-        convert_kwargs: Dict[str, Any] = {
+
+        convert_kwargs: JSONDict = {
             "dpi": getattr(self.extractor, "dpi", 300),
             "first_page": int(page_num),
             "last_page": int(page_num),
