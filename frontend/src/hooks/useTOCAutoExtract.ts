@@ -58,7 +58,7 @@ export function extractTOCInfo(tocText: string): AutoExtractResult {
 export function useTOCAutoExtract(
   tocText: string,
   onExtract: (result: AutoExtractResult) => void,
-  deps: any[] = []
+  deps: React.DependencyList = []
 ) {
   useEffect(() => {
     // 텍스트가 충분히 길면 자동 분석

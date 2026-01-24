@@ -7,6 +7,30 @@ import { CircuitBreaker } from '../../../lib/voice/CircuitBreaker';
 import type { STTProvider } from '../types';
 
 /**
+ * Web Speech API 타입 정의
+ */
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  length: number;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResultEvent {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+/**
  * Speech Recognition 생성자 가져오기
  */
 function getRecognitionCtor(): (new () => any) | null {
@@ -135,7 +159,7 @@ export function createWebSpeechSTTProvider(
           useVoiceStore.getState().setSTTError(null);
         };
 
-        recognition.onresult = (event: any) => {
+        recognition.onresult = (event: SpeechRecognitionResultEvent) => {
           // 개발 환경에서만 로그 출력 (디버깅용)
           if (import.meta.env.DEV) {
             if (import.meta.env.DEV) console.log('[VoiceService] onresult 호출:', {
