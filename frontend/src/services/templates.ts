@@ -349,4 +349,19 @@ export const templatesAPI = {
       total_lines: number;
     }>('/templates/extract-toc-text', formData);
   },
+
+  /**
+   * AI를 사용하여 목차 텍스트 정제
+   */
+  async cleanTocText(tocText: string): Promise<{
+    ok: boolean;
+    cleaned_text: string;
+    changes_made: string;
+  }> {
+    return api.post<{
+      ok: boolean;
+      cleaned_text: string;
+      changes_made: string;
+    }>('/templates/clean-toc-text', { toc_text: tocText });
+  },
 };

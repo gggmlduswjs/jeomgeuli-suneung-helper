@@ -50,6 +50,7 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
   const [parsingLectures, setParsingLectures] = useState(false);
   const [tocPages, setTocPages] = useState<string>('3,4,5');
   const [extractingTocText, setExtractingTocText] = useState(false);
+  const [cleaningTocText, setCleaningTocText] = useState(false);
 
   const defaultName = useMemo(() => {
     const safeYear = year?.trim() || String(new Date().getFullYear());
@@ -114,6 +115,27 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
       console.error('목차 텍스트 추출 오류:', err);
     } finally {
       setExtractingTocText(false);
+    }
+  };
+
+  const handleCleanTocText = async () => {
+    if (!tocText || tocText.trim().length < 20) {
+      onSpeak?.('목차 텍스트를 먼저 입력해주세요.');
+      return;
+    }
+
+    setCleaningTocText(true);
+    try {
+      const result = await templatesAPI.cleanTocText(tocText);
+      setTocText(result.cleaned_text);
+
+      onSpeak?.(`목차 텍스트를 정제했습니다. ${result.changes_made}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '목차 텍스트 정제 중 오류가 발생했습니다.';
+      onSpeak?.(message);
+      console.error('목차 텍스트 정제 오류:', err);
+    } finally {
+      setCleaningTocText(false);
     }
   };
 
@@ -690,6 +712,18 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
               <p className="mt-1 text-xs text-muted-foreground">
                 추출된 텍스트가 올바른지 확인하고 필요시 수정하세요.
               </p>
+
+              {/* AI로 목차 텍스트 정제 버튼 */}
+              {tocText.trim().length > 20 && (
+                <button
+                  onClick={handleCleanTocText}
+                  disabled={cleaningTocText}
+                  className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 rounded-lg hover:from-purple-500/20 hover:to-blue-500/20 transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {cleaningTocText ? 'AI 정제 중...' : 'AI로 목차 텍스트 정제 (OCR 오류 수정)'}
+                </button>
+              )}
             </div>
 
             {/* 5-3. 강의 목록 분석 버튼 */}

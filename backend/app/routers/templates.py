@@ -1468,6 +1468,83 @@ async def test_template(
         raise HTTPException(status_code=400, detail=f"템플릿 테스트 실패: {str(e)}")
 
 
+@router.post("/templates/clean-toc-text")
+async def clean_toc_text(
+    toc_text: str = Body(..., description="정제할 목차 텍스트"),
+) -> Dict[str, Any]:
+    """AI를 사용하여 목차 텍스트 정제
+
+    OCR로 추출된 불완전한 목차 텍스트를:
+    - 특수 문자 제거
+    - 단어 병합
+    - 구조 정리
+    - 표준 형식으로 변환
+
+    Args:
+        toc_text: OCR로 추출된 원본 목차 텍스트
+
+    Returns:
+        {
+            "ok": True,
+            "cleaned_text": "정제된 목차 텍스트",
+            "changes_made": "변경 사항 설명"
+        }
+    """
+    try:
+        if not toc_text or len(toc_text.strip()) < 10:
+            raise HTTPException(status_code=400, detail="목차 텍스트가 너무 짧습니다.")
+
+        client = get_openai_client()
+
+        prompt = f"""다음은 PDF OCR로 추출한 목차 텍스트입니다. 이 텍스트를 정제하여 읽기 쉬운 형식으로 변환해주세요.
+
+정제 규칙:
+1. 특수 문자 (cid:xxx), 유니코드 오류 등 제거
+2. 분리된 단어들을 올바르게 병합 (예: "시의 표현과 형식" → "시의 표현과 형식")
+3. 각 강의를 다음 형식으로 정리:
+   - "N강 | 제목"
+   - 작품명 (저자) 페이지번호
+   - 빈 줄로 강의 구분
+
+4. 섹션 구분자 (>>>, 01, 02 등)는 유지하되 들여쓰기 정리
+5. 페이지 번호는 3자리 형식 유지 (009, 012 등)
+
+원본 텍스트:
+{toc_text}
+
+위 텍스트를 정제하여 반환하세요. 내용을 임의로 변경하거나 추가하지 말고, 오직 OCR 오류만 수정하세요."""
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "당신은 OCR 텍스트 정제 전문가입니다. 목차 텍스트의 OCR 오류를 수정하고 읽기 쉽게 정리합니다."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=4000
+        )
+
+        cleaned_text = response.choices[0].message.content.strip()
+
+        # 변경 사항 요약
+        original_lines = len(toc_text.splitlines())
+        cleaned_lines = len(cleaned_text.splitlines())
+
+        changes_made = f"원본 {original_lines}줄 → 정제 후 {cleaned_lines}줄"
+
+        logger.info(f"[목차 정제] {changes_made}")
+
+        return {
+            "ok": True,
+            "cleaned_text": cleaned_text,
+            "changes_made": changes_made
+        }
+
+    except Exception as e:
+        logger.error(f"[목차 정제] 오류 발생: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"목차 정제 중 오류: {str(e)}")
+
+
 @router.post("/templates/parse-toc-lectures")
 async def parse_toc_lectures(
     toc_text: str = Body(..., description="목차 텍스트"),

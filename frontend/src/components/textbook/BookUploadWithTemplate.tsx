@@ -57,6 +57,7 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
 
   // 텍스트 자동 추출
   const [extractingTocText, setExtractingTocText] = useState(false);
+  const [cleaningTocText, setCleaningTocText] = useState(false);
   const [extractingText, setExtractingText] = useState(false);
   const [extractedTextExamples, setExtractedTextExamples] = useState<{ [key: string]: string[] } | null>(null);
   const [samplePagesForExtraction, setSamplePagesForExtraction] = useState<string>('15,30,50');
@@ -233,6 +234,29 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
       console.error('목차 텍스트 추출 오류:', err);
     } finally {
       setExtractingTocText(false);
+    }
+  };
+
+  const handleCleanTocText = async () => {
+    if (!tocText || tocText.trim().length < 20) {
+      onSpeak?.('목차 텍스트를 먼저 입력해주세요.');
+      return;
+    }
+
+    setCleaningTocText(true);
+    setError(null);
+    try {
+      const result = await templatesAPI.cleanTocText(tocText);
+      setTocText(result.cleaned_text);
+
+      onSpeak?.(`목차 텍스트를 정제했습니다. ${result.changes_made}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '목차 텍스트 정제 중 오류가 발생했습니다.';
+      onSpeak?.(message);
+      setError(message);
+      console.error('목차 텍스트 정제 오류:', err);
+    } finally {
+      setCleaningTocText(false);
     }
   };
 
@@ -715,12 +739,14 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
           extractedTextExamples={extractedTextExamples}
           extractingText={extractingText}
           extractingTocText={extractingTocText}
+          cleaningTocText={cleaningTocText}
           onTocPagesChange={setTocPages}
           onTocTextChange={setTocText}
           onLectureExamplesChange={setTocLectureExamples}
           onNonLectureExamplesChange={setTocNonLectureExamples}
           onExpectedCountChange={setExpectedLectureCount}
           onExtractTocText={handleExtractTocText}
+          onCleanTocText={handleCleanTocText}
           onExtractTextExamples={handleExtractTextExamples}
         />
 

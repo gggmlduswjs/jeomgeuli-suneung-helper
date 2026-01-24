@@ -13,12 +13,14 @@ interface TOCInputStepProps {
   extractedTextExamples: { [key: string]: string[] } | null;
   extractingText: boolean;
   extractingTocText: boolean;
+  cleaningTocText: boolean;
   onTocPagesChange: (pages: string) => void;
   onTocTextChange: (text: string) => void;
   onLectureExamplesChange: (text: string) => void;
   onNonLectureExamplesChange: (text: string) => void;
   onExpectedCountChange: (count: string) => void;
   onExtractTocText: () => void;
+  onCleanTocText: () => void;
   onExtractTextExamples: () => void;
 }
 
@@ -31,12 +33,14 @@ export default function TOCInputStep({
   extractedTextExamples,
   extractingText,
   extractingTocText,
+  cleaningTocText,
   onTocPagesChange,
   onTocTextChange,
   onLectureExamplesChange,
   onNonLectureExamplesChange,
   onExpectedCountChange,
   onExtractTocText,
+  onCleanTocText,
   onExtractTextExamples
 }: TOCInputStepProps) {
   return (
@@ -97,6 +101,18 @@ export default function TOCInputStep({
           <p className="text-xs text-muted-foreground mt-1">
             추출된 텍스트가 올바른지 확인하고 필요시 수정하세요
           </p>
+
+          {/* AI로 목차 텍스트 정제 버튼 */}
+          {tocText.trim().length > 20 && (
+            <button
+              onClick={onCleanTocText}
+              disabled={cleaningTocText}
+              className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 rounded-lg hover:from-purple-500/20 hover:to-blue-500/20 transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50"
+            >
+              <Sparkles className="w-4 h-4" />
+              {cleaningTocText ? 'AI 정제 중...' : 'AI로 목차 텍스트 정제 (OCR 오류 수정)'}
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
