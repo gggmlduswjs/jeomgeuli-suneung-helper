@@ -11,7 +11,7 @@ import re
 import logging
 import warnings
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 
 from .base import BaseParser
 from .config_manager import ParserConfigManager
@@ -19,6 +19,15 @@ from .template_manager import TemplateManager
 from .template import ParsingTemplate
 from .section_extractor import ImprovedSectionExtractor
 from app.core.config import settings
+from app.infrastructure.pdf.types import (
+    OCRPageData,
+    ParsingResult,
+    LectureInfo,
+    ProblemInfo,
+    SectionData,
+    ParagraphData,
+    JSONDict,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -53,12 +62,12 @@ class EnglishParser(BaseParser):
         else:
             self.config = ParserConfigManager.load_config('english', config_path)
     
-    def _template_to_config(self, template: ParsingTemplate) -> Dict[str, Any]:
+    def _template_to_config(self, template: ParsingTemplate) -> JSONDict:
         """템플릿을 config 형식으로 변환 (문학 파서와 동일한 구조)
-        
+
         Args:
             template: ParsingTemplate 인스턴스
-            
+
         Returns:
             config 딕셔너리
         """
@@ -119,7 +128,7 @@ class EnglishParser(BaseParser):
         
         return config
     
-    def try_match_template(self, ocr_data: List[Dict[str, Any]], threshold: float = 0.85) -> Optional[ParsingTemplate]:
+    def try_match_template(self, ocr_data: List[OCRPageData], threshold: float = 0.85) -> Optional[ParsingTemplate]:
         """OCR 데이터에서 템플릿 매칭 시도"""
         if not ocr_data:
             return None
@@ -155,7 +164,7 @@ class EnglishParser(BaseParser):
         
         return None
 
-    def parse(self, ocr_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def parse(self, ocr_data: List[OCRPageData]) -> ParsingResult:
         """
         OCR 데이터를 파싱하여 영어 콘텐츠 추출
 
@@ -208,10 +217,10 @@ class EnglishParser(BaseParser):
                 }
             }
 
-    def extract_lectures(self, ocr_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def extract_lectures(self, ocr_data: List[OCRPageData]) -> List[LectureInfo]:
         """
         강의 목록 추출 (문학 파서와 동일한 로직)
-        
+
         템플릿에 저장된 TOC 강의 목록이 있으면 우선 사용
         
         Args:
@@ -371,13 +380,13 @@ class EnglishParser(BaseParser):
             logger.error(f"영어 강의 추출 중 오류 발생: {e}", exc_info=True)
             return []
 
-    def extract_problems(self, ocr_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def extract_problems(self, ocr_data: List[OCRPageData]) -> List[ProblemInfo]:
         """
         문제 추출
-        
+
         Args:
             ocr_data: 페이지별 OCR 결과 리스트
-            
+
         Returns:
             문제 리스트
         """
@@ -458,14 +467,14 @@ class EnglishParser(BaseParser):
 
     def extract_sections(
         self,
-        lecture_ocr_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData]
+    ) -> List[SectionData]:
         """
         섹션 추출 (개선된 다중 전략 사용, 문학 파서와 동일)
-        
+
         Args:
             lecture_ocr_data: 강의에 해당하는 OCR 데이터 리스트
-            
+
         Returns:
             섹션 리스트
         """
@@ -499,8 +508,8 @@ class EnglishParser(BaseParser):
     
     def _extract_sections_fallback(
         self,
-        lecture_ocr_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData]
+    ) -> List[SectionData]:
         """폴백 섹션 추출 (기존 방식)"""
         sections = []
         START_PAGE = self.config.get('start_content_page', 1)
@@ -571,12 +580,12 @@ class EnglishParser(BaseParser):
 
     def extract_content_paragraphs(
         self,
-        lecture_ocr_data: List[Dict[str, Any]],
-        sections: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        lecture_ocr_data: List[OCRPageData],
+        sections: List[SectionData]
+    ) -> List[ParagraphData]:
         """
         섹션별 문단 추출
-        
+
         Args:
             lecture_ocr_data: 강의에 해당하는 OCR 데이터 리스트
             sections: 이미 추출된 섹션 리스트
