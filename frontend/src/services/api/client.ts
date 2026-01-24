@@ -219,10 +219,24 @@ export class BookService extends ResourceService<Book> {
 
   /**
    * 교재 목록 조회 (과목 필터 지원)
+   * @param params - Query parameters (can include subject)
    */
-  async list(subject?: Subject): Promise<Book[]> {
-    const params = subject ? `?subject=${subject}` : '';
-    return api.get<Book[]>(`/books${params}`);
+  async list(params?: Record<string, unknown> | Subject): Promise<Book[]> {
+    // 하위 호환성: Subject를 직접 전달하는 경우 처리
+    if (typeof params === 'string') {
+      const queryString = `?subject=${params}`;
+      return api.get<Book[]>(`/books${queryString}`);
+    }
+
+    // Record를 전달하는 경우 기본 구현 사용
+    const queryString = params && Object.keys(params).length > 0
+      ? '?' + new URLSearchParams(
+          Object.entries(params)
+            .filter(([_, v]) => v !== undefined && v !== null)
+            .map(([k, v]) => [k, String(v)])
+        ).toString()
+      : '';
+    return api.get<Book[]>(`/books${queryString}`);
   }
 
   /**
@@ -352,15 +366,15 @@ export class BookService extends ResourceService<Book> {
    * 교재 삭제
    * ResourceService의 delete 메서드를 오버라이드하여 올바른 DELETE 엔드포인트 사용
    */
-  async delete(id: string): Promise<{ ok: boolean; message: string }> {
-    return api.delete<{ ok: boolean; message: string }>(`/books/${id}`);
+  async delete(id: string): Promise<void> {
+    await api.delete<{ ok: boolean; message: string }>(`/books/${id}`);
   }
 
   /**
-   * 교재 삭제 (별칭)
+   * 교재 삭제 (응답 포함)
    */
   async deleteBook(bookId: string): Promise<{ ok: boolean; message: string }> {
-    return this.delete(bookId);
+    return api.delete<{ ok: boolean; message: string }>(`/books/${bookId}`);
   }
 }
 

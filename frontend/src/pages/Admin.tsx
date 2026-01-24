@@ -214,7 +214,7 @@ export default function Admin() {
     speak('교재를 삭제하는 중입니다.');
 
     try {
-      const result = await booksAPI.delete(bookId);
+      const result = await booksAPI.deleteBook(bookId);
       if (result && result.ok) {
         showToastMsg(result.message || '교재가 삭제되었습니다.');
         speak(result.message || '교재가 삭제되었습니다.');
