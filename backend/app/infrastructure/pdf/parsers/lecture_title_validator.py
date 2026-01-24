@@ -4,8 +4,10 @@ TOC 텍스트를 활용한 강의 제목 검증 및 보정
 """
 import re
 import logging
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Optional, Tuple
 from difflib import SequenceMatcher
+
+from app.infrastructure.pdf.types import LectureInfo
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +18,7 @@ class LectureTitleValidator:
     def __init__(
         self,
         toc_text: Optional[str] = None,
-        toc_lecture_list: Optional[List[Dict[str, Any]]] = None
+        toc_lecture_list: Optional[List[LectureInfo]] = None
     ):
         """
         Args:
@@ -158,7 +160,7 @@ class LectureTitleValidator:
     def _find_expected_lecture_by_page(
         self,
         page_num: int
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[LectureInfo]:
         """페이지 번호로 예상 강의 찾기"""
         if not self.toc_lecture_list:
             return None
@@ -188,7 +190,7 @@ class LectureTitleValidator:
     def _find_next_lecture(
         self,
         current_lecture_id: Optional[int]
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[LectureInfo]:
         """다음 강의 찾기"""
         if current_lecture_id is None:
             return None
