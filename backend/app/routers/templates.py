@@ -783,7 +783,23 @@ def _generate_template_from_toc_via_openai(
                 start, end = page_range_map[lecture["lecture_id"]]
                 lecture["start_page"] = start
                 lecture["end_page"] = end
-    
+
+    # lecture_page_ranges 생성 (파싱 시 사용)
+    # 형식: {"1": {"start": 9, "end": 11}, "2": {"start": 12, "end": 15}, ...}
+    lecture_page_ranges = {}
+    for lecture in toc_lecture_list:
+        if lecture.get("start_page") is not None:
+            lecture_id = str(lecture["lecture_id"])
+            lecture_page_ranges[lecture_id] = {
+                "start": lecture["start_page"],
+                "end": lecture.get("end_page")  # None이면 끝까지
+            }
+
+    logger.info(f"[템플릿 생성] lecture_page_ranges 생성: {len(lecture_page_ranges)}개 강의")
+    for lecture_id, page_range in list(lecture_page_ranges.items())[:5]:  # 처음 5개만 로깅
+        end_str = page_range["end"] if page_range["end"] else "끝"
+        logger.info(f"  - 강의 {lecture_id}: {page_range['start']} ~ {end_str}페이지")
+
     merged_config = {
         "toc_end_page": _safe_int(config.get("toc_end_page"), defaults.get("toc_end_page", 7)),
         "start_content_page": _safe_int(config.get("start_content_page"), defaults.get("start_content_page", 8)),
@@ -791,6 +807,7 @@ def _generate_template_from_toc_via_openai(
         "unit_order": unit_order,  # 관리자 입력: 단위 순서
         "is_lecture_based": is_lecture_based,  # 관리자 입력: 강의 기반 구조 여부
         "lecture_units": lecture_units,  # 관리자 입력: 강의 내 단위 목록
+        "lecture_page_ranges": lecture_page_ranges,  # 강의별 페이지 범위 (파싱 시 활용)
         "region_hints": region_hints,  # 하위 호환성 유지 (y 좌표 기반)
         "region_text_examples": region_text_examples,  # 영역 내 텍스트 예시 (패턴 학습용)
         "region_image_examples": region_image_examples,  # 영역 이미지 예시 (시각적 참고용)
@@ -1439,6 +1456,97 @@ async def test_template(
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"템플릿 테스트 실패: {str(e)}")
+
+
+@router.post("/templates/extract-toc-text")
+async def extract_toc_text_from_pdf(
+    pdf_file: UploadFile = File(...),
+    toc_pages: str = File(...),
+) -> Dict[str, Any]:
+    """PDF에서 목차 텍스트 자동 추출
+
+    Args:
+        pdf_file: PDF 파일
+        toc_pages: 목차 페이지 번호 (쉼표로 구분, 예: "3,4,5")
+
+    Returns:
+        {
+            "toc_text": "추출된 목차 텍스트",
+            "pages_extracted": [3, 4, 5],
+            "total_lines": 100
+        }
+    """
+    import tempfile
+    from pathlib import Path
+
+    try:
+        # 목차 페이지 파싱
+        try:
+            pages_to_extract = [int(p.strip()) for p in toc_pages.split(',') if p.strip()]
+        except ValueError:
+            raise HTTPException(status_code=400, detail="toc_pages는 쉼표로 구분된 숫자여야 합니다 (예: 3,4,5)")
+
+        if not pages_to_extract:
+            raise HTTPException(status_code=400, detail="목차 페이지를 입력해주세요")
+
+        # 임시 파일로 PDF 저장
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+            content = await pdf_file.read()
+            tmp_file.write(content)
+            temp_pdf_path = Path(tmp_file.name)
+
+        try:
+            # OCR 데이터 추출 (목차 페이지만)
+            from app.infrastructure.pdf.extractors.base import PdfplumberExtractor
+            extractor = PdfplumberExtractor(dpi=200)
+
+            ocr_data = []
+            for page_num in pages_to_extract:
+                try:
+                    page_ocr = extractor.extract(temp_pdf_path, first_page=page_num, last_page=page_num)
+                    if page_ocr:
+                        ocr_data.extend(page_ocr)
+                except Exception as e:
+                    logger.warning(f"목차 페이지 {page_num} 추출 실패: {e}")
+                    continue
+
+            if not ocr_data:
+                raise HTTPException(status_code=400, detail="목차 페이지에서 텍스트를 추출할 수 없습니다")
+
+            # 페이지별 텍스트 추출
+            toc_lines = []
+            for page_data in ocr_data:
+                texts = page_data.get('text', [])
+                if texts:
+                    for text in texts:
+                        text_str = str(text).strip()
+                        if len(text_str) >= 2:  # 최소 2글자 이상
+                            toc_lines.append(text_str)
+
+            # 목차 텍스트 조합
+            toc_text = '\n'.join(toc_lines)
+
+            logger.info(f"[목차 추출] {len(pages_to_extract)}개 페이지에서 {len(toc_lines)}줄 추출")
+
+            return {
+                "ok": True,
+                "toc_text": toc_text,
+                "pages_extracted": pages_to_extract,
+                "total_lines": len(toc_lines)
+            }
+
+        finally:
+            # 임시 파일 삭제
+            try:
+                temp_pdf_path.unlink()
+            except Exception:
+                pass
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[목차 추출] 오류 발생: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"목차 추출 중 오류: {str(e)}")
 
 
 @router.post("/templates/extract-text-examples")
