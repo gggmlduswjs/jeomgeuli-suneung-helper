@@ -641,12 +641,13 @@ def _generate_template_from_toc_via_openai(
     region_image_examples: Dict[str, List[Dict[str, Any]]] = {}
 
     # 2. parsing_guide_regions와 book_id가 있으면 PDF에서 직접 추출
-    if parsing_guide_regions and book_id and not region_text_examples:
+    # 텍스트와 이미지를 독립적으로 추출 (하나가 있어도 다른 것은 추출)
+    if parsing_guide_regions and book_id:
         try:
             from app.infrastructure.database.session import get_db
             from app.infrastructure.database.models import Book
             from sqlalchemy.orm import Session
-            
+
             # DB에서 book 정보 가져오기
             db_gen = get_db()
             db: Session = next(db_gen)
@@ -655,14 +656,17 @@ def _generate_template_from_toc_via_openai(
                 if book and book.file_path:
                     pdf_path = Path(book.file_path)
                     if pdf_path.exists():
-                        # 텍스트 추출
-                        region_text_examples = _extract_text_from_bbox_regions(
-                            pdf_path, 
-                            parsing_guide_regions
-                        )
-                        logger.info(f"[템플릿 생성] 영역 텍스트 추출 완료: {len(region_text_examples)}개 레이블")
-                        
-                        # 이미지 추출 및 저장
+                        # 텍스트 추출 (region_text_examples가 없을 때만)
+                        if not region_text_examples:
+                            region_text_examples = _extract_text_from_bbox_regions(
+                                pdf_path,
+                                parsing_guide_regions
+                            )
+                            logger.info(f"[템플릿 생성] 영역 텍스트 추출 완료: {len(region_text_examples)}개 레이블")
+                        else:
+                            logger.info(f"[템플릿 생성] 영역 텍스트 예시는 이미 제공됨 (추출 스킵)")
+
+                        # 이미지 추출 및 저장 (항상 수행)
                         # 템플릿별 이미지 디렉토리: backend/data/templates/images/{subject}_{name}/
                         template_images_dir = settings.API_DIR / "data" / "templates" / "images" / f"{subject}_{name}"
                         region_image_examples = _extract_images_from_bbox_regions(
