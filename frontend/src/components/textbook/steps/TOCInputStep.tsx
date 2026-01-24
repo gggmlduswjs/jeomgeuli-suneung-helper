@@ -1,34 +1,42 @@
 /**
  * TOC(목차) 입력 스텝
- * 목차 텍스트 입력 및 텍스트 예시 추출
+ * 목차 페이지 번호 입력 → 텍스트 자동 추출 → 강의 목록 분석
  */
-import { FileText } from 'lucide-react';
+import { FileText, Sparkles } from 'lucide-react';
 
 interface TOCInputStepProps {
+  tocPages: string;
   tocText: string;
   tocLectureExamples: string;
   tocNonLectureExamples: string;
   expectedLectureCount: string;
   extractedTextExamples: { [key: string]: string[] } | null;
   extractingText: boolean;
+  extractingTocText: boolean;
+  onTocPagesChange: (pages: string) => void;
   onTocTextChange: (text: string) => void;
   onLectureExamplesChange: (text: string) => void;
   onNonLectureExamplesChange: (text: string) => void;
   onExpectedCountChange: (count: string) => void;
+  onExtractTocText: () => void;
   onExtractTextExamples: () => void;
 }
 
 export default function TOCInputStep({
+  tocPages,
   tocText,
   tocLectureExamples,
   tocNonLectureExamples,
   expectedLectureCount,
   extractedTextExamples,
   extractingText,
+  extractingTocText,
+  onTocPagesChange,
   onTocTextChange,
   onLectureExamplesChange,
   onNonLectureExamplesChange,
   onExpectedCountChange,
+  onExtractTocText,
   onExtractTextExamples
 }: TOCInputStepProps) {
   return (
@@ -36,16 +44,47 @@ export default function TOCInputStep({
       <div>
         <h3 className="text-lg font-semibold mb-4">5. 목차 입력</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          교재의 목차를 붙여넣어 주세요
+          목차 페이지 번호를 입력하면 자동으로 텍스트를 추출합니다
         </p>
       </div>
 
       <div className="space-y-4">
+        {/* 목차 페이지 번호 입력 */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            목차 페이지 번호
+            <span className="text-xs text-muted-foreground ml-2">
+              (쉼표로 구분, 예: 3,4,5)
+            </span>
+          </label>
+          <input
+            type="text"
+            value={tocPages}
+            onChange={(e) => onTocPagesChange(e.target.value)}
+            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
+            placeholder="3,4,5"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            목차가 있는 PDF 페이지 번호를 입력하세요
+          </p>
+        </div>
+
+        {/* 목차 텍스트 추출 버튼 */}
+        <button
+          onClick={onExtractTocText}
+          disabled={extractingTocText || !tocPages.trim()}
+          className="w-full px-4 py-3 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 font-medium"
+        >
+          <Sparkles className="w-4 h-4" />
+          {extractingTocText ? '추출 중...' : 'PDF에서 목차 텍스트 추출'}
+        </button>
+
+        {/* 추출된 목차 텍스트 */}
         <div>
           <label className="block text-sm font-medium mb-2">
             목차 텍스트
             <span className="text-xs text-muted-foreground ml-2">
-              (PDF에서 복사하거나 직접 입력)
+              (검토 및 수정 가능)
             </span>
           </label>
           <textarea
@@ -53,8 +92,11 @@ export default function TOCInputStep({
             onChange={(e) => onTocTextChange(e.target.value)}
             className="w-full px-3 py-2 border border-border rounded-lg bg-background font-mono text-sm"
             rows={12}
-            placeholder="1강 문학의 이해&#10;2강 현대시의 흐름&#10;3강 고전시가..."
+            placeholder="위 버튼을 클릭하여 목차 텍스트를 추출하거나 직접 붙여넣으세요...&#10;&#10;1강 문학의 이해&#10;2강 현대시의 흐름&#10;3강 고전시가..."
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            추출된 텍스트가 올바른지 확인하고 필요시 수정하세요
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

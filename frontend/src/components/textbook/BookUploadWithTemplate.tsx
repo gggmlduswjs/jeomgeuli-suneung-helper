@@ -49,12 +49,14 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   
   // TOC 입력
+  const [tocPages, setTocPages] = useState('3,4,5');
   const [tocText, setTocText] = useState('');
   const [tocLectureExamples, setTocLectureExamples] = useState('');
   const [tocNonLectureExamples, setTocNonLectureExamples] = useState('');
   const [expectedLectureCount, setExpectedLectureCount] = useState('');
 
   // 텍스트 자동 추출
+  const [extractingTocText, setExtractingTocText] = useState(false);
   const [extractingText, setExtractingText] = useState(false);
   const [extractedTextExamples, setExtractedTextExamples] = useState<{ [key: string]: string[] } | null>(null);
   const [samplePagesForExtraction, setSamplePagesForExtraction] = useState<string>('15,30,50');
@@ -197,6 +199,42 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
       setSamplePagesForExtraction(markedPages.join(','));
     }
   }, [parsingGuideRegions]);
+
+  const handleExtractTocText = async () => {
+    if (!file) {
+      onSpeak?.('PDF 파일이 필요합니다.');
+      return;
+    }
+
+    if (!tocPages.trim()) {
+      onSpeak?.('목차 페이지 번호를 입력해주세요 (예: 3,4,5).');
+      return;
+    }
+
+    setExtractingTocText(true);
+    setError(null);
+    try {
+      const result = await templatesAPI.extractTocText(file, tocPages);
+      setTocText(result.toc_text);
+
+      const pageCount = result.pages_extracted.length;
+      const lineCount = result.total_lines;
+
+      if (lineCount === 0) {
+        onSpeak?.('목차 텍스트를 추출하지 못했습니다. 페이지 번호를 확인해주세요.');
+        setError('목차 텍스트 추출 실패: 페이지 번호가 잘못되었거나 텍스트가 없을 수 있습니다.');
+      } else {
+        onSpeak?.(`${pageCount}개 페이지에서 ${lineCount}줄의 목차 텍스트를 추출했습니다. 검토 후 수정하세요.`);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '목차 텍스트 추출 중 오류가 발생했습니다.';
+      onSpeak?.(message);
+      setError(message);
+      console.error('목차 텍스트 추출 오류:', err);
+    } finally {
+      setExtractingTocText(false);
+    }
+  };
 
   const handleExtractTextExamples = async () => {
     if (!file) {
@@ -669,16 +707,20 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
         </div>
 
         <TOCInputStep
+          tocPages={tocPages}
           tocText={tocText}
           tocLectureExamples={tocLectureExamples}
           tocNonLectureExamples={tocNonLectureExamples}
           expectedLectureCount={expectedLectureCount}
           extractedTextExamples={extractedTextExamples}
           extractingText={extractingText}
+          extractingTocText={extractingTocText}
+          onTocPagesChange={setTocPages}
           onTocTextChange={setTocText}
           onLectureExamplesChange={setTocLectureExamples}
           onNonLectureExamplesChange={setTocNonLectureExamples}
           onExpectedCountChange={setExpectedLectureCount}
+          onExtractTocText={handleExtractTocText}
           onExtractTextExamples={handleExtractTextExamples}
         />
 
