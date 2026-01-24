@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import VoiceEventBus, { VoiceEventType } from '../lib/voice/VoiceEventBus';
-import micMode from '../lib/voice/MicMode';
 
 // 무한 루프 방지를 위한 플래그
 let isUpdatingFromEvent = false;

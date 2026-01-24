@@ -19,8 +19,7 @@ export interface ResourceCreateParams {
  */
 export class ResourceService<T, TCreate = Partial<T>, TUpdate = Partial<T>> {
   constructor(
-    private basePath: string,
-    private _resourceName: string = '리소스'
+    private basePath: string
   ) {}
 
   /**
@@ -80,7 +79,7 @@ import type { Curriculum, CurriculumDetail } from '../../types/curriculum';
 
 export class CurriculumService extends ResourceService<Curriculum> {
   constructor() {
-    super('/curriculum', '커리큘럼');
+    super('/curriculum');
   }
 
   /**
@@ -155,7 +154,7 @@ import type { Lesson } from '../../types/lesson';
 
 export class LessonService extends ResourceService<Lesson> {
   constructor() {
-    super('/lessons', '레슨');
+    super('/lessons');
   }
 
   /**
@@ -197,7 +196,7 @@ import type { Unit } from '../../types/unit';
 
 export class UnitService extends ResourceService<Unit> {
   constructor() {
-    super('/units', '학습 단위');
+    super('/units');
   }
 
   /**
@@ -215,7 +214,7 @@ import type { Book, BookParseStatus, Subject, AIProcessingOptions } from '../../
 
 export class BookService extends ResourceService<Book> {
   constructor() {
-    super('/books', '교재');
+    super('/books');
   }
 
   /**

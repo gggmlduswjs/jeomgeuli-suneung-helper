@@ -51,9 +51,9 @@ class CommandServiceClass {
   /**
    * 명령 캐싱
    */
-  private cacheCommand(text: string, handlers: CommandHandlers): void {
-    const normalized = text.toLowerCase().trim();
-    
+  private cacheCommand(text: string, _handlers: CommandHandlers): void {
+    const _normalized = text.toLowerCase().trim();
+
     // 캐시 크기 제한
     if (this.commandCache.size >= this.CACHE_SIZE_LIMIT) {
       // 가장 오래된 항목 제거 (FIFO)
@@ -162,7 +162,7 @@ class CommandServiceClass {
    * 명령 매칭만 수행 (핸들러 실행 없이)
    * 테스트 및 디버깅용
    */
-  matchCommand(text: string): string | null {
+  matchCommand(_text: string): string | null {
     // CommandRouter의 내부 로직을 직접 사용할 수 없으므로
     // 간단한 매칭만 수행
     // 실제 구현은 CommandRouter의 matchCommand를 export해야 함

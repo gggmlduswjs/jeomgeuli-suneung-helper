@@ -13,7 +13,7 @@ export function createWebSpeechTTSProvider(): TTSProvider {
     throw new Error('브라우저가 음성 합성을 지원하지 않습니다.');
   }
 
-  let currentUtterance: SpeechSynthesisUtterance | null = null;
+  let _currentUtterance: SpeechSynthesisUtterance | null = null;
   let utteranceQueue: string[] = [];
   let isProcessing = false;
   let isSpeaking = false;
@@ -32,14 +32,14 @@ export function createWebSpeechTTSProvider(): TTSProvider {
     utt.lang = options.lang || 'ko-KR';
 
     utt.onstart = () => {
-      currentUtterance = utt;
+      _currentUtterance =utt;
       isSpeaking = true;
       isPaused = false;
       useVoiceStore.getState().setSpeaking(true);
     };
 
     utt.onend = () => {
-      currentUtterance = null;
+      _currentUtterance =null;
       isSpeaking = false;
       isPaused = false;
       isProcessing = false;
@@ -51,7 +51,7 @@ export function createWebSpeechTTSProvider(): TTSProvider {
     };
 
     utt.onerror = () => {
-      currentUtterance = null;
+      _currentUtterance =null;
       isSpeaking = false;
       isPaused = false;
       isProcessing = false;
@@ -66,7 +66,7 @@ export function createWebSpeechTTSProvider(): TTSProvider {
       window.speechSynthesis.speak(utt);
     } catch (error) {
       isProcessing = false;
-      currentUtterance = null;
+      _currentUtterance =null;
       if (utteranceQueue.length) {
         setTimeout(() => processQueue(options), 60);
       }
@@ -101,7 +101,7 @@ export function createWebSpeechTTSProvider(): TTSProvider {
         window.speechSynthesis.cancel();
       } catch {}
       utteranceQueue = [];
-      currentUtterance = null;
+      _currentUtterance =null;
       isProcessing = false;
       isSpeaking = false;
       isPaused = false;

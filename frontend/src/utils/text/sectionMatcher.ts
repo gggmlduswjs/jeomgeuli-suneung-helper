@@ -43,7 +43,7 @@ export function inferTextType(section: ScriptSection): 'explanation' | 'note' | 
   ];
   
   // 해설 패턴 (설명, 개념, 분석)
-  const explanationPatterns = [
+  const _explanationPatterns = [
     '설명', '이해', '의미', '개념', '정의', '이유',
     '왜', '어떻게', '분석', '해석', '작품', '시',
     '이야기', '얘기', '말이야', '거야', '거죠', '거든요'
@@ -289,7 +289,7 @@ export async function loadBlocksJson(
  * 강의 대본 JSON 로드 및 매칭
  */
 export async function loadAndMatchScriptSections(
-  lessonId: string,
+  _lessonId: string,
   subject: string,
   lessonNumber: number
 ): Promise<ScriptSection[]> {

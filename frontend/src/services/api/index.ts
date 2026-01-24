@@ -83,16 +83,6 @@ async function fetchWithRetry<T>(
   }
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const error: ApiError = await response.json().catch(() => ({
-      detail: `HTTP ${response.status}`,
-    }));
-    throw new Error(error.detail || error.message || error.error || 'API 요청 실패');
-  }
-  return response.json();
-}
-
 export const api = {
   baseURL: API_BASE,
 
