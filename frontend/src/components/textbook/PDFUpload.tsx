@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { booksAPI } from '../../services/api/client';
-import { Subject } from '../../types/book';
+import { Subject, AIProcessingOptions } from '../../types/book';
 
 interface PDFUploadProps {
   onUploadComplete: (textbookId: number) => void;
@@ -34,7 +34,7 @@ export default function PDFUpload({ onUploadComplete, onSpeak }: PDFUploadProps)
       const title = file.name.replace(/\.pdf$/i, '');
       
       // 기본 AI 옵션 (빠른 파싱을 위해 ML만 활성화)
-      const aiOptions = {
+      const aiOptions: AIProcessingOptions = {
         enable_ml_deduplication: true,
         enable_ml_classification: true,
         enable_layout_analysis: false,
