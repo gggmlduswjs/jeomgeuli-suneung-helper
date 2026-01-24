@@ -4,16 +4,13 @@ LLM 분석 결과를 config.json 형식으로 변환하고 검증
 """
 import logging
 import json
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Optional
 from pathlib import Path
 
 from app.infrastructure.pdf.types import JSONDict
 
-try:
+if TYPE_CHECKING:
     from app.infrastructure.ai.genai.structure_analyzer import PDFStructure
-except ImportError:
-    # StructureAnalyzer가 없는 경우를 위한 타입 힌트
-    PDFStructure = None
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +30,7 @@ class RuleGenerator:
     
     def structure_to_config(
         self,
-        structure: Any,  # PDFStructure
+        structure: "PDFStructure",
         validate: bool = True
     ) -> JSONDict:
         """PDFStructure를 config.json 형식으로 변환
@@ -163,7 +160,7 @@ class RuleGenerator:
     
     def structure_to_template(
         self,
-        structure: Any,  # PDFStructure
+        structure: "PDFStructure",
         template_name: str,
         version: str = "",
         description: str = ""
