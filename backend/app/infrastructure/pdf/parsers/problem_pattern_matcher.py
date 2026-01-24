@@ -4,7 +4,9 @@
 """
 import re
 import logging
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Optional, List, Tuple
+
+from app.infrastructure.pdf.types import JSONDict
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +14,7 @@ logger = logging.getLogger(__name__)
 class ProblemPatternMatcher:
     """문제 번호 패턴 매칭기"""
     
-    def __init__(self, problem_patterns: Optional[Dict[str, Any]] = None):
+    def __init__(self, problem_patterns: Optional[JSONDict] = None):
         """
         Args:
             problem_patterns: 문제 패턴 정보 딕셔너리
@@ -71,13 +73,13 @@ class ProblemPatternMatcher:
         self,
         text: str,
         position: Optional[Tuple[float, float, float, float]] = None
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[JSONDict]:
         """문제 번호 매칭
-        
+
         Args:
             text: 텍스트
             position: 텍스트 위치 (x, y, width, height) - 선택
-            
+
         Returns:
             {
                 'number': 문제 번호,
@@ -151,12 +153,12 @@ class ProblemPatternMatcher:
     def match_answer(
         self,
         text: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[JSONDict]:
         """답안 형식 매칭
-        
+
         Args:
             text: 텍스트
-            
+
         Returns:
             {
                 'answer': 답안,
