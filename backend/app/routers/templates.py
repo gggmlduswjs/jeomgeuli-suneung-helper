@@ -1553,6 +1553,11 @@ async def extract_text_examples_from_pdf(
                 "debug": debug_info if debug_info else None
             }
 
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"[텍스트 추출] 오류 발생: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"텍스트 추출 중 오류: {str(e)}")
         finally:
             # 임시 파일 삭제
             try:
@@ -1675,213 +1680,216 @@ def _extract_text_by_region_hints(
     # 영역별 텍스트 수집
     region_texts = {region_type: [] for region_type in region_hints_dict.keys()}
 
-            def is_valid_text(text: str) -> bool:
-                """텍스트 품질 검증"""
-                # CID 코드 포함 여부 확인
-                if 'cid:' in text.lower() or '(cid:' in text:
-                    return False
+    def is_valid_text(text: str) -> bool:
+        """텍스트 품질 검증"""
+        # CID 코드 포함 여부 확인
+        if 'cid:' in text.lower() or '(cid:' in text:
+            return False
 
-                # 너무 짧은 텍스트 제외
-                if len(text) < 5:
-                    return False
+        # 너무 짧은 텍스트 제외
+        if len(text) < 5:
+            return False
 
-                # 특수문자만 있는 경우 제외
-                if not any(c.isalnum() or ord(c) >= 0xAC00 for c in text):
-                    return False
+        # 특수문자만 있는 경우 제외
+        if not any(c.isalnum() or ord(c) >= 0xAC00 for c in text):
+            return False
 
-                # 숫자만 있는 경우 제외 (페이지 번호 등)
-                if text.replace(' ', '').isdigit():
-                    return False
+        # 숫자만 있는 경우 제외 (페이지 번호 등)
+        if text.replace(' ', '').isdigit():
+            return False
 
-                # 한글/영문 비율 확인 (최소 30% 이상)
-                alphanumeric_count = sum(1 for c in text if c.isalnum() or ord(c) >= 0xAC00)
-                if len(text) > 0 and alphanumeric_count / len(text) < 0.3:
-                    return False
+        # 한글/영문 비율 확인 (최소 30% 이상)
+        alphanumeric_count = sum(1 for c in text if c.isalnum() or ord(c) >= 0xAC00)
+        if len(text) > 0 and alphanumeric_count / len(text) < 0.3:
+            return False
 
-                return True
+        return True
 
-            for page_data in ocr_data:
-                page_num = page_data.get('page_num', 0)
-                page_height = page_data.get('page_height', 1400.0)
-                texts = page_data.get('text', [])
-                tops = page_data.get('top', [])
-                heights = page_data.get('height', [])
-                lefts = page_data.get('left', [])
+    for page_data in ocr_data:
+        page_num = page_data.get('page_num', 0)
+        page_height = page_data.get('page_height', 1400.0)
+        texts = page_data.get('text', [])
+        tops = page_data.get('top', [])
+        heights = page_data.get('height', [])
+        lefts = page_data.get('left', [])
 
-                if not texts or len(texts) != len(tops):
+        if not texts or len(texts) != len(tops):
+            continue
+
+        # 라인별로 그룹화 (같은 Y좌표의 텍스트들을 결합)
+        from collections import defaultdict
+        lines_by_y = defaultdict(list)
+
+        for i, text in enumerate(texts):
+            if i >= len(tops):
+                continue
+
+            text_str = str(text).strip()
+            if not text_str:
+                continue
+
+            top = tops[i]
+            height = heights[i] if i < len(heights) else 0
+            left = lefts[i] if i < len(lefts) else 0
+            y_center = top + height / 2.0
+
+            # Y좌표를 10 픽셀 단위로 반올림하여 같은 줄로 간주
+            y_key = round(y_center / 10) * 10
+            lines_by_y[y_key].append((left, text_str))
+
+        # 각 라인별로 텍스트 결합 및 분류
+        for y_key, line_items in lines_by_y.items():
+            # X좌표 순으로 정렬하여 왼쪽에서 오른쪽 순서로
+            line_items.sort(key=lambda x: x[0])
+            combined_text = ' '.join(item[1] for item in line_items).strip()
+
+            # 텍스트 품질 검증
+            if not is_valid_text(combined_text):
+                continue
+
+            # Y좌표 비율 계산
+            y_ratio = y_key / page_height
+
+            # region_hints로 분류
+            for region_type, hints in region_hints_dict.items():
+                y_min = hints.get('y_min', 0.0)
+                y_max = hints.get('y_max', 1.0)
+
+                if y_min <= y_ratio <= y_max:
+                    # 중복 제거 및 추가
+                    if combined_text not in region_texts[region_type]:
+                        region_texts[region_type].append(combined_text)
+                    break
+
+    # 각 영역별로 최대 20개만 유지 (품질 높은 것 우선)
+    for region_type in region_texts:
+        # 길이 순으로 정렬 (긴 문장 우선)
+        sorted_texts = sorted(
+            region_texts[region_type],
+            key=lambda t: len(t),
+            reverse=True
+        )
+        region_texts[region_type] = sorted_texts[:20]
+
+    # 결과가 너무 적으면 필터링 완화하여 재시도
+    total_extracted = sum(len(texts) for texts in region_texts.values())
+
+    if total_extracted < 10:
+        logger.warning(f"[텍스트 추출] 추출된 텍스트가 적음 ({total_extracted}개) - 필터링 완화하여 재시도")
+
+        # 필터링 완화 버전
+        def is_valid_text_relaxed(text: str) -> bool:
+            """완화된 텍스트 품질 검증"""
+            # CID 코드만 제거
+            if 'cid:' in text.lower() or '(cid:' in text:
+                return False
+
+            # 최소 3자 이상 (완화)
+            if len(text) < 3:
+                return False
+
+            # 한글 또는 영문이 하나라도 있으면 OK
+            has_korean = any(ord(c) >= 0xAC00 and ord(c) <= 0xD7A3 for c in text)
+            has_alpha = any(c.isalpha() for c in text)
+
+            return has_korean or has_alpha
+
+        # 재추출
+        region_texts_relaxed = {region_type: [] for region_type in region_hints_dict.keys()}
+
+        for page_data in ocr_data:
+            page_num = page_data.get('page_num', 0)
+            page_height = page_data.get('page_height', 1400.0)
+            texts = page_data.get('text', [])
+            tops = page_data.get('top', [])
+            heights = page_data.get('height', [])
+            lefts = page_data.get('left', [])
+
+            if not texts or len(texts) != len(tops):
+                continue
+
+            # 라인별로 그룹화
+            from collections import defaultdict
+            lines_by_y = defaultdict(list)
+
+            for i, text in enumerate(texts):
+                if i >= len(tops):
                     continue
 
-                # 라인별로 그룹화 (같은 Y좌표의 텍스트들을 결합)
-                from collections import defaultdict
-                lines_by_y = defaultdict(list)
+                text_str = str(text).strip()
+                if not text_str:
+                    continue
 
-                for i, text in enumerate(texts):
-                    if i >= len(tops):
-                        continue
+                top = tops[i]
+                height = heights[i] if i < len(heights) else 0
+                left = lefts[i] if i < len(lefts) else 0
+                y_center = top + height / 2.0
+                y_key = round(y_center / 10) * 10
+                lines_by_y[y_key].append((left, text_str))
 
-                    text_str = str(text).strip()
-                    if not text_str:
-                        continue
+            # 각 라인별로 텍스트 결합 및 분류
+            for y_key, line_items in lines_by_y.items():
+                line_items.sort(key=lambda x: x[0])
+                combined_text = ' '.join(item[1] for item in line_items).strip()
 
-                    top = tops[i]
-                    height = heights[i] if i < len(heights) else 0
-                    left = lefts[i] if i < len(lefts) else 0
-                    y_center = top + height / 2.0
+                # 완화된 검증
+                if not is_valid_text_relaxed(combined_text):
+                    continue
 
-                    # Y좌표를 10 픽셀 단위로 반올림하여 같은 줄로 간주
-                    y_key = round(y_center / 10) * 10
-                    lines_by_y[y_key].append((left, text_str))
+                y_ratio = y_key / page_height
 
-                # 각 라인별로 텍스트 결합 및 분류
-                for y_key, line_items in lines_by_y.items():
-                    # X좌표 순으로 정렬하여 왼쪽에서 오른쪽 순서로
-                    line_items.sort(key=lambda x: x[0])
-                    combined_text = ' '.join(item[1] for item in line_items).strip()
+                # region_hints로 분류
+                for region_type, hints in region_hints_dict.items():
+                    y_min = hints.get('y_min', 0.0)
+                    y_max = hints.get('y_max', 1.0)
 
-                    # 텍스트 품질 검증
-                    if not is_valid_text(combined_text):
-                        continue
+                    if y_min <= y_ratio <= y_max:
+                        if combined_text not in region_texts_relaxed[region_type]:
+                            region_texts_relaxed[region_type].append(combined_text)
+                        break
 
-                    # Y좌표 비율 계산
-                    y_ratio = y_key / page_height
-
-                    # region_hints로 분류
-                    for region_type, hints in region_hints_dict.items():
-                        y_min = hints.get('y_min', 0.0)
-                        y_max = hints.get('y_max', 1.0)
-
-                        if y_min <= y_ratio <= y_max:
-                            # 중복 제거 및 추가
-                            if combined_text not in region_texts[region_type]:
-                                region_texts[region_type].append(combined_text)
-                            break
-
-            # 각 영역별로 최대 20개만 유지 (품질 높은 것 우선)
-            for region_type in region_texts:
-                # 길이 순으로 정렬 (긴 문장 우선)
-                sorted_texts = sorted(
-                    region_texts[region_type],
+        # 완화 버전으로 교체
+        for region_type in region_texts_relaxed:
+            if len(region_texts_relaxed[region_type]) > len(region_texts[region_type]):
+                region_texts[region_type] = sorted(
+                    region_texts_relaxed[region_type],
                     key=lambda t: len(t),
                     reverse=True
-                )
-                region_texts[region_type] = sorted_texts[:20]
+                )[:20]
 
-            # 결과가 너무 적으면 필터링 완화하여 재시도
-            total_extracted = sum(len(texts) for texts in region_texts.values())
+    # 최종 정리 (각 영역별로 최대 20개)
+    for region_type in region_texts:
+        region_texts[region_type] = region_texts[region_type][:20]
 
-            if total_extracted < 10:
-                logger.warning(f"[텍스트 추출] 추출된 텍스트가 적음 ({total_extracted}개) - 필터링 완화하여 재시도")
+    logger.info(f"[텍스트 추출] 영역별 텍스트 추출 완료")
+    for region_type, texts in region_texts.items():
+        logger.info(f"  - {region_type}: {len(texts)}개 예시")
 
-                # 필터링 완화 버전
-                def is_valid_text_relaxed(text: str) -> bool:
-                    """완화된 텍스트 품질 검증"""
-                    # CID 코드만 제거
-                    if 'cid:' in text.lower() or '(cid:' in text:
-                        return False
+    # 디버그 정보 추가
+    debug_info = {}
+    if total_extracted < 10:
+        debug_info['warning'] = '추출된 텍스트가 적습니다. 샘플 페이지를 다른 페이지로 변경해보세요.'
+        debug_info['suggestion'] = '개념/본문/문제가 모두 포함된 페이지를 선택하세요 (예: 10, 20, 30).'
 
-                    # 최소 3자 이상 (완화)
-                    if len(text) < 3:
-                        return False
-
-                    # 한글 또는 영문이 하나라도 있으면 OK
-                    has_korean = any(ord(c) >= 0xAC00 and ord(c) <= 0xD7A3 for c in text)
-                    has_alpha = any(c.isalpha() for c in text)
-
-                    return has_korean or has_alpha
-
-                # 재추출
-                region_texts_relaxed = {region_type: [] for region_type in region_hints_dict.keys()}
-
-                for page_data in ocr_data:
-                    page_num = page_data.get('page_num', 0)
-                    page_height = page_data.get('page_height', 1400.0)
-                    texts = page_data.get('text', [])
-                    tops = page_data.get('top', [])
-                    heights = page_data.get('height', [])
-                    lefts = page_data.get('left', [])
-
-                    if not texts or len(texts) != len(tops):
-                        continue
-
-                    # 라인별로 그룹화
-                    from collections import defaultdict
-                    lines_by_y = defaultdict(list)
-
-                    for i, text in enumerate(texts):
-                        if i >= len(tops):
-                            continue
-
-                        text_str = str(text).strip()
-                        if not text_str:
-                            continue
-
-                        top = tops[i]
-                        height = heights[i] if i < len(heights) else 0
-                        left = lefts[i] if i < len(lefts) else 0
-                        y_center = top + height / 2.0
-                        y_key = round(y_center / 10) * 10
-                        lines_by_y[y_key].append((left, text_str))
-
-                    # 각 라인별로 텍스트 결합 및 분류
-                    for y_key, line_items in lines_by_y.items():
-                        line_items.sort(key=lambda x: x[0])
-                        combined_text = ' '.join(item[1] for item in line_items).strip()
-
-                        # 완화된 검증
-                        if not is_valid_text_relaxed(combined_text):
-                            continue
-
-                        y_ratio = y_key / page_height
-
-                        # region_hints로 분류
-                        for region_type, hints in region_hints_dict.items():
-                            y_min = hints.get('y_min', 0.0)
-                            y_max = hints.get('y_max', 1.0)
-
-                            if y_min <= y_ratio <= y_max:
-                                if combined_text not in region_texts_relaxed[region_type]:
-                                    region_texts_relaxed[region_type].append(combined_text)
-                                break
-
-                # 완화 버전으로 교체
-                for region_type in region_texts_relaxed:
-                    if len(region_texts_relaxed[region_type]) > len(region_texts[region_type]):
-                        region_texts[region_type] = sorted(
-                            region_texts_relaxed[region_type],
-                            key=lambda t: len(t),
-                            reverse=True
-                        )[:20]
-
-            # 최종 정리 (각 영역별로 최대 20개)
-            for region_type in region_texts:
-                region_texts[region_type] = region_texts[region_type][:20]
-
-            logger.info(f"[텍스트 추출] 영역별 텍스트 추출 완료")
-            for region_type, texts in region_texts.items():
-                logger.info(f"  - {region_type}: {len(texts)}개 예시")
-
-            # 디버그 정보 추가
-            debug_info = {}
-            if total_extracted < 10:
-                debug_info['warning'] = '추출된 텍스트가 적습니다. 샘플 페이지를 다른 페이지로 변경해보세요.'
-                debug_info['suggestion'] = '개념/본문/문제가 모두 포함된 페이지를 선택하세요 (예: 10, 20, 30).'
-
-            return {
-                "ok": True,
-                "region_text_examples": region_texts,
-                "pages_processed": len(ocr_data),
-                "total_examples": sum(len(texts) for texts in region_texts.values()),
-                "debug": debug_info if debug_info else None
-            }
-
-        finally:
-            # 임시 파일 삭제
-            try:
-                temp_pdf_path.unlink()
-            except Exception:
-                pass
+    return {
+        "ok": True,
+        "region_text_examples": region_texts,
+        "pages_processed": len(ocr_data),
+        "total_examples": sum(len(texts) for texts in region_texts.values()),
+        "debug": debug_info if debug_info else None
+    }
 
     except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[텍스트 추출] 오류 발생: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"텍스트 추출 중 오류: {str(e)}")
+    finally:
+        # 임시 파일 삭제
+        try:
+            temp_pdf_path.unlink()
+        except Exception:
+            pass
         raise
     except Exception as e:
         logger.error(f"[텍스트 추출] 오류 발생: {e}", exc_info=True)
