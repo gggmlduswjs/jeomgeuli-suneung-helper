@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from app.db.session import get_db
-from app.db.models import UserProgress
+from app.infrastructure.database.session import get_db
+from app.infrastructure.database.models import UserProgress
 from app.schemas.progress import ProgressCreate, ProgressResponse
 from app.core.config import settings
 

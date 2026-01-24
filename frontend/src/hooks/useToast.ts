@@ -32,7 +32,7 @@ export function useToast(defaultDuration: number = DEFAULT_DURATION): UseToastRe
     }
     
     // 자동 숨김
-    const hideTimeout = setTimeout(() => {
+    setTimeout(() => {
       setShowToast(false);
     }, duration ?? defaultDuration);
     

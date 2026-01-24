@@ -3,7 +3,6 @@
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { literatureAPI } from '../services/literature';
-import { AI_EXPLANATION_LOAD_DELAY } from '../components/unit/constants';
 import type { Unit } from '../types/api';
 
 interface UseUnitAIExplanationOptions {

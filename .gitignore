@@ -6,6 +6,7 @@ backend/keys/**
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
 *.so
 .Python
 build/
@@ -62,6 +63,7 @@ dist/
 build/
 .next/
 out/
+dev-dist/
 
 # IDE
 .vscode/
@@ -147,6 +149,7 @@ backend/spatial-logic-444905-j1-9a3a2a5f636b.json
 
 # Windows
 nul
+amp
 
 # OCR outputs
 **/ocr_*.txt

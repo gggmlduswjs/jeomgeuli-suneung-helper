@@ -8,9 +8,10 @@ import uuid
 import json
 from pathlib import Path
 
-from app.db.session import get_db
-from app.db.models import Lesson, Book, UnitType
+from app.infrastructure.database.session import get_db
+from app.infrastructure.database.models import Lesson, Book, UnitType
 from app.schemas.lesson import LessonCreate, LessonResponse
+from app.core.exceptions import BookNotFoundException, LessonNotFoundException
 # LectureLessonSplitter (삭제된 모듈 대체용)
 try:
     from app.services.lecture_lesson_splitter import LectureLessonSplitter
@@ -26,13 +27,6 @@ except ImportError:
         def split_into_lessons(self, text: str, lesson_titles: List[str]) -> list:
             raise HTTPException(status_code=501, detail="강의 레슨 분할이 지원되지 않습니다.")
 
-# hwp_extract (삭제된 모듈 대체용)
-try:
-    from app.services.hwp_extract import extract_text_from_hwp
-except ImportError:
-    # hwp_extract 모듈이 없는 경우 stub 함수 제공
-    def extract_text_from_hwp(file_path) -> str:
-        raise HTTPException(status_code=501, detail="HWP 파일 처리가 지원되지 않습니다.")
 from app.core.config import settings
 from app.utils.id_generator import generate_lesson_id
 
@@ -44,10 +38,24 @@ async def create_lesson(
     data: LessonCreate,
     db: Session = Depends(get_db)
 ):
-    """레슨 생성"""
+    """
+    레슨 생성
+
+    교재에 새로운 레슨을 추가합니다.
+
+    Args:
+        data: 레슨 생성 데이터 (book_id, index, title 포함)
+        db: 데이터베이스 세션
+
+    Returns:
+        LessonResponse: 생성된 레슨 정보
+
+    Raises:
+        BookNotFoundException: 해당 교재를 찾을 수 없는 경우
+    """
     book = db.query(Book).filter(Book.book_id == data.book_id).first()
     if not book:
-        raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
+        raise BookNotFoundException(data.book_id)
     
     # 의미있는 레슨 ID 생성
     lesson_id = generate_lesson_id(book.subject.value, data.index)
@@ -79,10 +87,24 @@ async def create_lesson(
 
 @router.get("/books/{book_id}/lessons", response_model=List[LessonResponse])
 async def list_lessons(book_id: str, db: Session = Depends(get_db)):
-    """교재의 레슨 목록 조회"""
+    """
+    교재의 레슨 목록 조회
+
+    특정 교재에 속한 모든 레슨을 index 순으로 조회합니다.
+
+    Args:
+        book_id: 교재 ID
+        db: 데이터베이스 세션
+
+    Returns:
+        List[LessonResponse]: 레슨 목록 (index 오름차순 정렬)
+
+    Raises:
+        BookNotFoundException: 해당 교재를 찾을 수 없는 경우
+    """
     book = db.query(Book).filter(Book.book_id == book_id).first()
     if not book:
-        raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
+        raise BookNotFoundException(book_id)
     
     lessons = db.query(Lesson).filter(Lesson.book_id == book_id).order_by(Lesson.index).all()
     
@@ -111,10 +133,24 @@ async def list_lessons(book_id: str, db: Session = Depends(get_db)):
 
 @router.get("/lessons/{lesson_id}", response_model=LessonResponse)
 async def get_lesson(lesson_id: str, db: Session = Depends(get_db)):
-    """레슨 상세 조회"""
+    """
+    레슨 상세 조회
+
+    레슨의 상세 정보를 조회합니다. 학습 단위 개수와 문제 개수를 포함합니다.
+
+    Args:
+        lesson_id: 레슨 ID
+        db: 데이터베이스 세션
+
+    Returns:
+        LessonResponse: 레슨 상세 정보 (unit_count, question_count 포함)
+
+    Raises:
+        LessonNotFoundException: 해당 레슨을 찾을 수 없는 경우
+    """
     lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="레슨을 찾을 수 없습니다.")
+        raise LessonNotFoundException(lesson_id)
     
     unit_count = len(lesson.units) if lesson.units else 0
     question_count = len([u for u in lesson.units if u.type == UnitType.QUESTION]) if lesson.units else 0
@@ -135,57 +171,6 @@ async def get_lesson(lesson_id: str, db: Session = Depends(get_db)):
     )
 
 
-@router.post("/lessons/{lesson_id}/upload-script")
-async def upload_lecture_script(
-    lesson_id: str,
-    hwp_file: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
-    """
-    강의 대본 HWP 파일 업로드 및 저장 (관리자용)
-    
-    HWP 파일에서 텍스트 추출하여 Lesson에 저장
-    """
-    lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
-    if not lesson:
-        raise HTTPException(status_code=404, detail="레슨을 찾을 수 없습니다.")
-    
-    # HWP 파일 임시 저장
-    upload_dir = settings.UPLOADS_DIR
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    hwp_path = upload_dir / hwp_file.filename
-    with open(hwp_path, "wb") as f:
-        content = await hwp_file.read()
-        f.write(content)
-    
-    try:
-        # HWP에서 텍스트 추출
-        script_text = extract_text_from_hwp(hwp_path)
-        
-        if not script_text:
-            raise HTTPException(status_code=400, detail="강의 대본을 추출할 수 없습니다.")
-        
-        # Lesson에 저장
-        lesson.lecture_script_text = script_text
-        db.commit()
-        
-        return {
-            "message": "강의 대본이 저장되었습니다.",
-            "lesson_id": lesson_id,
-            "script_length": len(script_text)
-        }
-    
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"강의 대본 저장 실패: {str(e)}")
-    
-    finally:
-        # 임시 파일 삭제
-        if hwp_path.exists():
-            hwp_path.unlink()
-
-
 @router.post("/lessons/{lesson_id}/split", response_model=List[LessonResponse])
 async def split_lesson_script(
     lesson_id: str,
@@ -204,8 +189,8 @@ async def split_lesson_script(
     """
     lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="레슨을 찾을 수 없습니다.")
-    
+        raise LessonNotFoundException(lesson_id)
+
     if not lesson.lecture_script_text:
         raise HTTPException(status_code=400, detail="강의 대본이 없습니다.")
     
@@ -264,7 +249,7 @@ async def get_lesson_script(lesson_id: str, db: Session = Depends(get_db)):
     """
     lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="레슨을 찾을 수 없습니다.")
+        raise LessonNotFoundException(lesson_id)
     
     return {
         "lesson_id": lesson_id,
@@ -286,7 +271,7 @@ async def get_lesson_summary(lesson_id: str, db: Session = Depends(get_db)):
     
     lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="레슨을 찾을 수 없습니다.")
+        raise LessonNotFoundException(lesson_id)
     
     # 레슨 내용 수집
     content_parts = []

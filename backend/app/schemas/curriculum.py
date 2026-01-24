@@ -4,7 +4,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
-from app.db.models import Subject, CurriculumStatus
+from app.infrastructure.database.models import Subject, CurriculumStatus
 
 
 class LearningUnitCreate(BaseModel):

@@ -12,7 +12,7 @@ async def health():
     """서버 상태 확인"""
     try:
         # 데이터베이스 연결 확인 (선택적)
-        from app.db.session import SessionLocal
+        from app.infrastructure.database.session import SessionLocal
         db = SessionLocal()
         try:
             db.execute(text("SELECT 1"))

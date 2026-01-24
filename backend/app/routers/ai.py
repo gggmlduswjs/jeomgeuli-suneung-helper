@@ -9,27 +9,23 @@ from pathlib import Path
 import json
 import os
 
-from app.db.session import get_db
-from app.db.models import Lesson, Unit, UnitType
+from app.infrastructure.database.session import get_db
+from app.infrastructure.database.models import Lesson, Unit, UnitType
+from app.core.exceptions import (
+    LessonNotFoundException, UnitNotFoundException,
+    ExternalServiceException, DatabaseOperationException
+)
 
-# OpenAI API 사용
-try:
-    import openai
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
-
-# ML 기반 유사도 계산 서비스 (선택적)
-try:
-    from app.utils.ml_content_similarity import get_similarity_service, get_keyword_extractor
-    ML_AVAILABLE = True
-except (ImportError, Exception) as e:
-    # torch/sentence_transformers 관련 에러도 무시 (선택적 의존성)
-    ML_AVAILABLE = False
-    def get_similarity_service():
-        return None
-    def get_keyword_extractor():
-        return None
+# 공통 AI 유틸리티 사용
+from app.utils.ai_utils import (
+    get_openai_client,
+    get_similarity_service,
+    get_keyword_extractor,
+    check_openai_available,
+    check_ml_available,
+    OPENAI_AVAILABLE,
+    ML_AVAILABLE
+)
 
 # AILectureTeacher (삭제된 모듈 대체용)
 try:
@@ -55,14 +51,6 @@ except ImportError:
 router = APIRouter()
 
 
-def get_openai_client():
-    """OpenAI 클라이언트 생성"""
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="OPENAI_API_KEY가 설정되지 않았습니다.")
-    return openai.OpenAI(api_key=api_key)
-
-
 @router.post("/ai/teach/unit/{unit_id}")
 async def ai_teach_unit(
     unit_id: str,
@@ -79,7 +67,7 @@ async def ai_teach_unit(
     """
     unit = db.query(Unit).filter(Unit.unit_id == unit_id).first()
     if not unit:
-        raise HTTPException(status_code=404, detail="학습 단위를 찾을 수 없습니다.")
+        raise UnitNotFoundException(unit_id)
 
     # 1순위: Unit에 저장된 AI 설명 사용
     if unit.ai_explanation:
@@ -123,10 +111,9 @@ async def ai_teach_unit(
             # 실패하면 Unit 내용만으로 시도
     
     # 3순위: 강의 대본 없이 Unit 내용만으로 설명 생성 시도
-    if unit_content and OPENAI_AVAILABLE and os.getenv('OPENAI_API_KEY'):
+    if unit_content and check_openai_available():
         try:
-            import openai
-            client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            client = get_openai_client()
             
             # Unit 타입에 따른 프롬프트
             if unit.type == UnitType.QUESTION:
@@ -246,9 +233,9 @@ async def ai_answer_question(
             # 실패하면 fallback으로 진행
     
     # 2순위: 강의 대본이 없거나 실패한 경우, Unit 내용만으로 답변
-    if unit_content and OPENAI_AVAILABLE and os.getenv('OPENAI_API_KEY'):
+    if unit_content and check_openai_available():
         try:
-            client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            client = get_openai_client()
             
             # Unit 내용을 컨텍스트로 사용
             context_text = f"학습 내용:\n제목: {unit_title}\n내용: {unit_content[:1000]}" if unit_title and unit_content else ""
@@ -281,9 +268,9 @@ async def ai_answer_question(
             print(f"[ai] Unit 내용 기반 답변 생성 실패: {e}")
     
     # 3순위: 컨텍스트 없이 일반적인 답변
-    if OPENAI_AVAILABLE and os.getenv('OPENAI_API_KEY'):
+    if check_openai_available():
         try:
-            client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            client = get_openai_client()
             
             prompt = f"""학생이 다음 질문을 했습니다. 친절하고 이해하기 쉽게 답변해주세요.
 
@@ -337,7 +324,7 @@ async def ai_teach_lesson(
     """
     lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="레슨을 찾을 수 없습니다.")
+        raise LessonNotFoundException(lesson_id)
     
     if not lesson.lecture_script_text:
         raise HTTPException(status_code=400, detail="강의 대본이 없습니다.")
@@ -365,7 +352,7 @@ async def ai_teach_lesson(
             "mode": mode
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI 수업 진행 실패: {str(e)}")
+        raise ExternalServiceException("AI 수업", str(e))
 
 
 @router.post("/ai/teach/{lesson_id}/next")
@@ -386,7 +373,7 @@ async def ai_get_next_topic(
     """
     lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="레슨을 찾을 수 없습니다.")
+        raise LessonNotFoundException(lesson_id)
     
     if not lesson.lecture_script_text:
         raise HTTPException(status_code=400, detail="강의 대본이 없습니다.")
@@ -407,7 +394,7 @@ async def ai_get_next_topic(
             "response": response
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"다음 주제 가져오기 실패: {str(e)}")
+        raise ExternalServiceException("AI 다음 주제", str(e))
 
 
 # ============================================================================
@@ -475,7 +462,7 @@ async def explain_concept(
         }
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI 설명 생성 실패: {str(e)}")
+        raise ExternalServiceException("AI 설명 생성", str(e))
 
 
 @router.post("/literature/ai/explain-content")
@@ -539,7 +526,7 @@ async def explain_content(
         }
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI 설명 생성 실패: {str(e)}")
+        raise ExternalServiceException("AI 설명 생성", str(e))
 
 
 @router.post("/literature/ai/explain-problem")
@@ -615,7 +602,7 @@ async def explain_problem(
         }
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI 설명 생성 실패: {str(e)}")
+        raise ExternalServiceException("AI 설명 생성", str(e))
 
 
 @router.post("/literature/ai/find-similar-content")

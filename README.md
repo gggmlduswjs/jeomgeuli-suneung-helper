@@ -1,1 +1,0 @@
-# jeomgeuli-suneung-helper

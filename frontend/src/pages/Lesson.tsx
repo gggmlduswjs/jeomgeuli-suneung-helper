@@ -22,13 +22,8 @@ export default function Lesson() {
   const { speak, stop: stopTTS } = useTTS();
   const { stop: stopSTT, isListening, transcript } = useSTT();
   const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  
-  const showToastMessage = (message: string) => {
-    setToastMessage(message);
-    setShowToast(true);
-  };
-  
+  const [toastMessage] = useState('');
+
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(false);

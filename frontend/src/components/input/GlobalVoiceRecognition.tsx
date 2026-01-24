@@ -3,9 +3,9 @@ import useSTT from '../../hooks/useSTT';
 import useVoiceCommands from '../../hooks/useVoiceCommands';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useTTS from '../../hooks/useTTS';
-import VoiceEventBus, { onMicIntent } from '../../lib/voice/VoiceEventBus';
-import micMode from '../../lib/voice/MicMode';
+import { onMicIntent } from '../../lib/voice/VoiceEventBus';
 import { useVoiceStore } from '../../store/voice';
+import VoiceService from '../../services/voice';
 import VoiceMicAnimation from './VoiceMicAnimation';
 import { useLearnMenuHandler } from '../../hooks/useLearnMenuHandler';
 
@@ -23,9 +23,7 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
   const [isLongPressing, setIsLongPressing] = useState(false);
   const [recognizedCommand, setRecognizedCommand] = useState<string | null>(null); // 인식된 명령어 표시용
   const activePointerRef = useRef<{ pointerId: number; startTime: number } | null>(null);
-  const lastTranscriptRef = useRef<string>('');
   const lastBroadcastRef = useRef<{ text: string; time: number }>({ text: '', time: 0 });
-  const transcriptProcessedRef = useRef(false);
   const pausedMediaRef = useRef<HTMLMediaElement[]>([]);
   const sttLockRef = useRef<boolean>(false);
   const coolUntilRef = useRef<number>(0);
@@ -231,15 +229,13 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
       const currentAlternatives = useVoiceStore.getState().alternatives;
       
       // 먼저 명령어 매칭 시도 (즉시 처리)
-      let commandMatched = false;
-      
+
       // 여러 대안이 있으면 모두 시도 (confidence 순서대로)
       if (currentAlternatives && currentAlternatives.length > 0) {
         for (const alt of currentAlternatives) {
           const matched = onSpeech(alt.transcript);
           if (matched) {
             console.log(`[GlobalVoice] 대안 "${alt.transcript}"에서 명령 매칭 성공 - 즉시 처리`);
-            commandMatched = true;
             lastBroadcastRef.current = { text: finalText, time: now };
             commandExecutedRef.current = now; // 명령어 실행 시간 기록
             
@@ -250,7 +246,7 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
             // 명령 매칭 시 즉시 마이크 끄기
             if (isListening) {
               if (import.meta.env.DEV) console.log('[GlobalVoice] 명령 매칭 - 마이크 자동 종료');
-              micMode.requestStop();
+              VoiceService.stopSTT();
             }
             // 포인터 상태 리셋
             activePointerRef.current = null;
@@ -269,7 +265,6 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
       const matched = onSpeech(finalText);
       if (matched) {
         console.log(`[GlobalVoice] "${finalText}"에서 명령 매칭 성공 - 즉시 처리`);
-        commandMatched = true;
         lastBroadcastRef.current = { text: finalText, time: now };
         commandExecutedRef.current = now; // 명령어 실행 시간 기록
         

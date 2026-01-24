@@ -10,7 +10,7 @@ import type { Curriculum, Subject } from '../types/curriculum';
 export default function CurriculumPage() {
   const navigate = useNavigate();
   const { speak } = useTTS();
-  const { start: startSTT, stop: stopSTT, isListening, transcript } = useSTT();
+  const { isListening, transcript } = useSTT();
   const [curricula, setCurricula] = useState<Curriculum[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<Subject | undefined>(undefined);
   const [loading, setLoading] = useState(false);

@@ -1,73 +1,115 @@
-# API Scripts 디렉토리
+# Backend Scripts
 
-이 디렉토리는 개발 및 운영에 필요한 유틸리티 스크립트들을 포함합니다.
+백엔드 개발 및 유지보수를 위한 스크립트 모음
 
-## 📋 스크립트 목록
+## 스크립트 목록
 
-### 🚀 주요 스크립트
+### 1. 템플릿 초기화
+**파일**: `init_templates.py`
 
-#### 교재 파이프라인
-- **`run_textbook_pipeline.py`** - 교재 PDF 파이프라인 실행 (문학/수학Ⅰ/영어)
-  - PDF에서 강의, 문제, 본문을 자동으로 추출하고 AI 학습 콘텐츠 생성
-  - 과목별 파이프라인 전략 지원 (literature, math1, english)
+기존 `config.json` 파일들을 템플릿으로 변환합니다.
 
-#### 서버 실행
-- **`start_server.sh`** - Linux/Mac 서버 실행 스크립트
-- **`start_server.bat`** - Windows 서버 실행 스크립트
-
-#### 데이터셋 구축
-- **`build_training_dataset.py`** - 학습 데이터셋 구축 스크립트
-
-#### 데이터 정리
-- **`cleanup_books.py`** - 교재 데이터 정리 (더미 데이터, 파일 없는 교재 삭제)
-  - 한글 파일(.hwp) 및 PDF 파일에서 점자 변환 학습 데이터셋 생성
-
-## 사용 방법
-
-### 교재 파이프라인 실행
 ```bash
-cd api
-python scripts/run_textbook_pipeline.py
+python backend/scripts/init_templates.py
 ```
 
-스크립트는 대화형으로 다음을 입력받습니다:
-- 과목 선택 (literature/math1/english)
-- PDF 파일 경로 (자동 감지 또는 수동 입력)
-- 최적화 옵션 (pdfplumber, 병렬 처리, AI 후처리 등)
+**기능**:
+- `data/literature/config.json` → `data/templates/literature_ebs_수능특강_literature_2026.json`
+- `data/math1/config.json` → `data/templates/math1_ebs_수능특강_math1_2026.json`
+- `data/english/config.json` → `data/templates/english_ebs_수능특강_english_2026.json`
 
-또는 명령줄 인자로 실행:
+**효과**:
+- 하이브리드 라우터가 자동으로 템플릿 매칭
+- 기존 교재 처리 시간: 2-5초 (템플릿 사용)
+
+---
+
+### 2. PDF 파이프라인 테스트 (개발용)
+**파일**: `pipeline/run_textbook_pipeline.py`
+
+⚠️ **개발/테스트용 스크립트입니다. 실제 운영에서는 API를 사용하세요.**
+
 ```bash
-python scripts/run_textbook_pipeline.py --subject literature --pdf "data/pdfs/2026 수능특강_ 문학.pdf"
+python backend/scripts/pipeline/run_textbook_pipeline.py
 ```
 
-### 서버 실행
-```bash
-# Linux/Mac
-./api/scripts/start_server.sh
+**용도**:
+- 파이프라인 로직 테스트
+- 디버깅 및 성능 측정
+- 로컬 개발 환경에서 빠른 테스트
 
-# Windows
-api\scripts\start_server.bat
+**실제 운영**: `POST /api/books/upload` 사용
+
+자세한 내용은 `pipeline/README.md` 참고
+
+---
+
+## API 사용 가이드
+
+### PDF 업로드 (실제 운영)
+
+```bash
+# curl 예시
+curl -X POST "http://localhost:8000/api/books/upload" \
+  -F "file=@2026_수능특강_문학.pdf" \
+  -F "title=2026 수능특강 문학" \
+  -F "subject=KOREAN" \
+  -F "year=2026"
 ```
 
-### 데이터셋 구축
-```bash
-cd api
-python scripts/build_training_dataset.py --hwp-dir "data/lecture_scripts" --pdf-dir "data/pdfs" --output "data/datasets/braille_dataset.json"
+**프론트엔드 예시**:
+```typescript
+const formData = new FormData();
+formData.append('file', pdfFile);
+formData.append('title', '2026 수능특강 문학');
+formData.append('subject', 'KOREAN');
+
+const response = await fetch('/api/books/upload', {
+  method: 'POST',
+  body: formData
+});
+
+const book = await response.json();
+// book.parse_status: "PROCESSING"
+// 백그라운드에서 자동으로 파싱 시작
 ```
 
-### 교재 데이터 정리
-```bash
-cd api
-# file_path가 None이거나 파일이 없는 교재 삭제
-python scripts/cleanup_books.py
+### 파싱 상태 확인
 
-# 확인 없이 실행
-python scripts/cleanup_books.py --yes
-
-# FAILED 상태 교재만 삭제 (7일 이상 경과)
-python scripts/cleanup_books.py --failed-old --failed-days 7
+```typescript
+// 폴링으로 진행률 확인
+const checkStatus = async (bookId: string) => {
+  const response = await fetch(`/api/books/${bookId}/parse-status`);
+  const status = await response.json();
+  
+  if (status.status === 'DONE') {
+    console.log('파싱 완료!');
+  } else if (status.status === 'PROCESSING') {
+    console.log(`진행률: ${status.progress}%`);
+    setTimeout(() => checkStatus(bookId), 2000); // 2초 후 재확인
+  }
+};
 ```
 
 ---
 
-*마지막 업데이트: 2025년 1월*
+## 워크플로우
+
+### 개발 단계
+1. 스크립트로 빠르게 테스트 (`run_textbook_pipeline.py`)
+2. 로그 확인 및 디버깅
+3. 코드 수정 및 재테스트
+
+### 운영 단계
+1. 프론트엔드에서 PDF 업로드 (`POST /api/books/upload`)
+2. API가 백그라운드에서 처리
+3. 프론트엔드에서 진행률 폴링 (`GET /api/books/{book_id}/parse-status`)
+4. 완료 후 자동으로 DB에 저장
+
+---
+
+## 참고
+
+- 모든 스크립트는 `backend/` 디렉토리에서 실행해야 합니다
+- API 엔드포인트는 `app/routers/books.py`에 정의되어 있습니다
+- 실제 파이프라인 로직은 `app/infrastructure/pdf/pipeline.py`에 있습니다

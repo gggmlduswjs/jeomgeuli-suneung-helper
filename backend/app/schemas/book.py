@@ -4,7 +4,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-from app.db.models import ParseStatus, Subject
+from app.infrastructure.database.models import ParseStatus, Subject
 
 
 class BookCreate(BaseModel):
@@ -29,3 +29,6 @@ class BookParseStatusResponse(BaseModel):
     book_id: str
     status: ParseStatus
     progress: int  # 0-100
+    current_page: Optional[int] = 0
+    total_pages: Optional[int] = 0
+    message: Optional[str] = None

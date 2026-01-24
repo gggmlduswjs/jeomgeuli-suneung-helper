@@ -3,7 +3,7 @@
  * 텍스트를 청크로 분할하고 순차적으로 점자 디스플레이에 출력
  */
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { splitToBrailleChunks, estimateBrailleCells } from '../lib/braille';
+import { splitToBrailleChunks } from '../lib/braille';
 import { brailleDisplayConfig } from '../config/brailleDisplay';
 import useBrailleBLE from './useBrailleBLE';
 import { useArduinoButtons } from './useArduinoButtons';
@@ -38,7 +38,7 @@ export function useBrailleChunkReader(
   const { isConnected, writeText } = useBrailleBLE();
   
   // Arduino 버튼 제어 (선택적)
-  const { isConnected: isArduinoConnected, connect: connectArduino, onButtonPress, offButtonPress } = useArduinoButtons();
+  const { isConnected: isArduinoConnected, onButtonPress, offButtonPress } = useArduinoButtons();
   
   // 과목별 전략 적용
   const getSubjectStrategy = (subject?: string): 'word' | 'sentence' | 'smart' => {

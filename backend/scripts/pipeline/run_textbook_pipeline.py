@@ -1,21 +1,36 @@
 """
-교재 PDF 파이프라인 실행 스크립트
+교재 PDF 파이프라인 실행 스크립트 (개발/테스트용)
+
+⚠️ 주의: 이 스크립트는 개발 및 디버깅용입니다.
+실제 운영 환경에서는 API 엔드포인트를 사용하세요:
+  POST /api/books/upload
+
+용도:
+  - 파이프라인 로직 테스트
+  - 디버깅 및 성능 측정
+  - 로컬 개발 환경에서 빠른 테스트
+
+실제 사용:
+  프론트엔드 → POST /api/books/upload → 백그라운드 처리 → DB 저장
 """
 import sys
 from pathlib import Path
 
 # 프로젝트 루트를 경로에 추가
 project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root / "api"))
+sys.path.insert(0, str(project_root))  # backend/ 디렉토리를 경로에 추가
 
-from app.processing.pipeline import UnifiedPipeline
+from app.infrastructure.pdf.pipeline import UnifiedPipeline
 from app.core.config import settings
 
 def main():
-    """교재 PDF 파이프라인 실행"""
+    """교재 PDF 파이프라인 실행 (개발/테스트용)"""
     
     print("=" * 60)
     print("교재 PDF 기반 AI 학습 콘텐츠 자동 생성 시스템")
+    print("=" * 60)
+    print("⚠️  개발/테스트용 스크립트입니다.")
+    print("    실제 운영: POST /api/books/upload 사용")
     print("=" * 60)
     
     # 과목 선택
@@ -70,9 +85,8 @@ def main():
     clear_cache = input("OCR 캐시 및 생성된 파일 삭제? (빈 결과가 나올 때: y/N): ").strip().lower() == 'y'
     if clear_cache:
         import shutil
-        # 두 가지 경로 모두 확인 (api/data와 data)
+        # backend/data 경로만 확인
         base_dirs = [
-            project_root / "api" / "data" / subject,
             project_root / "data" / subject
         ]
         

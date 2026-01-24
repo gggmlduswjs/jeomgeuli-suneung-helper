@@ -34,22 +34,21 @@ export default function UnitPage() {
   const navigate = useNavigate();
   const { unitId } = useParams<{ unitId: string }>();
   const { speak, stop: stopTTS } = useTTS();
-  const { start: startSTT, stop: stopSTT, isListening, transcript } = useSTT();
+  const { stop: stopSTT, isListening, transcript } = useSTT();
   const { showToast, toastMessage, setShowToast, showToastMessage } = useToast();
   
   // 데이터 로딩
-  const { unit, lesson, book, allUnits, loading, error, loadUnit, reset: resetData } = useUnitData();
+  const { unit, lesson, book, allUnits, loading, error, loadUnit } = useUnitData();
   
   // 점자
   const { sendText } = useBrailleBLE();
   
   // AI 설명
-  const { 
-    aiExplanation, 
-    isAiLoading, 
-    loadAIExplanation, 
-    handleQuestion: handleAIQuestion,
-    reset: resetAI 
+  const {
+    aiExplanation,
+    isAiLoading,
+    loadAIExplanation,
+    reset: resetAI
   } = useUnitAI(speak, sendText);
   
   // 네비게이션

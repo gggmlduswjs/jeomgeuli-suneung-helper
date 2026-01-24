@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      # 데이터 영속성
+      - ./data:/app/data
+      # 개발 시 코드 변경 실시간 반영 (선택)
+      # - ./app:/app/app
+    environment:
+      # .env 파일에서 자동으로 로드됨
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////app/data/db.sqlite3}
+      - POPPLER_PATH=/usr/bin
+      - TESSERACT_CMD=/usr/bin/tesseract
+    env_file:
+      - .env
+    restart: unless-stopped

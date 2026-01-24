@@ -8,8 +8,8 @@ from typing import List, Optional, Dict
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks, Response
 from sqlalchemy.orm import Session
 
-from app.db.session import get_db
-from app.db.models import Curriculum, LearningUnit, CurriculumStatus, Subject
+from app.infrastructure.database.session import get_db
+from app.infrastructure.database.models import Curriculum, LearningUnit, CurriculumStatus, Subject
 from app.schemas.curriculum import (
     CurriculumCreate,
     CurriculumResponse,
@@ -21,6 +21,10 @@ from app.schemas.curriculum import (
     ConnectionInfo
 )
 from app.core.config import settings
+from app.core.exceptions import (
+    CurriculumNotFoundException, LessonNotFoundException,
+    UnitNotFoundException, InvalidSubjectException
+)
 
 # AutoCurriculumBuilder (삭제된 모듈 대체용)
 try:
@@ -347,7 +351,7 @@ async def list_curricula(
             subject_enum = Subject(subject.upper())
             query = query.filter(Curriculum.subject == subject_enum)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"유효하지 않은 과목: {subject}")
+            raise InvalidSubjectException(subject)
     
     if book_id:
         query = query.filter(Curriculum.book_id == book_id)
@@ -382,7 +386,7 @@ async def get_curriculum(
     response.headers["Expires"] = "0"
     curriculum = db.query(Curriculum).filter(Curriculum.curriculum_id == curriculum_id).first()
     if not curriculum:
-        raise HTTPException(status_code=404, detail="커리큘럼을 찾을 수 없습니다.")
+        raise CurriculumNotFoundException(curriculum_id)
     
     # 학습 단위 조회
     learning_units = db.query(LearningUnit).filter(
@@ -598,7 +602,7 @@ async def get_curriculum_lesson(
     """커리큘럼의 특정 레슨 조회"""
     curriculum = db.query(Curriculum).filter(Curriculum.curriculum_id == curriculum_id).first()
     if not curriculum:
-        raise HTTPException(status_code=404, detail="커리큘럼을 찾을 수 없습니다.")
+        raise CurriculumNotFoundException(curriculum_id)
     
     # 학습 단위 조회
     learning_units = db.query(LearningUnit).filter(
@@ -675,7 +679,7 @@ async def update_curriculum(
     """커리큘럼 수정"""
     curriculum = db.query(Curriculum).filter(Curriculum.curriculum_id == curriculum_id).first()
     if not curriculum:
-        raise HTTPException(status_code=404, detail="커리큘럼을 찾을 수 없습니다.")
+        raise CurriculumNotFoundException(curriculum_id)
     
     if update_data.title:
         curriculum.title = update_data.title
@@ -706,7 +710,7 @@ async def delete_curriculum(
     """커리큘럼 삭제"""
     curriculum = db.query(Curriculum).filter(Curriculum.curriculum_id == curriculum_id).first()
     if not curriculum:
-        raise HTTPException(status_code=404, detail="커리큘럼을 찾을 수 없습니다.")
+        raise CurriculumNotFoundException(curriculum_id)
     
     db.delete(curriculum)
     db.commit()
@@ -744,7 +748,7 @@ async def extract_text_from_image(
     # 학습 단위 확인
     curriculum = db.query(Curriculum).filter(Curriculum.curriculum_id == curriculum_id).first()
     if not curriculum:
-        raise HTTPException(status_code=404, detail="커리큘럼을 찾을 수 없습니다.")
+        raise CurriculumNotFoundException(curriculum_id)
     
     min_order = lesson_number * 10000
     max_order = (lesson_number + 1) * 10000
@@ -757,7 +761,7 @@ async def extract_text_from_image(
     ).first()
     
     if not unit:
-        raise HTTPException(status_code=404, detail="학습 단위를 찾을 수 없습니다.")
+        raise UnitNotFoundException(unit_id)
     
     # pdf_references에서 block_id 추출
     pdf_refs = json.loads(unit.pdf_references) if unit.pdf_references else {}

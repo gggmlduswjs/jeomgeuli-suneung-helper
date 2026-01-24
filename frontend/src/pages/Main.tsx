@@ -154,7 +154,7 @@ export default function Main() {
 
             {/* 과목 선택 카드 */}
             <SubjectSelectCard
-              onSubjectSelect={(subject) => {
+              onSubjectSelect={(_subject) => {
                 // 교재 선택 페이지로 이동 (BookSelect로 통합)
                 navigate(ROUTES.BOOKS);
               }}

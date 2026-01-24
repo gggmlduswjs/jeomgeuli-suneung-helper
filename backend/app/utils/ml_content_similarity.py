@@ -68,7 +68,7 @@ class MLContentSimilarity:
         
         # 캐시 디렉토리 설정
         if cache_dir is None:
-            # 기본 캐시 디렉토리: api/data/ml_cache/
+            # 기본 캐시 디렉토리: backend/data/ml_cache/
             api_dir = Path(__file__).parent.parent.parent
             cache_dir = api_dir / "data" / "ml_cache"
         

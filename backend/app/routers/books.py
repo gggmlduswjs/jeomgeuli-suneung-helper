@@ -9,29 +9,17 @@ import sys
 import logging
 from pathlib import Path
 
-from app.db.session import get_db
-from app.db.models import Book, ParseStatus, Subject
+from app.infrastructure.database.session import get_db
+from app.infrastructure.database.models import Book, ParseStatus, Subject
 from app.schemas.book import BookCreate, BookResponse, BookParseStatusResponse
 from app.core.config import settings
-# HWP 관련 함수들 (삭제된 모듈 대체용)
-try:
-    from app.services.hwp_extract import (
-        extract_text_from_hwp,
-        extract_lesson_info_from_filename,
-        extract_structure_from_hwp
-    )
-except ImportError:
-    # hwp_extract 모듈이 없는 경우 stub 함수 제공
-    def extract_text_from_hwp(file_path: Path) -> str:
-        raise HTTPException(status_code=501, detail="HWP 파일 처리가 지원되지 않습니다.")
-    
-    def extract_lesson_info_from_filename(filename: str) -> dict:
-        return {}
-    
-    def extract_structure_from_hwp(file_path: Path) -> dict:
-        return {}
+from app.core.exceptions import (
+    BookNotFoundException, InvalidFileFormatException,
+    FileTooLargeException, InvalidSubjectException,
+    ParsingFailedException, DatabaseOperationException
+)
 from app.utils.id_generator import generate_lesson_id, generate_book_id
-from app.db.models import Lesson, Curriculum, LearningUnit, CurriculumStatus, Unit, UnitType
+from app.infrastructure.database.models import Lesson, Curriculum, LearningUnit, CurriculumStatus, Unit, UnitType
 import json
 
 # ML 기반 섹션 분류기 (선택적)
@@ -43,14 +31,12 @@ except ImportError:
     # ML 분류기는 선택적 의존성이므로 경고 없이 무시
 
 
-def _subject_to_pipeline_subject(subject: Subject) -> str:
-    """Subject enum을 textbook_pipeline의 subject 형식으로 변환"""
-    mapping = {
-        Subject.KOREAN: "literature",
-        Subject.MATH: "math1",
-        Subject.ENGLISH: "english",
-    }
-    return mapping.get(subject, "literature")
+# 서비스 레이어에서 변환 함수 가져오기
+from app.services.book_conversion import (
+    subject_to_pipeline_subject as _subject_to_pipeline_subject,
+    map_section_type_to_unit_type as _map_section_type_to_unit_type,
+    convert_learning_units_to_units as _convert_learning_units_to_units
+)
 
 
 def _map_section_type_to_unit_type(section_type: str) -> UnitType:
@@ -86,261 +72,7 @@ def _map_section_type_to_unit_type(section_type: str) -> UnitType:
     return mapping.get(section_type.lower(), UnitType.CONCEPT_CORE)
 
 
-def _convert_learning_units_to_units(
-    curriculum_id: str,
-    book_id: str,
-    db: Session
-) -> dict:
-    """
-    Curriculum의 LearningUnit들을 Lesson과 Unit으로 변환하여 프론트엔드 호환성 확보
-
-    Args:
-        curriculum_id: 커리큘럼 ID
-        book_id: 교재 ID
-        db: 데이터베이스 세션
-
-    Returns:
-        변환 통계 딕셔너리 {"lessons_created": int, "units_created": int}
-    """
-    print(f"[books] LearningUnit → Unit 변환 시작: curriculum_id={curriculum_id}")
-
-    # 1. 커리큘럼의 모든 LearningUnit 조회
-    learning_units = db.query(LearningUnit).filter(
-        LearningUnit.curriculum_id == curriculum_id
-    ).order_by(LearningUnit.order).all()
-
-    if not learning_units:
-        print(f"[books] 변환할 LearningUnit이 없습니다.")
-        return {"lessons_created": 0, "units_created": 0}
-
-    # 2. 레슨별로 그룹화 (order = lecture_id * 10000 + unit_index)
-    lessons_dict = {}
-    for lu in learning_units:
-        lesson_number = lu.order // 10000  # lecture_id를 추출
-
-        if lesson_number not in lessons_dict:
-            lessons_dict[lesson_number] = []
-
-        lessons_dict[lesson_number].append(lu)
-
-    print(f"[books] {len(learning_units)}개 LearningUnit을 {len(lessons_dict)}개 레슨으로 그룹화")
-
-    # 3. 레슨별로 Lesson과 Unit 생성
-    lessons_created = 0
-    units_created = 0
-
-    for lesson_number in sorted(lessons_dict.keys()):
-        lesson_units = lessons_dict[lesson_number]
-
-        # 레슨 제목 추출 (첫 번째 LearningUnit의 pdf_references에서)
-        lesson_title = f"{lesson_number}강"
-        if lesson_units and lesson_units[0].pdf_references:
-            try:
-                pdf_refs = json.loads(lesson_units[0].pdf_references)
-                if isinstance(pdf_refs, list) and pdf_refs:
-                    lesson_title = pdf_refs[0].get('lecture_title', lesson_title)
-                elif isinstance(pdf_refs, dict):
-                    lesson_title = pdf_refs.get('lecture_title', lesson_title)
-            except:
-                pass
-
-        # 기존 Lesson 확인 (같은 book_id와 index로)
-        existing_lesson = db.query(Lesson).filter(
-            Lesson.book_id == book_id,
-            Lesson.index == lesson_number
-        ).first()
-        
-        if existing_lesson:
-            # 기존 Lesson 업데이트
-            existing_lesson.title = lesson_title
-            lesson = existing_lesson
-            lesson_id = existing_lesson.lesson_id
-            print(f"[books]   Lesson 업데이트: {lesson_id} - {lesson_title}")
-            
-            # 기존 Lesson의 모든 Unit 삭제 (데이터 일관성 보장)
-            existing_units = db.query(Unit).filter(Unit.lesson_id == lesson_id).all()
-            if existing_units:
-                print(f"[books]   기존 Unit {len(existing_units)}개 삭제 중...")
-                for unit in existing_units:
-                    db.delete(unit)
-                print(f"[books]   기존 Unit 삭제 완료")
-        else:
-            # 새 Lesson 생성
-            lesson_id = f"l_{uuid.uuid4().hex[:12]}"
-            lesson = Lesson(
-                lesson_id=lesson_id,
-                book_id=book_id,
-                title=lesson_title,
-                index=lesson_number  # Lesson 모델은 index 필드 사용
-            )
-            db.add(lesson)
-            lessons_created += 1
-            print(f"[books]   Lesson 생성: {lesson_id} - {lesson_title}")
-
-        # 각 LearningUnit을 Unit으로 변환
-        for lu in lesson_units:
-            # UnitType 매핑
-            unit_type = _map_section_type_to_unit_type(lu.section_type)
-
-            # 이미지 경로 및 전체 작품 내용 추출 (pdf_references에서)
-            image_path = None
-            image_paths = []
-            full_work_content = None
-            if lu.pdf_references:
-                try:
-                    pdf_refs = json.loads(lu.pdf_references)
-                    if isinstance(pdf_refs, list):
-                        # 여러 개의 참조가 있는 경우
-                        for ref in pdf_refs:
-                            if isinstance(ref, dict):
-                                # 이미지 경로 추출
-                                if ref.get('image_filename'):
-                                    page = ref.get('page', 0)
-                                    # 과목별 디렉토리 결정
-                                    curriculum = db.query(Curriculum).filter(
-                                        Curriculum.curriculum_id == curriculum_id
-                                    ).first()
-                                    if curriculum:
-                                        subject_lower = curriculum.subject.value.lower()
-                                        if subject_lower == 'korean':
-                                            subject_lower = 'literature'
-
-                                        # section_type에 따라 이미지 디렉토리 결정
-                                        if lu.section_type == 'concept':
-                                            img_dir = 'concepts_images'
-                                        elif lu.section_type == 'problem':
-                                            img_dir = 'problems_images'
-                                        else:
-                                            img_dir = 'content_images'
-
-                                        img_path = f"/api/data/{subject_lower}/{img_dir}/{ref['image_filename']}"
-                                        image_paths.append(img_path)
-
-                                # 전체 작품 내용 추출 (작품 타입인 경우)
-                                # 우선순위: full_work_content > content (전체 작품인 경우)
-                                if ref.get('is_work'):
-                                    if ref.get('full_work_content'):
-                                        full_work_content = ref['full_work_content']
-                                    elif lu.content and len(lu.content) > 100:
-                                        # full_work_content가 없지만 content가 충분히 길면 전체 작품으로 간주
-                                        full_work_content = lu.content
-                    elif isinstance(pdf_refs, dict):
-                        # 단일 참조
-                        if pdf_refs.get('image_filename'):
-                            curriculum = db.query(Curriculum).filter(
-                                Curriculum.curriculum_id == curriculum_id
-                            ).first()
-                            if curriculum:
-                                subject_lower = curriculum.subject.value.lower()
-                                if subject_lower == 'korean':
-                                    subject_lower = 'literature'
-
-                                if lu.section_type == 'concept':
-                                    img_dir = 'concepts_images'
-                                elif lu.section_type == 'problem':
-                                    img_dir = 'problems_images'
-                                else:
-                                    img_dir = 'content_images'
-
-                                img_path = f"/api/data/{subject_lower}/{img_dir}/{pdf_refs['image_filename']}"
-                                image_paths.append(img_path)
-
-                        # 전체 작품 내용 추출
-                        # 우선순위: full_work_content > content (전체 작품인 경우)
-                        if pdf_refs.get('is_work'):
-                            if pdf_refs.get('full_work_content'):
-                                full_work_content = pdf_refs['full_work_content']
-                            elif lu.content and len(lu.content) > 100:
-                                # full_work_content가 없지만 content가 충분히 길면 전체 작품으로 간주
-                                full_work_content = lu.content
-                except Exception as e:
-                    print(f"[books] 이미지 경로/전체 작품 내용 추출 실패: {e}")
-                    import traceback
-                    traceback.print_exc()
-
-            # 첫 번째 이미지를 image_path로, 나머지는 content_image_paths로
-            if image_paths:
-                image_path = image_paths[0]
-                if len(image_paths) > 1:
-                    content_image_paths_json = json.dumps(image_paths, ensure_ascii=False)
-                else:
-                    content_image_paths_json = None
-            else:
-                content_image_paths_json = None
-
-            # Unit 레코드 생성
-            # PASSAGE 타입의 경우 braille_text 필드에 전체 작품 내용 저장
-            braille_text_value = lu.braille_text
-            
-            # 작품 내용 추출 우선순위:
-            # 1. pdf_references의 full_work_content (가장 정확, 전체 작품)
-            # 2. lu.content (전체 작품 내용이 저장된 경우, 100자 이상)
-            # 3. lu.braille_text (기존 값, 100자 이상)
-            # 4. lu.content (짧은 텍스트라도 사용)
-            if unit_type == UnitType.PASSAGE:
-                if full_work_content:
-                    braille_text_value = full_work_content
-                    print(f"[books]   작품 Unit에 전체 작품 내용 저장 (pdf_references에서): {len(full_work_content)}자")
-                elif lu.content and len(lu.content) > 100:  # content가 충분히 길면 전체 작품으로 간주
-                    # content가 전체 작품 내용인 경우 (이미지가 없을 때)
-                    braille_text_value = lu.content
-                    print(f"[books]   작품 Unit에 전체 작품 내용 저장 (content에서): {len(lu.content)}자")
-                elif lu.braille_text and len(lu.braille_text) > 100:
-                    # braille_text에 이미 전체 내용이 있는 경우
-                    braille_text_value = lu.braille_text
-                    print(f"[books]   작품 Unit에 전체 작품 내용 저장 (braille_text에서): {len(lu.braille_text)}자")
-                elif lu.content:
-                    # 작품 내용이 짧아도 content를 사용
-                    braille_text_value = lu.content
-                    print(f"[books]   작품 Unit에 내용 저장: {len(lu.content)}자")
-                else:
-                    # content도 없으면 기존 braille_text 유지
-                    print(f"[books]   작품 Unit 내용 없음 (기존 braille_text 유지)")
-
-            unit = Unit(
-                unit_id=lu.unit_id,  # 같은 ID 사용
-                lesson_id=lesson_id,
-                type=unit_type,
-                title=lu.title or f"{lu.section_type} 학습 단위",
-                order=lu.order,
-                content_text=lu.content,
-                braille_text=braille_text_value,  # 작품의 경우 전체 내용, 그 외는 기존 값
-                image_path=image_path,  # DB에서 직접 관리
-                content_image_paths=content_image_paths_json  # 여러 이미지
-            )
-
-            # 문제인 경우 추가 필드 설정
-            if unit_type == UnitType.QUESTION and lu.subject_metadata:
-                try:
-                    metadata = json.loads(lu.subject_metadata)
-                    unit.question_stem = metadata.get('problem_text', lu.content)
-
-                    # 선택지 처리
-                    choices = metadata.get('choices', [])
-                    if choices:
-                        unit.question_choices = json.dumps(choices, ensure_ascii=False)
-
-                    # 정답 처리
-                    unit.question_answer = metadata.get('answer', None)
-                except:
-                    pass
-
-            db.add(unit)
-            units_created += 1
-
-        # LearningUnit에 lesson_id 설정 (양방향 참조)
-        for lu in lesson_units:
-            lu.lesson_id = lesson_id
-
-    # 4. 커밋
-    db.commit()
-
-    print(f"[books] 변환 완료: {lessons_created}개 Lesson, {units_created}개 Unit 생성")
-
-    return {
-        "lessons_created": lessons_created,
-        "units_created": units_created
-    }
+# _convert_learning_units_to_units 함수는 서비스 레이어로 이동됨
 
 
 def _create_curriculum_from_pipeline(
@@ -353,12 +85,35 @@ def _create_curriculum_from_pipeline(
     """파이프라인 결과를 커리큘럼으로 변환"""
     from app.core.config import settings
     
+    logger = logging.getLogger(__name__)
+    
     # 커리큘럼 ID 생성
     curriculum_id = f"cur_{uuid.uuid4().hex[:12]}"
     
-    # 파이프라인 데이터 경로
-    data_dir = settings.API_DIR / "data" / pipeline_subject
+    # 파이프라인 데이터 경로 (교재별로 분리됨)
+    # 교재별 디렉토리: data/{subject}/{book_id}/
+    data_dir = settings.API_DIR / "data" / pipeline_subject / book_id
     lectures_dir = data_dir / "lectures"
+    
+    # 과목 검증: pipeline_subject와 subject_enum이 일치하는지 확인
+    expected_subject_mapping = {
+        "literature": Subject.KOREAN,
+        "math1": Subject.MATH,
+        "english": Subject.ENGLISH
+    }
+    expected_subject = expected_subject_mapping.get(pipeline_subject)
+    if expected_subject and expected_subject != subject_enum:
+        logger.warning(f"[books] ⚠️ 경고: pipeline_subject({pipeline_subject})와 subject_enum({subject_enum})이 일치하지 않음!")
+        logger.warning(f"[books] 예상 과목: {expected_subject}, 실제 과목: {subject_enum}")
+    
+    # book_id가 있으면 Book의 subject도 검증
+    if book_id:
+        book = db.query(Book).filter(Book.book_id == book_id).first()
+        if book and book.subject != subject_enum:
+            logger.warning(f"[books] ⚠️ 경고: Book.subject({book.subject})와 subject_enum({subject_enum})이 일치하지 않음!")
+            logger.warning(f"[books] Book.subject를 {subject_enum}으로 업데이트합니다.")
+            book.subject = subject_enum
+            db.commit()
     
     # 디렉토리 존재 확인
     if not lectures_dir.exists():
@@ -380,11 +135,22 @@ def _create_curriculum_from_pipeline(
     print(f"[books] 발견된 강의 파일: {len(lecture_files)}개")
     
     # 각 파일에서 lecture_id 추출하여 lectures 리스트 생성
+    # 과목 검증: JSON 파일의 subject 필드 확인
     lectures = []
+    skipped_count = 0
     for lecture_file in lecture_files:
         try:
             with open(lecture_file, "r", encoding="utf-8") as f:
                 lecture_data = json.load(f)
+            
+            # 과목 검증: JSON 파일의 subject가 일치하는지 확인
+            json_subject = lecture_data.get("subject", "").lower()
+            expected_subject = pipeline_subject.lower()
+            
+            if json_subject and json_subject != expected_subject:
+                logger.warning(f"[books] ⚠️ 경고: {lecture_file.name}의 subject({json_subject})가 예상 과목({expected_subject})과 일치하지 않음. 건너뜀.")
+                skipped_count += 1
+                continue
             
             lecture_id = lecture_data.get("lecture_id", 0)
             if lecture_id == 0:
@@ -408,6 +174,9 @@ def _create_curriculum_from_pipeline(
             print(f"[books] 경고: 파일 읽기 실패 {lecture_file}: {e}")
             continue
     
+    if skipped_count > 0:
+        logger.warning(f"[books] ⚠️ {skipped_count}개 강의 파일이 과목 불일치로 건너뛰어짐")
+    
     if not lectures:
         print(f"[books] 경고: 강의 데이터가 없음")
         return curriculum_id
@@ -415,10 +184,11 @@ def _create_curriculum_from_pipeline(
     print(f"[books] 로드된 강의: {len(lectures)}개")
     
     # 커리큘럼 생성 (book_id가 None일 수 있음)
+    # subject_enum 검증 (데이터 일관성)
     curriculum = Curriculum(
         curriculum_id=curriculum_id,
         book_id=book_id,  # None일 수 있음
-        subject=subject_enum,
+        subject=subject_enum,  # 과목 필드 명시적으로 설정
         title=title,
         status=CurriculumStatus.DONE,
         lesson_count=len(lectures),  # 실제 JSON 파일 개수
@@ -426,6 +196,8 @@ def _create_curriculum_from_pipeline(
     db.add(curriculum)
     db.commit()
     db.refresh(curriculum)
+    
+    logger.info(f"[books] Curriculum 생성: {curriculum_id}, 과목: {subject_enum}, 강의: {len(lectures)}개")
     
     # 각 강의(lecture)를 레슨(lesson)으로 변환
     # 각 JSON 파일을 하나의 Lesson으로 변환 (단순화)
@@ -444,6 +216,13 @@ def _create_curriculum_from_pipeline(
         with open(lecture_file, "r", encoding="utf-8") as f:
             lecture_data = json.load(f)
         
+        # 과목 재검증 (이중 확인)
+        json_subject = lecture_data.get("subject", "").lower()
+        expected_subject = pipeline_subject.lower()
+        if json_subject and json_subject != expected_subject:
+            logger.warning(f"[books] ⚠️ 경고: {lecture_file.name}의 subject({json_subject})가 예상 과목({expected_subject})과 일치하지 않음. 건너뜀.")
+            continue
+        
         # lecture_data.title을 레슨 제목으로 사용 (예: "1강 | 시의 표현과 형식 >>> 고전 시가")
         lecture_title = lecture_data.get("title", f"{lecture_number}강")
         
@@ -454,8 +233,28 @@ def _create_curriculum_from_pipeline(
         sections = lecture_data.get("sections", [])
         problems = lecture_data.get("problems", [])  # 문제 목록 추가
         
+        # 섹션과 문제가 없어도 최소한 빈 LearningUnit을 생성하여 Lesson이 생성되도록 함
         if not sections and not problems:
-            print(f"[books] 경고: 강의 {lecture_id}에 섹션이나 문제가 없음")
+            print(f"[books] 경고: 강의 {lecture_id}에 섹션이나 문제가 없음 - 빈 LearningUnit 생성")
+            # 빈 LearningUnit 생성 (Lesson이 생성되도록 하기 위함)
+            order = lecture_number * 10000
+            empty_learning_unit = LearningUnit(
+                unit_id=f"lu_{uuid.uuid4().hex[:12]}",
+                curriculum_id=curriculum_id,
+                section_type="general",
+                title=lecture_title,
+                content="",
+                order=order,
+                break_points=None,
+                pdf_references=json.dumps([{
+                    "lecture_id": lecture_id,
+                    "lecture_title": lecture_title,
+                    "page": lecture_data.get("page", 0)
+                }], ensure_ascii=False),
+                subject_metadata=None,
+            )
+            db.add(empty_learning_unit)
+            print(f"[books]   빈 LearningUnit 생성: {empty_learning_unit.unit_id} (order: {order})")
             continue
         
         # 섹션 인덱스 추적 (본문/문제 추가 시에도 순서 유지)
@@ -468,9 +267,10 @@ def _create_curriculum_from_pipeline(
         # Lesson은 _convert_learning_units_to_units에서 생성하므로 여기서는 생성하지 않음
         # LearningUnit만 생성하고, 나중에 Lesson과 Unit으로 변환
 
-        # 이미지 디렉토리 경로
+        # 이미지 디렉토리 경로 (교재별)
         from app.core.config import settings
-        data_dir = settings.API_DIR / "data" / pipeline_subject
+        # 교재별 디렉토리: data/{subject}/{book_id}/
+        data_dir = settings.API_DIR / "data" / pipeline_subject / book_id
         concepts_dir = data_dir / "concepts_images"
         content_dir = data_dir / "content_images"
         problems_dir = data_dir / "problems_images"
@@ -1278,9 +1078,9 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
     """백그라운드에서 PDF 파이프라인 실행 (UnifiedPipeline 직접 사용)"""
     import sys
     import logging
-    from app.processing.pipeline import UnifiedPipeline
-    from app.db.models import Book, ParseStatus
-    from app.db.session import SessionLocal
+    from app.infrastructure.pdf.pipeline import UnifiedPipeline
+    from app.infrastructure.database.models import Book, ParseStatus
+    from app.infrastructure.database.session import SessionLocal
     from app.core.config import settings
 
     # 즉시 출력을 위한 print 사용 (백그라운드 작업에서는 logger가 제대로 작동하지 않을 수 있음)
@@ -1315,12 +1115,44 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
         subject_enum = Subject(subject)
         pipeline_subject = _subject_to_pipeline_subject(subject_enum)
 
+        # 새 PDF 업로드/재파싱 전 기존 데이터 삭제 (교재별 JSON 파일, 이미지 등)
+        # 교재별 디렉토리: data/{subject}/{book_id}/
+        book_data_dir = settings.API_DIR / "data" / pipeline_subject / book_id
+        
         print(f"[books] ========================================")
         print(f"[books] PDF 파이프라인 시작")
         print(f"[books] ========================================")
         print(f"[books] PDF 경로: {pdf_path}")
         print(f"[books] 과목: {pipeline_subject}")
+        print(f"[books] 교재 ID: {book_id}")
         print(f"[books] UnifiedPipeline 사용 (processing 모듈)")
+        print(f"[books] 교재별 데이터 디렉토리: {book_data_dir}")
+        print(f"[books] 기존 데이터 삭제 시작 (교재별)")
+        sys.stdout.flush()
+        
+        import shutil
+        
+        # 1. 캐시 삭제 (과목별)
+        cache_dir = settings.DATA_DIR / pipeline_subject / "cache"
+        if cache_dir.exists():
+            try:
+                shutil.rmtree(cache_dir)
+                print(f"[books] 캐시 삭제 완료: {cache_dir}")
+            except Exception as cache_err:
+                print(f"[books] 캐시 삭제 실패 (계속 진행): {cache_err}")
+        
+        # 2. 교재별 JSON 파일 및 이미지 디렉토리 삭제
+        if book_data_dir.exists():
+            # 전체 교재 디렉토리 삭제 (교재별 완전 분리)
+            try:
+                shutil.rmtree(book_data_dir)
+                print(f"[books] 교재별 데이터 디렉토리 삭제 완료: {book_data_dir}")
+            except Exception as err:
+                print(f"[books] 교재별 데이터 디렉토리 삭제 실패 (계속 진행): {err}")
+        else:
+            print(f"[books] 교재별 데이터 디렉토리가 없음 (새 교재): {book_data_dir}")
+        
+        print(f"[books] 기존 데이터 삭제 완료 (교재별)")
         sys.stdout.flush()
         logger.info(f"[books] AI 옵션: ML dedup={ai_options.get('enable_ml_deduplication', True)}, "
               f"ML class={ai_options.get('enable_ml_classification', True)}, "
@@ -1329,6 +1161,26 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
               f"LLM meta={ai_options.get('enable_llm_metadata', False)}, "
               f"LLM expl={ai_options.get('enable_llm_explanations', False)}, "
               f"LLM rec={ai_options.get('enable_llm_recommendations', False)}")
+        sys.stdout.flush()
+
+        # PDF 페이지 수 확인 (진행률 표시용)
+        try:
+            import fitz  # PyMuPDF
+            pdf_doc = fitz.open(pdf_path)
+            total_pages = len(pdf_doc)
+            pdf_doc.close()
+            logger.info(f"[books] PDF 총 페이지 수: {total_pages}")
+
+            # DB에 총 페이지 수 저장
+            book = db.query(Book).filter(Book.book_id == book_id).first()
+            if book:
+                book.total_pages = total_pages
+                book.parse_progress = 5  # 시작 5%
+                db.commit()
+                logger.info(f"[books] 진행률 초기화: 5% (페이지 수: {total_pages})")
+        except Exception as e:
+            logger.warning(f"[books] PDF 페이지 수 확인 실패 (계속 진행): {e}")
+            total_pages = 0
         sys.stdout.flush()
 
         # AI 후처리 활성화 여부 결정 (현재는 ML 후처리 비활성화)
@@ -1342,70 +1194,235 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
         logger.info(f"[books] config.json 존재 여부: {config_path.exists() if config_path else 'N/A'}")
         sys.stdout.flush()
 
-        # UnifiedPipeline 실행
-        logger.info(f"[books] UnifiedPipeline 초기화 중...")
-        sys.stdout.flush()
-        pipeline = UnifiedPipeline(
-            subject=pipeline_subject,
-            use_ocr=True,  # OCR 사용 (PDF 폰트 문제 해결)
-            use_ml_postprocess=enable_ml,  # ML 후처리 (현재 비활성화)
-            config_path=config_path,
-            save_results=True,  # JSON 저장 활성화
-            dpi=300,  # DPI 높임 (OCR 품질 개선)
-            lang='kor+eng',
-            tesseract_cmd=r'C:\Program Files\Tesseract-OCR\tesseract.exe',  # Tesseract 경로
-            use_parallel=True,  # 병렬 처리 활성화
-            max_workers=None,  # CPU 코어 수 자동
-            max_pages=None,  # 전체 페이지 처리
-        )
+        # 청크 단위 처리 설정 (메모리 효율성)
+        BATCH_SIZE = 10  # 10페이지씩 처리
+        # 배치 처리는 TOC(목차) 페이지를 각 배치에서 볼 수 없어 강의 추출 실패
+        # 전체 PDF를 한 번에 처리해야 TOC에서 강의 목록을 추출 가능
+        USE_CHUNKED_PROCESSING = False  # 배치 처리 비활성화 (임시)
+        # USE_CHUNKED_PROCESSING = total_pages > 20  # 20페이지 초과 시 청크 처리
 
-        logger.info(f"[books] 파이프라인 설정: DPI=300, 병렬=True, OCR=True (Tesseract)")
-        logger.info(f"[books] PDF 파일 확인: {pdf_path}")
-        logger.info(f"[books] PDF 파일 존재 여부: {pdf_path.exists() if pdf_path else 'N/A'}")
-        if pdf_path and pdf_path.exists():
-            logger.info(f"[books] PDF 파일 크기: {pdf_path.stat().st_size} bytes")
+        logger.info(f"[books] UnifiedPipeline 초기화 중...")
+        logger.info(f"[books] 청크 단위 처리: {'활성화' if USE_CHUNKED_PROCESSING else '비활성화'} (총 {total_pages}페이지)")
+
+        # 진행률 업데이트: 10%
+        book = db.query(Book).filter(Book.book_id == book_id).first()
+        if book:
+            book.parse_progress = 10
+            db.commit()
+            logger.info(f"[books] 진행률 업데이트: 10% (파이프라인 초기화)")
         sys.stdout.flush()
-        
-        try:
-            logger.info(f"[books] 파이프라인 실행 시작...")
+
+        if USE_CHUNKED_PROCESSING:
+            # 청크 단위 처리: 메모리 효율적
+            logger.info(f"[books] 청크 단위 처리 시작 (배치 크기: {BATCH_SIZE}페이지)")
+
+            # 배치 개수 계산
+            num_batches = (total_pages + BATCH_SIZE - 1) // BATCH_SIZE
+            logger.info(f"[books] 총 {num_batches}개 배치로 처리")
             sys.stdout.flush()
-            result = pipeline.process(pdf_path)
-            logger.info(f"[books] 파이프라인 실행 완료")
+
+            all_results = {
+                'lectures': [],
+                'lecture_contents': [],
+                'problems': []
+            }
+
+            # 배치별 처리
+            for batch_idx in range(num_batches):
+                start_page = batch_idx * BATCH_SIZE + 1
+                end_page = min((batch_idx + 1) * BATCH_SIZE, total_pages)
+
+                logger.info(f"[books] ========================================")
+                logger.info(f"[books] 배치 {batch_idx + 1}/{num_batches}: 페이지 {start_page}-{end_page}")
+                logger.info(f"[books] ========================================")
+                sys.stdout.flush()
+
+                # 배치 진행률 계산: 20% ~ 70% 구간을 배치별로 분할
+                batch_progress_start = 20 + int(50 * batch_idx / num_batches)
+                batch_progress_end = 20 + int(50 * (batch_idx + 1) / num_batches)
+
+                # 현재 배치 시작
+                book = db.query(Book).filter(Book.book_id == book_id).first()
+                if book:
+                    book.parse_progress = batch_progress_start
+                    book.current_page = start_page
+                    db.commit()
+                    logger.info(f"[books] 진행률 업데이트: {batch_progress_start}% (페이지 {start_page}-{end_page} 처리 중)")
+                sys.stdout.flush()
+
+                # 배치별 파이프라인 실행
+                try:
+                    batch_pipeline = UnifiedPipeline(
+                        subject=pipeline_subject,
+                        use_ocr="auto",  # 자동 모드: pdfplumber 우선 → 필요 시 OCR
+                        config_path=config_path,
+                        save_results=False,  # 배치별로는 저장 안 함
+                        save_images=True,  # bbox 기반 이미지 크롭 저장
+                        book_id=book_id,
+                        start_page=start_page,  # 시작 페이지
+                        end_page=end_page,  # 종료 페이지
+                        dpi=300,  # 고품질 OCR (300 DPI)
+                        lang='kor+eng',
+                        tesseract_cmd=settings.TESSERACT_CMD,  # 자동 감지된 경로 사용
+                        use_parallel=True,
+                        max_workers=2,  # 워커 수 제한 (메모리 절약)
+                        preprocessing_method='aggressive',  # 강력한 전처리 (품질 향상)
+                    )
+
+                    # 배치 처리 (첫 페이지 설정)
+                    batch_result = batch_pipeline.process(pdf_path)
+
+                    # 결과 병합
+                    all_results['lectures'].extend(batch_result.get('lectures', []))
+                    all_results['lecture_contents'].extend(batch_result.get('lecture_contents', []))
+                    all_results['problems'].extend(batch_result.get('problems', []))
+
+                    # 배치 완료
+                    book = db.query(Book).filter(Book.book_id == book_id).first()
+                    if book:
+                        book.parse_progress = batch_progress_end
+                        book.current_page = end_page
+                        db.commit()
+                        logger.info(f"[books] 배치 {batch_idx + 1}/{num_batches} 완료 ({batch_progress_end}%)")
+                    sys.stdout.flush()
+
+                    # 메모리 정리
+                    import gc
+                    gc.collect()
+
+                except Exception as batch_error:
+                    logger.error(f"[books] 배치 {batch_idx + 1} 처리 실패: {batch_error}")
+                    logger.exception(batch_error)
+                    # 실패한 배치는 건너뛰고 계속 진행
+                    continue
+
+            result = all_results
+            logger.info(f"[books] 모든 배치 처리 완료")
             sys.stdout.flush()
-        except FileNotFoundError as e:
-            logger.error(f"[books] ========================================")
-            logger.error(f"[books] [에러] PDF 파일을 찾을 수 없습니다")
-            logger.error(f"[books] ========================================")
-            logger.error(f"[books] 파일 경로: {pdf_path}")
-            logger.error(f"[books] 에러 메시지: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
-            logger.error(f"[books] ========================================")
+        else:
+            # 일반 처리: 페이지 수가 적을 때
+            pipeline = UnifiedPipeline(
+                subject=pipeline_subject,
+                use_ocr="auto",  # 자동 모드: pdfplumber 우선 → 필요 시 OCR
+                config_path=config_path,
+                save_results=True,
+                save_images=True,  # bbox 기반 이미지 크롭 저장
+                book_id=book_id,
+                dpi=300,  # 고품질 OCR (300 DPI)
+                lang='kor+eng',
+                tesseract_cmd=settings.TESSERACT_CMD,  # 자동 감지된 경로 사용
+                use_parallel=True,
+                max_workers=2,  # 워커 수 제한
+                preprocessing_method='aggressive',  # 강력한 전처리 (품질 향상)
+                max_pages=None,
+            )
+
+            logger.info(f"[books] 파이프라인 설정: DPI=200, 병렬=True (워커 2개), OCR=True")
+            logger.info(f"[books] PDF 파일 확인: {pdf_path}")
+            logger.info(f"[books] PDF 파일 존재 여부: {pdf_path.exists() if pdf_path else 'N/A'}")
+            if pdf_path and pdf_path.exists():
+                logger.info(f"[books] PDF 파일 크기: {pdf_path.stat().st_size} bytes")
             sys.stdout.flush()
-            
-            book = db.query(Book).filter(Book.book_id == book_id).first()
-            if book:
-                book.parse_status = ParseStatus.FAILED
-                db.commit()
-            return
-        except Exception as e:
-            logger.error(f"[books] ========================================")
-            logger.error(f"[books] [에러] 파이프라인 실행 중 예외 발생")
-            logger.error(f"[books] ========================================")
-            logger.error(f"[books] 에러 타입: {type(e).__name__}")
-            logger.error(f"[books] 에러 메시지: {e}")
-            logger.error(f"[books] PDF 경로: {pdf_path}")
-            import traceback
-            logger.error(traceback.format_exc())
-            logger.error(f"[books] ========================================")
+
+            try:
+                logger.info(f"[books] 파이프라인 실행 시작...")
+
+                # 진행률 업데이트: 20%
+                book = db.query(Book).filter(Book.book_id == book_id).first()
+                if book:
+                    book.parse_progress = 20
+                    db.commit()
+                    logger.info(f"[books] 진행률 업데이트: 20% (텍스트 추출 시작)")
+                sys.stdout.flush()
+
+                # OCR 진행률 업데이트를 위한 콜백 함수
+                def update_ocr_progress(page_num: int, total_pages: int):
+                    """OCR 진행 중 진행률 업데이트"""
+                    try:
+                        # 20% ~ 50% 구간을 OCR 진행률로 사용
+                        ocr_progress = 20 + int(30 * page_num / total_pages)
+                        book = db.query(Book).filter(Book.book_id == book_id).first()
+                        if book:
+                            book.parse_progress = min(ocr_progress, 50)
+                            book.current_page = page_num
+                            db.commit()
+                            if page_num % 10 == 0 or page_num == total_pages:  # 10페이지마다 또는 마지막 페이지
+                                logger.info(f"[books] OCR 진행률: {ocr_progress}% ({page_num}/{total_pages}페이지)")
+                                sys.stdout.flush()
+                    except Exception as e:
+                        logger.warning(f"[books] 진행률 업데이트 실패 (계속 진행): {e}")
+
+                # 파이프라인에 진행률 콜백 전달
+                pipeline.set_progress_callback(update_ocr_progress)
+
+                result = pipeline.process(pdf_path)
+
+                # 진행률 업데이트: 70%
+                book = db.query(Book).filter(Book.book_id == book_id).first()
+                if book:
+                    book.parse_progress = 70
+                    db.commit()
+                    logger.info(f"[books] 진행률 업데이트: 70% (파이프라인 완료)")
+
+                logger.info(f"[books] 파이프라인 실행 완료")
+                sys.stdout.flush()
+            except FileNotFoundError as e:
+                logger.error(f"[books] ========================================")
+                logger.error(f"[books] [에러] PDF 파일을 찾을 수 없습니다")
+                logger.error(f"[books] ========================================")
+                logger.error(f"[books] 파일 경로: {pdf_path}")
+                logger.error(f"[books] 에러 메시지: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+                logger.error(f"[books] ========================================")
+                sys.stdout.flush()
+
+                book = db.query(Book).filter(Book.book_id == book_id).first()
+                if book:
+                    book.parse_status = ParseStatus.FAILED
+                    db.commit()
+                return
+            except Exception as e:
+                logger.error(f"[books] ========================================")
+                logger.error(f"[books] [에러] 파이프라인 실행 중 예외 발생")
+                logger.error(f"[books] ========================================")
+                logger.error(f"[books] 에러 타입: {type(e).__name__}")
+                logger.error(f"[books] 에러 메시지: {e}")
+                logger.error(f"[books] PDF 경로: {pdf_path}")
+                import traceback
+                logger.error(traceback.format_exc())
+                logger.error(f"[books] ========================================")
+                sys.stdout.flush()
+
+                # 파싱 실패 상태 업데이트
+                book = db.query(Book).filter(Book.book_id == book_id).first()
+                if book:
+                    book.parse_status = ParseStatus.FAILED
+                    db.commit()
+                return
+
+        # 청크 단위 처리 후 결과 저장
+        if USE_CHUNKED_PROCESSING:
+            logger.info(f"[books] 청크 처리 결과 통합 저장 중...")
             sys.stdout.flush()
-            
-            # 파싱 실패 상태 업데이트
-            book = db.query(Book).filter(Book.book_id == book_id).first()
-            if book:
-                book.parse_status = ParseStatus.FAILED
-                db.commit()
-            return
+
+            # ResultSaver로 저장
+            from app.infrastructure.pdf.result_saver import ResultSaver
+
+            data_dir = settings.API_DIR / "data"
+            result_saver = ResultSaver(pipeline_subject, data_dir, book_id=book_id)
+
+            # 기존 데이터 삭제
+            result_saver.clear()
+
+            # 통합 결과 저장
+            result_saver.save(
+                all_results['lectures'],
+                all_results['lecture_contents'],
+                all_results['problems']
+            )
+            logger.info(f"[books] 청크 처리 결과 저장 완료")
+            sys.stdout.flush()
         
         # 파이프라인 결과 확인
         lectures = result.get('lectures', [])
@@ -1449,10 +1466,20 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
 
         # 파이프라인 완료 후 커리큘럼 자동 생성
         # 기존 데이터 삭제 (JSON 파일이 새로 생성되었으므로)
-        print(f"[books] 기존 데이터 삭제 시작: {book_id}")
+        print(f"[books] 기존 데이터 삭제 시작: {book_id}, 과목: {subject_enum}")
         
-        # 1. 기존 커리큘럼 및 LearningUnit 삭제
-        existing_curricula = db.query(Curriculum).filter(Curriculum.book_id == book_id).all()
+        # Book의 subject 확인 (데이터 일관성 검증)
+        if book.subject != subject_enum:
+            logger.warning(f"[books] ⚠️ 경고: Book의 과목({book.subject})과 파이프라인 과목({subject_enum})이 일치하지 않음!")
+            logger.warning(f"[books] Book.subject를 {subject_enum}으로 업데이트합니다.")
+            book.subject = subject_enum
+            db.commit()
+        
+        # 1. 기존 커리큘럼 및 LearningUnit 삭제 (book_id + subject로 필터링)
+        existing_curricula = db.query(Curriculum).filter(
+            Curriculum.book_id == book_id,
+            Curriculum.subject == subject_enum  # 과목 필터 추가
+        ).all()
         for curriculum in existing_curricula:
             learning_units = db.query(LearningUnit).filter(
                 LearningUnit.curriculum_id == curriculum.curriculum_id
@@ -1460,9 +1487,9 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
             for lu in learning_units:
                 db.delete(lu)
             db.delete(curriculum)
-            logger.info(f"[books]   Curriculum 삭제: {curriculum.curriculum_id} (LearningUnit {len(learning_units)}개)")
+            logger.info(f"[books]   Curriculum 삭제: {curriculum.curriculum_id} (과목: {curriculum.subject}, LearningUnit {len(learning_units)}개)")
         
-        # 2. 기존 Lesson 및 Unit 삭제
+        # 2. 기존 Lesson 및 Unit 삭제 (book_id로 필터링 - Book.subject가 이미 검증됨)
         existing_lessons = db.query(Lesson).filter(Lesson.book_id == book_id).all()
         for lesson in existing_lessons:
             units = db.query(Unit).filter(Unit.lesson_id == lesson.lesson_id).all()
@@ -1472,13 +1499,14 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
             logger.info(f"[books]   Lesson 삭제: {lesson.lesson_id} (Unit {len(units)}개)")
         
         db.commit()
-        logger.info(f"[books] 기존 데이터 삭제 완료: Curriculum {len(existing_curricula)}개, Lesson {len(existing_lessons)}개")
+        logger.info(f"[books] 기존 데이터 삭제 완료: Curriculum {len(existing_curricula)}개 (과목: {subject_enum}), Lesson {len(existing_lessons)}개")
         sys.stdout.flush()
         
         curriculum_id = None
         try:
             # JSON 파일이 생성되었는지 확인 (최대 3초 대기)
-            data_dir = settings.API_DIR / "data" / pipeline_subject
+            # 교재별 디렉토리: data/{subject}/{book_id}/
+            data_dir = settings.API_DIR / "data" / pipeline_subject / book_id
             lectures_dir = data_dir / "lectures"
             
             import time
@@ -1523,10 +1551,33 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
                 logger.info(f"[books] ✅ 프론트엔드 연동 완료: {lesson_count}개 Lesson, {unit_count}개 Unit 생성됨")
                 sys.stdout.flush()
                 
+                # 데이터 검증: Lesson과 Unit이 제대로 생성되었는지 확인
                 if lesson_count == 0:
                     logger.warning(f"[books] ⚠️ 경고: Lesson이 0개입니다. JSON 파일은 있지만 DB 동기화가 실패했을 수 있습니다.")
                     logger.warning(f"[books] 수동 동기화 시도: /books/{book_id}/sync-from-json")
                     sys.stdout.flush()
+                elif unit_count == 0:
+                    logger.warning(f"[books] ⚠️ 경고: Lesson은 {lesson_count}개 있지만 Unit이 0개입니다.")
+                    logger.warning(f"[books] LearningUnit → Unit 변환이 실패했을 수 있습니다.")
+                    # 각 Lesson의 Unit 개수 확인
+                    lessons = db.query(Lesson).filter(Lesson.book_id == book_id).all()
+                    for lesson in lessons:
+                        lesson_unit_count = db.query(Unit).filter(Unit.lesson_id == lesson.lesson_id).count()
+                        logger.warning(f"[books]   Lesson {lesson.lesson_id} ({lesson.title}): {lesson_unit_count}개 Unit")
+                    sys.stdout.flush()
+                else:
+                    # Lesson별 Unit 개수 확인 (데이터 일관성 검증)
+                    lessons = db.query(Lesson).filter(Lesson.book_id == book_id).order_by(Lesson.index).all()
+                    lessons_without_units = []
+                    for lesson in lessons:
+                        lesson_unit_count = db.query(Unit).filter(Unit.lesson_id == lesson.lesson_id).count()
+                        if lesson_unit_count == 0:
+                            lessons_without_units.append(lesson.title)
+                        logger.debug(f"[books]   Lesson {lesson.index} ({lesson.title}): {lesson_unit_count}개 Unit")
+                    
+                    if lessons_without_units:
+                        logger.warning(f"[books] ⚠️ 경고: Unit이 없는 Lesson {len(lessons_without_units)}개: {', '.join(lessons_without_units)}")
+                        sys.stdout.flush()
         except Exception as e:
             logger.error(f"[books] ❌ 커리큘럼 생성 실패 (파이프라인은 성공): {e}")
             import traceback
@@ -1537,8 +1588,9 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
 
         # 파싱 완료 상태 업데이트
         book.parse_status = ParseStatus.DONE
+        book.parse_progress = 100  # 진행률 100%
         db.commit()
-        
+
         # 최종 Lesson 개수 확인
         final_lesson_count = db.query(Lesson).filter(Lesson.book_id == book_id).count()
         logger.info(f"[books] ========================================")
@@ -1547,6 +1599,7 @@ def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_optio
         logger.info(f"[books]   - 문제: {len(problems)}개")
         logger.info(f"[books]   - 커리큘럼: {curriculum_id}")
         logger.info(f"[books]   - Lesson: {final_lesson_count}개 (프론트엔드 연동)")
+        logger.info(f"[books]   - 진행률: 100%")
         logger.info(f"[books] ========================================")
         sys.stdout.flush()
             
@@ -1607,18 +1660,139 @@ async def upload_book(
 ):
     """
     PDF 업로드 + 교재 생성 + 파싱 시작
-    
-    PDF 업로드 시 자동으로 textbook_pipeline을 실행하여 학습 데이터를 생성합니다.
+
+    PDF 파일을 업로드하고 자동으로 파싱 파이프라인을 실행하여
+    학습 콘텐츠(개념, 지문, 문제)를 추출합니다.
+
+    Args:
+        background_tasks: 백그라운드 작업 관리자
+        file: PDF 파일 (최대 크기: settings.MAX_UPLOAD_SIZE)
+        title: 교재 제목
+        subject: 과목 (KOREAN, MATH, ENGLISH)
+        year: 출판 연도 (선택)
+        enable_ml_deduplication: ML 기반 중복 제거 (Level 1)
+        enable_ml_classification: ML 기반 블록 분류 (Level 1)
+        enable_layout_analysis: 딥러닝 레이아웃 분석 (Level 2)
+        enable_math_recognition: 수식 인식 (Level 2)
+        enable_llm_metadata: LLM 메타데이터 생성 (Level 3)
+        enable_llm_explanations: LLM 설명 생성 (Level 3)
+        enable_llm_recommendations: LLM 추천 생성 (Level 3)
+        openai_api_key: OpenAI API 키 (Level 3 기능 사용 시)
+        education_level: 교육 수준 (high, middle, elementary)
+        db: 데이터베이스 세션
+
+    Returns:
+        BookResponse: 생성된 교재 정보 (parse_status=PROCESSING)
+
+    Raises:
+        InvalidFileFormatException: PDF 파일이 아닌 경우
+        FileTooLargeException: 파일 크기가 제한을 초과한 경우
+        InvalidSubjectException: 유효하지 않은 과목인 경우
+        DatabaseOperationException: 데이터베이스 저장 실패 시
+
+    Note:
+        - 파싱은 백그라운드에서 비동기로 실행됩니다
+        - parse_status는 PENDING → PROCESSING → DONE/FAILED로 변경됩니다
+        - Level 3 기능 사용 시 OpenAI API 키가 필요합니다
     """
     # 파일 검증
     if not file.filename.endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="PDF 파일만 업로드 가능합니다.")
-    
+        raise InvalidFileFormatException("PDF")
+
     if file.size and file.size > settings.MAX_UPLOAD_SIZE:
-        raise HTTPException(status_code=400, detail=f"파일 크기는 {settings.MAX_UPLOAD_SIZE / 1024 / 1024}MB를 초과할 수 없습니다.")
+        raise FileTooLargeException(int(settings.MAX_UPLOAD_SIZE / 1024 / 1024))
     
     # 교재 ID 생성 (의미있는 ID)
     book_id = generate_book_id(subject, title, year)
+    
+    # Subject enum 변환
+    try:
+        subject_enum = Subject(subject)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"유효하지 않은 과목입니다: {subject}")
+    
+    # 같은 제목/과목/연도의 기존 교재 확인 및 정리
+    try:
+        # year가 None인 경우도 처리
+        query = db.query(Book).filter(
+            Book.title == title,
+            Book.subject == subject_enum
+        )
+        if year is not None:
+            query = query.filter(Book.year == year)
+        else:
+            query = query.filter(Book.year.is_(None))
+        
+        existing_books = query.all()
+    except Exception as query_err:
+        logger.error(f"[books] 기존 교재 조회 중 오류: {query_err}")
+        import traceback
+        logger.error(traceback.format_exc())
+        existing_books = []  # 에러 발생 시 빈 리스트로 처리하고 계속 진행
+    
+    if existing_books:
+        print(f"[books] ⚠️ 같은 교재가 {len(existing_books)}개 발견됨 (제목: {title}, 과목: {subject}, 연도: {year})")
+        print(f"[books] 기존 교재 데이터 정리 중...")
+        sys.stdout.flush()
+        
+        import shutil
+        # settings는 이미 상단에서 import되어 있음
+        pipeline_subject = _subject_to_pipeline_subject(subject_enum)
+        
+        # 기존 교재들의 데이터 디렉토리 및 DB 데이터 삭제
+        for existing_book in existing_books:
+            # 1. 교재별 데이터 디렉토리 삭제
+            existing_book_data_dir = settings.API_DIR / "data" / pipeline_subject / existing_book.book_id
+            if existing_book_data_dir.exists():
+                try:
+                    shutil.rmtree(existing_book_data_dir)
+                    print(f"[books]   기존 교재 데이터 디렉토리 삭제: {existing_book.book_id}")
+                except Exception as err:
+                    print(f"[books]   기존 교재 데이터 디렉토리 삭제 실패 (계속 진행): {err}")
+            
+            # 2. 기존 교재의 PDF 파일 삭제
+            if existing_book.file_path:
+                existing_pdf_path = Path(existing_book.file_path)
+                if existing_pdf_path.exists():
+                    try:
+                        existing_pdf_path.unlink()
+                        print(f"[books]   기존 PDF 파일 삭제: {existing_pdf_path}")
+                    except Exception as err:
+                        print(f"[books]   기존 PDF 파일 삭제 실패 (계속 진행): {err}")
+            
+            # 3. DB에서 기존 교재 삭제 (관련 데이터 포함)
+            try:
+                # Curriculum 및 LearningUnit 삭제
+                existing_curricula = db.query(Curriculum).filter(
+                    Curriculum.book_id == existing_book.book_id
+                ).all()
+                for curriculum in existing_curricula:
+                    learning_units = db.query(LearningUnit).filter(
+                        LearningUnit.curriculum_id == curriculum.curriculum_id
+                    ).all()
+                    for lu in learning_units:
+                        db.delete(lu)
+                    db.delete(curriculum)
+                
+                # Lesson 및 Unit 삭제
+                existing_lessons = db.query(Lesson).filter(
+                    Lesson.book_id == existing_book.book_id
+                ).all()
+                for lesson in existing_lessons:
+                    units = db.query(Unit).filter(Unit.lesson_id == lesson.lesson_id).all()
+                    for unit in units:
+                        db.delete(unit)
+                    db.delete(lesson)
+                
+                # Book 삭제
+                db.delete(existing_book)
+                print(f"[books]   기존 교재 DB 데이터 삭제: {existing_book.book_id}")
+            except Exception as err:
+                print(f"[books]   기존 교재 DB 데이터 삭제 실패 (계속 진행): {err}")
+        
+        db.commit()
+        print(f"[books] 기존 교재 {len(existing_books)}개 정리 완료")
+        sys.stdout.flush()
     
     # 파일 저장
     file_path = settings.UPLOADS_DIR / f"{book_id}.pdf"
@@ -1644,7 +1818,7 @@ async def upload_book(
     book = Book(
         book_id=book_id,
         title=title,
-        subject=Subject(subject),
+        subject=subject_enum,  # 위에서 변환한 subject_enum 사용
         year=year,
         parse_status=ParseStatus.PROCESSING,
         file_path=str(file_path),
@@ -1721,7 +1895,7 @@ async def list_books(
             subject_enum = Subject(subject.upper())
             query = query.filter(Book.subject == subject_enum)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"유효하지 않은 과목: {subject}")
+            raise InvalidSubjectException(subject)
     
     books = query.order_by(Book.created_at.desc()).all()
     
@@ -1751,10 +1925,24 @@ async def list_books(
 
 @router.get("/books/{book_id}", response_model=BookResponse)
 async def get_book(book_id: str, db: Session = Depends(get_db)):
-    """교재 상세"""
+    """
+    교재 상세 조회
+
+    특정 교재의 상세 정보를 조회합니다.
+
+    Args:
+        book_id: 교재 ID
+        db: 데이터베이스 세션
+
+    Returns:
+        BookResponse: 교재 정보 (레슨 개수 포함)
+
+    Raises:
+        BookNotFoundException: 해당 교재를 찾을 수 없는 경우
+    """
     book = db.query(Book).filter(Book.book_id == book_id).first()
     if not book:
-        raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
+        raise BookNotFoundException(book_id)
     
     lesson_count = len(book.lessons) if book.lessons else 0
     return BookResponse(
@@ -1769,19 +1957,41 @@ async def get_book(book_id: str, db: Session = Depends(get_db)):
 
 @router.get("/books/{book_id}/parse-status", response_model=BookParseStatusResponse)
 async def get_parse_status(book_id: str, db: Session = Depends(get_db)):
-    """파싱 진행 상태 (프론트 폴링용)"""
+    """
+    파싱 진행 상태 조회
+
+    교재 파싱의 실시간 진행 상태를 조회합니다. (프론트엔드 폴링용)
+
+    Args:
+        book_id: 교재 ID
+        db: 데이터베이스 세션
+
+    Returns:
+        BookParseStatusResponse: 파싱 상태 정보
+            - status: PENDING, PROCESSING, DONE, FAILED
+            - progress: 0-100 (진행률)
+            - current_page: 현재 처리 중인 페이지
+            - total_pages: 전체 페이지 수
+            - message: 상태 메시지
+
+    Raises:
+        BookNotFoundException: 해당 교재를 찾을 수 없는 경우
+
+    Note:
+        프론트엔드에서 1-2초 간격으로 폴링하여 실시간 진행률 표시
+    """
     book = db.query(Book).filter(Book.book_id == book_id).first()
     if not book:
-        raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
+        raise BookNotFoundException(book_id)
     
-    # 파싱 진행률 계산
+    # 파싱 진행률 계산 (실제 DB 값 사용)
     if book.parse_status == ParseStatus.DONE:
         progress = 100
     elif book.parse_status == ParseStatus.FAILED:
         progress = 0
     elif book.parse_status == ParseStatus.PROCESSING:
-        # 파싱 중이면 진행률을 추정 (실제로는 파이프라인 단계별로 계산 가능)
-        progress = 50  # 중간 단계로 표시
+        # 실제 DB에 저장된 진행률 사용
+        progress = book.parse_progress if book.parse_progress is not None else 0
     else:
         progress = 0
     
@@ -1789,6 +1999,8 @@ async def get_parse_status(book_id: str, db: Session = Depends(get_db)):
         book_id=book.book_id,
         status=book.parse_status,
         progress=progress,
+        current_page=book.current_page if book.current_page is not None else 0,
+        total_pages=book.total_pages if book.total_pages is not None else 0,
     )
 
 
@@ -1801,7 +2013,7 @@ async def reparse_book(
     """교재 재파싱"""
     book = db.query(Book).filter(Book.book_id == book_id).first()
     if not book:
-        raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
+        raise BookNotFoundException(book_id)
 
     # 파일 경로 확인
     file_path = Path(book.file_path)
@@ -1820,16 +2032,35 @@ async def reparse_book(
             book.parse_status = ParseStatus.PROCESSING
             db.commit()
 
-            # 캐시 삭제 (강제 재파싱을 위해)
+            # 재파싱 전 기존 데이터 삭제 (교재별 JSON 파일, 이미지 등)
             pipeline_subject = _subject_to_pipeline_subject(book.subject)
+            # 교재별 디렉토리: data/{subject}/{book_id}/
+            book_data_dir = settings.API_DIR / "data" / pipeline_subject / book_id
+            
+            print(f"[books] 재파싱 전 기존 데이터 삭제 시작 (교재별): {book_data_dir}")
+            import shutil
+            
+            # 1. 캐시 삭제 (과목별)
             cache_dir = settings.DATA_DIR / pipeline_subject / "cache"
             if cache_dir.exists():
-                print(f"[books] 캐시 삭제: {cache_dir}")
-                import shutil
                 try:
                     shutil.rmtree(cache_dir)
+                    print(f"[books] 캐시 삭제 완료: {cache_dir}")
                 except Exception as cache_err:
                     print(f"[books] 캐시 삭제 실패 (계속 진행): {cache_err}")
+            
+            # 2. 교재별 JSON 파일 및 이미지 디렉토리 삭제
+            if book_data_dir.exists():
+                # 전체 교재 디렉토리 삭제 (교재별 완전 분리)
+                try:
+                    shutil.rmtree(book_data_dir)
+                    print(f"[books] 교재별 데이터 디렉토리 삭제 완료: {book_data_dir}")
+                except Exception as err:
+                    print(f"[books] 교재별 데이터 디렉토리 삭제 실패 (계속 진행): {err}")
+            else:
+                print(f"[books] 교재별 데이터 디렉토리가 없음: {book_data_dir}")
+            
+            print(f"[books] 재파싱 전 기존 데이터 삭제 완료 (교재별)")
 
             # 기본 AI 옵션 (기본 ML 기능만 활성화)
             ai_options = {
@@ -1893,7 +2124,7 @@ async def sync_book_from_json(
     """
     book = db.query(Book).filter(Book.book_id == book_id).first()
     if not book:
-        raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
+        raise BookNotFoundException(book_id)
     
     try:
         # 기존 데이터 삭제
@@ -1986,7 +2217,7 @@ async def sync_all_books_from_json(
     if subject:
         # 특정 과목만 동기화
         if subject.lower() not in subject_mapping:
-            raise HTTPException(status_code=400, detail=f"유효하지 않은 과목: {subject}")
+            raise InvalidSubjectException(subject)
         
         pipeline_subject, subject_enum = subject_mapping[subject.lower()]
         books = db.query(Book).filter(Book.subject == subject_enum).all()
@@ -2106,149 +2337,6 @@ async def sync_all_books_from_json(
     }
 
 
-@router.post("/books/upload-hwp", response_model=BookResponse, status_code=201)
-async def upload_hwp_book(
-    file: UploadFile = File(...),
-    title: str = Form(...),
-    subject: str = Form(...),
-    year: int = Form(None),
-    db: Session = Depends(get_db),
-):
-    """
-    한글 파일 업로드 및 파싱
-    
-    - 파일명에서 강의 정보 추출
-    - 텍스트 추출 및 구조화
-    - 데이터베이스에 저장
-    """
-    # 파일 검증
-    if not file.filename or not (file.filename.endswith('.hwp') or file.filename.endswith('.HWP')):
-        raise HTTPException(status_code=400, detail="한글 파일(.hwp)만 업로드 가능합니다.")
-    
-    if file.size and file.size > settings.MAX_UPLOAD_SIZE:
-        raise HTTPException(status_code=400, detail=f"파일 크기는 {settings.MAX_UPLOAD_SIZE / 1024 / 1024}MB를 초과할 수 없습니다.")
-    
-    # 교재 ID 생성 (의미있는 ID)
-    book_id = generate_book_id(subject, title, year)
-    
-    # 파일 저장
-    file_path = settings.UPLOADS_DIR / f"{book_id}.hwp"
-    with open(file_path, "wb") as f:
-        content = await file.read()
-        f.write(content)
-    
-    # 파일명에서 강의 정보 추출
-    lesson_info = extract_lesson_info_from_filename(file.filename)
-    
-    # 텍스트 추출 및 구조 파싱
-    text = extract_text_from_hwp(file_path)
-    structure = extract_structure_from_hwp(file_path) if text else {}
-    
-    # DB에 교재 생성
-    book = Book(
-        book_id=book_id,
-        title=title,
-        subject=Subject(subject),
-        year=year,
-        parse_status=ParseStatus.PROCESSING,
-        file_path=str(file_path),
-    )
-    db.add(book)
-    db.commit()
-    db.refresh(book)
-    
-    # 강의 대본 파서로 구조화된 데이터 추출
-    lesson_count = 0
-    if text:
-        try:
-            # 과목에 맞는 파서 생성
-            subject_str = subject.lower()
-            if subject_str == 'korean':
-                subject_str = 'literature'
-            elif subject_str == 'math':
-                subject_str = 'math1'
-            
-            parser = LectureScriptParser(subject=subject_str)
-            parsed = parser.parse(text)
-            
-            # Lesson 생성
-            lesson_number = parsed.get('lesson_number', 0)
-            if lesson_number == 0 and lesson_info.get('lesson_number'):
-                lesson_number = lesson_info['lesson_number']
-            
-            # 의미있는 레슨 ID 생성
-            lesson_id = generate_lesson_id(subject_str, lesson_number)
-            
-            lesson_title = lesson_info.get('title') or f"{lesson_number}강"
-            if not lesson_title or lesson_title == '0강':
-                # 파싱 결과에서 제목 추출 시도
-                sections = parsed.get('sections', [])
-                if sections:
-                    first_section = sections[0]
-                    if first_section.get('type') == 'ot':
-                        content = first_section.get('content', '')
-                        # "수능특강 문학" 같은 패턴 찾기
-                        import re
-                        title_match = re.search(r'수능특강\s*([가-힣]+)', content)
-                        if title_match:
-                            lesson_title = f"{lesson_number}강 {title_match.group(1)}"
-                        else:
-                            lesson_title = f"{lesson_number}강"
-            
-            lesson = Lesson(
-                lesson_id=lesson_id,
-                book_id=book_id,
-                index=lesson_number,
-                title=lesson_title,
-            )
-            db.add(lesson)
-            db.commit()
-            lesson_count = 1
-            
-            # 파싱 성공
-            book.parse_status = ParseStatus.DONE
-        except Exception as e:
-            print(f"[books] Error parsing HWP: {e}")
-            import traceback
-            traceback.print_exc()
-            book.parse_status = ParseStatus.FAILED
-    else:
-        book.parse_status = ParseStatus.FAILED
-    
-    db.commit()
-    db.refresh(book)
-    
-    return BookResponse(
-        book_id=book.book_id,
-        title=book.title,
-        subject=book.subject,
-        year=book.year,
-        parse_status=book.parse_status,
-        lesson_count=lesson_count,
-    )
-
-
-@router.get("/books/{book_id}/lessons-from-hwp")
-async def get_lessons_from_hwp(book_id: str, db: Session = Depends(get_db)):
-    """한글 파일에서 추출한 강의 목록 조회"""
-    book = db.query(Book).filter(Book.book_id == book_id).first()
-    if not book:
-        raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
-    
-    pdf_path = Path(book.file_path)
-    if not pdf_path.exists() or not pdf_path.suffix.lower() == '.hwp':
-        raise HTTPException(status_code=404, detail="한글 파일을 찾을 수 없습니다.")
-    
-    # 구조 추출
-    structure = extract_structure_from_hwp(pdf_path)
-    lesson_info = extract_lesson_info_from_filename(pdf_path.name)
-    
-    return {
-        "book_id": book_id,
-        "lesson_info": lesson_info,
-        "structure": structure
-    }
-
 
 @router.delete("/books/{book_id}")
 async def delete_book(
@@ -2262,7 +2350,7 @@ async def delete_book(
     """
     book = db.query(Book).filter(Book.book_id == book_id).first()
     if not book:
-        raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
+        raise BookNotFoundException(book_id)
     
     try:
         # 1. 관련 Lesson 및 Unit 명시적으로 삭제
@@ -2279,7 +2367,7 @@ async def delete_book(
             unit_count += len(orphaned_units)
         
         # Unit과 관련된 Answer, ReviewQueue 등을 먼저 삭제 (Unit 삭제 전에)
-        from app.db.models import Answer, ReviewQueue
+        from app.infrastructure.database.models import Answer, ReviewQueue
         for lesson in lessons:
             lesson_units = db.query(Unit).filter(Unit.lesson_id == lesson.lesson_id).all()
             for unit in lesson_units:
@@ -2326,7 +2414,7 @@ async def delete_book(
         print(f"[books] Curriculum 및 LearningUnit 삭제 완료: Curriculum {curriculum_count}개, LearningUnit {learning_unit_count}개")
         
         # 3. UserProgress에서 book_id를 NULL로 설정 (진행 상황 초기화)
-        from app.db.models import UserProgress
+        from app.infrastructure.database.models import UserProgress
         progress_records = db.query(UserProgress).filter(UserProgress.book_id == book_id).all()
         for progress in progress_records:
             progress.book_id = None
@@ -2345,18 +2433,19 @@ async def delete_book(
             except Exception as e:
                 print(f"[books] 경고: PDF 파일 삭제 실패: {e}")
         
-        # 5. 데이터 디렉토리 삭제 (api/data/{subject}/ 폴더)
+        # 5. 데이터 디렉토리 삭제 (backend/data/{subject}/{book_id}/ 폴더)
         try:
+            import shutil
             subject_str = _subject_to_pipeline_subject(book.subject)
-            data_dir = settings.API_DIR / "data" / subject_str
-            if data_dir.exists():
-                # 주의: 이 디렉토리는 여러 교재가 공유할 수 있으므로
-                # 실제로는 교재별로 구분된 데이터만 삭제해야 하지만,
-                # 현재 구조상 교재별 구분이 어려우므로 경고만 출력
-                print(f"[books] 경고: 데이터 디렉토리 {data_dir}는 여러 교재가 공유할 수 있어 삭제하지 않습니다.")
-                print(f"[books]   수동으로 정리하려면: {data_dir}")
+            # 교재별 디렉토리: data/{subject}/{book_id}/
+            book_data_dir = settings.API_DIR / "data" / subject_str / book_id
+            if book_data_dir.exists():
+                shutil.rmtree(book_data_dir)
+                print(f"[books] 데이터 디렉토리 삭제: {book_data_dir}")
+            else:
+                print(f"[books] 데이터 디렉토리 없음 (건너뜀): {book_data_dir}")
         except Exception as e:
-            print(f"[books] 경고: 데이터 디렉토리 확인 실패: {e}")
+            print(f"[books] 경고: 데이터 디렉토리 삭제 실패 (계속 진행): {e}")
         
         # 6. Book 삭제
         db.delete(book)
@@ -2385,12 +2474,12 @@ async def create_curriculum_from_existing_data(
     """
     기존 파이프라인 데이터로부터 커리큘럼 생성
     
-    이미 api/data/{subject}/lectures/ 폴더에 데이터가 있는 경우,
+    이미 backend/data/{subject}/lectures/ 폴더에 데이터가 있는 경우,
     이를 기반으로 커리큘럼을 생성합니다.
     """
     book = db.query(Book).filter(Book.book_id == book_id).first()
     if not book:
-        raise HTTPException(status_code=404, detail="교재를 찾을 수 없습니다.")
+        raise BookNotFoundException(book_id)
     
     # 이미 커리큘럼이 있는지 확인하고 삭제
     try:

@@ -42,7 +42,7 @@ export interface UsePageBaseReturn {
  * 페이지 컴포넌트 공통 로직 훅
  */
 export function usePageBase(options: UsePageBaseOptions = {}): UsePageBaseReturn {
-  const { autoAnnounce, voiceCommands = {}, showSpeechBar = true } = options;
+  const { autoAnnounce, voiceCommands = {} } = options;
   
   // TTS/STT 훅
   const { speak, stop: stopTTS } = useTTS();

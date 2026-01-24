@@ -10,7 +10,6 @@ import { useTTS } from '../hooks/useTTS';
 import { useBookStats } from '../hooks/useBookStats';
 import AppShellMobile from '../components/ui/AppShellMobile';
 import ToastA11y from '../components/system/ToastA11y';
-import BookUpload from '../components/textbook/BookUpload';
 import BookUploadWithTemplate from '../components/textbook/BookUploadWithTemplate';
 import TemplateManager from '../components/admin/TemplateManager';
 import TOCTemplateWizard from '../components/admin/TOCTemplateWizard';

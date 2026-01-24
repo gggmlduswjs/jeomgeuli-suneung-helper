@@ -56,6 +56,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
         globIgnores: ['**/index.html'],
         navigateFallback: '/index.html',
+        navigateFallbackAllowlist: [/^\/$/, /^\/admin/, /^\/books/, /^\/summary/, /^\/main/, /^\/book/, /^\/lesson/, /^\/unit/, /^\/literature/, /^\/curriculum/],
         navigateFallbackDenylist: [/^\/api\/.*/, /^\/_\/.*/],
         runtimeCaching: [
           {

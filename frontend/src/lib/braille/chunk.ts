@@ -40,7 +40,7 @@ export function splitToBrailleChunks(
 /**
  * 단어 단위 분할
  */
-function splitByWord(text: string, maxCells: number, preserveMeaning: boolean): string[] {
+function splitByWord(text: string, maxCells: number, _preserveMeaning: boolean): string[] {
   const words = text.split(/\s+/).filter(w => w.length > 0);
   const chunks: string[] = [];
   let currentChunk = '';
@@ -77,7 +77,7 @@ function splitByWord(text: string, maxCells: number, preserveMeaning: boolean): 
 /**
  * 문장 단위 분할
  */
-function splitBySentence(text: string, maxCells: number, preserveMeaning: boolean): string[] {
+function splitBySentence(text: string, maxCells: number, _preserveMeaning: boolean): string[] {
   // 문장 구분자: . ! ? (한글/영문 모두)
   const sentences = text.split(/([.!?]\s+)/).filter(s => s.trim().length > 0);
   const chunks: string[] = [];
@@ -96,7 +96,7 @@ function splitBySentence(text: string, maxCells: number, preserveMeaning: boolea
       }
       // 문장이 maxCells를 초과하는 경우 단어 단위로 재분할
       if (estimateBrailleCells(sentence) > maxCells) {
-        const sentenceChunks = splitByWord(sentence, maxCells, preserveMeaning);
+        const sentenceChunks = splitByWord(sentence, maxCells, _preserveMeaning);
         chunks.push(...sentenceChunks);
         currentChunk = '';
       } else {
@@ -115,7 +115,7 @@ function splitBySentence(text: string, maxCells: number, preserveMeaning: boolea
 /**
  * 스마트 분할 (의미 단위)
  */
-function splitBySmart(text: string, maxCells: number, preserveMeaning: boolean): string[] {
+function splitBySmart(text: string, maxCells: number, _preserveMeaning: boolean): string[] {
   // 수식 패턴 감지 (예: x², ∫, ∑ 등)
   const formulaPattern = /[a-zA-Z]\s*[²³⁴⁵⁶⁷⁸⁹⁰⁺⁻⁼⁽⁾∫∑∏√∞±×÷≤≥≠≈]/g;
   
@@ -124,7 +124,6 @@ function splitBySmart(text: string, maxCells: number, preserveMeaning: boolean):
   
   // 먼저 수식과 구문을 보존하면서 분할
   const chunks: string[] = [];
-  let remaining = text;
   let lastIndex = 0;
 
   // 수식과 구문 위치 찾기
@@ -154,14 +153,14 @@ function splitBySmart(text: string, maxCells: number, preserveMeaning: boolean):
       if (part.start > lastIndex) {
         const before = text.substring(lastIndex, part.start);
         if (before.trim()) {
-          const beforeChunks = splitByWord(before, maxCells, preserveMeaning);
+          const beforeChunks = splitByWord(before, maxCells, _preserveMeaning);
           chunks.push(...beforeChunks);
         }
       }
       
       // 중요 부분 자체가 maxCells를 초과하면 분할
       if (estimateBrailleCells(part.text) > maxCells) {
-        const partChunks = splitByWord(part.text, maxCells, preserveMeaning);
+        const partChunks = splitByWord(part.text, maxCells, _preserveMeaning);
         chunks.push(...partChunks);
       } else {
         chunks.push(part.text);
@@ -174,7 +173,7 @@ function splitBySmart(text: string, maxCells: number, preserveMeaning: boolean):
     if (lastIndex < text.length) {
       const after = text.substring(lastIndex);
       if (after.trim()) {
-        const afterChunks = splitByWord(after, maxCells, preserveMeaning);
+        const afterChunks = splitByWord(after, maxCells, _preserveMeaning);
         chunks.push(...afterChunks);
       }
     }

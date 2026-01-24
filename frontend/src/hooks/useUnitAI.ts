@@ -4,7 +4,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { aiAPI } from '../services/ai';
 import { createModuleLogger } from '../utils/logger';
-import { AI_EXPLANATION_AUTO_LOAD_DELAY } from '../constants';
 
 const logger = createModuleLogger('UnitAI');
 

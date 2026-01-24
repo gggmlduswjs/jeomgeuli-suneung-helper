@@ -2,7 +2,7 @@
  * 통합 API 클라이언트
  * 모든 API 서비스를 위한 공통 기반 클래스
  */
-import { api, type ApiError } from './index';
+import { api } from './index';
 
 export interface ResourceListParams {
   subject?: string;
@@ -77,7 +77,6 @@ export class ResourceService<T, TCreate = Partial<T>, TUpdate = Partial<T>> {
  * 커리큘럼 서비스
  */
 import type { Curriculum, CurriculumDetail } from '../../types/curriculum';
-import type { Subject as BookSubject } from '../../types/book';
 
 export class CurriculumService extends ResourceService<Curriculum> {
   constructor() {

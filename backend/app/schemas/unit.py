@@ -3,7 +3,7 @@
 """
 from pydantic import BaseModel
 from typing import Optional, List
-from app.db.models import UnitType
+from app.infrastructure.database.models import UnitType
 
 
 class UnitQuestion(BaseModel):

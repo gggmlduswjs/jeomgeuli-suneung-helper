@@ -6,7 +6,7 @@ Level 2 DL 기능 (딥러닝 모델 도입):
 - Math Expression Recognizer: TrOCR 기반 수식 인식
 
 사용 예시:
-    from app.dl import DLExtractionProcessor
+    # DLExtractionProcessor는 이 파일 내에 정의됨
 
     processor = DLExtractionProcessor(
         enable_layout_analysis=True,
@@ -17,34 +17,16 @@ Level 2 DL 기능 (딥러닝 모델 도입):
     # 페이지 처리
     enhanced_ocr_data = processor.process_page(page_image, ocr_data)
 """
-from app.dl.layout_analyzer import (
+from app.infrastructure.ai.dl.layout_analyzer import (
     DocumentLayoutAnalyzer,
     LayoutPrediction,
     analyze_document_layout
 )
-from app.dl.math_recognizer import (
+from app.infrastructure.ai.dl.math_recognizer import (
     MathExpressionRecognizer,
     MathPrediction,
     recognize_math_expression
 )
-try:
-    from app.dl.yolo_detector import (
-        YOLODetector,
-        RoboflowDetector,
-        DetectionResult,
-        PageDetection,
-        get_detector,
-        get_roboflow_detector
-    )
-    YOLO_AVAILABLE = True
-except ImportError:
-    YOLO_AVAILABLE = False
-    YOLODetector = None
-    RoboflowDetector = None
-    DetectionResult = None
-    PageDetection = None
-    get_detector = None
-    get_roboflow_detector = None
 from typing import List, Dict, Any, Optional
 from PIL import Image
 
@@ -56,14 +38,7 @@ __all__ = [
     "MathPrediction",
     "DLExtractionProcessor",
     "analyze_document_layout",
-    "recognize_math_expression",
-    "YOLODetector",
-    "RoboflowDetector",
-    "DetectionResult",
-    "PageDetection",
-    "get_detector",
-    "get_roboflow_detector",
-    "YOLO_AVAILABLE"
+    "recognize_math_expression"
 ]
 
 

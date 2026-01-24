@@ -8,9 +8,10 @@ from pathlib import Path
 import json
 import logging
 
-from app.db.session import get_db
-from app.db.models import Unit, Lesson, UnitType
+from app.infrastructure.database.session import get_db
+from app.infrastructure.database.models import Unit, Lesson, UnitType
 from app.schemas.unit import UnitResponse, UnitQuestion
+from app.core.exceptions import LessonNotFoundException, UnitNotFoundException, DatabaseOperationException
 
 # PDFToUnitsConverter (삭제된 모듈 대체용)
 try:
@@ -43,7 +44,7 @@ async def list_units(lesson_id: str, db: Session = Depends(get_db)):
     # 강 존재 확인
     lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="강을 찾을 수 없습니다.")
+        raise LessonNotFoundException(lesson_id)
     
     units = db.query(Unit).filter(Unit.lesson_id == lesson_id).order_by(Unit.order).all()
     
@@ -112,7 +113,7 @@ async def get_unit(unit_id: str, db: Session = Depends(get_db)):
     """학습 단위 상세"""
     unit = db.query(Unit).filter(Unit.unit_id == unit_id).first()
     if not unit:
-        raise HTTPException(status_code=404, detail="학습 단위를 찾을 수 없습니다.")
+        raise UnitNotFoundException(unit_id)
     
     # Lesson 존재 확인 및 데이터 일관성 검증
     lesson = db.query(Lesson).filter(Lesson.lesson_id == unit.lesson_id).first()
@@ -124,7 +125,7 @@ async def get_unit(unit_id: str, db: Session = Depends(get_db)):
         )
     
     # Book 존재 확인
-    from app.db.models import Book
+    from app.infrastructure.database.models import Book
     book = db.query(Book).filter(Book.book_id == lesson.book_id).first()
     if not book:
         logging.warning(f"[units] Lesson {lesson.lesson_id}의 Book {lesson.book_id}를 찾을 수 없습니다.")
@@ -206,7 +207,7 @@ async def create_units_from_pdf(
     """
     lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="레슨을 찾을 수 없습니다.")
+        raise LessonNotFoundException(lesson_id)
     
     # PDF 파일 임시 저장
     from app.core.config import settings
@@ -263,7 +264,7 @@ async def create_units_from_pdf(
     
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Unit 생성 실패: {str(e)}")
+        raise DatabaseOperationException("Unit 생성", str(e))
     
     finally:
         # 임시 파일 삭제

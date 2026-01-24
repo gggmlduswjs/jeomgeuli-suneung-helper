@@ -8,7 +8,7 @@ import AppShellMobile from '../components/ui/AppShellMobile';
 import SpeechBar from '../components/input/SpeechBar';
 import ToastA11y from '../components/system/ToastA11y';
 import { usePageBase } from '../hooks/usePageBase';
-import { literatureAPI, type LiteratureLecture } from '../services/literature';
+import { literatureAPI } from '../services/literature';
 import { createModuleLogger } from '../utils/logger';
 import { useLiteratureProgressStore } from '../store/literatureProgressStore';
 
@@ -82,7 +82,6 @@ export default function LiteratureLectureDetail() {
     completeLecture,
     isLectureCompleted,
     saveProblemResult,
-    getProblemResult,
     addStudyTime,
   } = useLiteratureProgressStore();
 

@@ -15,7 +15,7 @@ except:
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.processing.pipeline import UnifiedPipeline
+from app.infrastructure.pdf.pipeline import UnifiedPipeline
 from app.core.config import settings
 
 def reparse_literature(max_pages=None):
