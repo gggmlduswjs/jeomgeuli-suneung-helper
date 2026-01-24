@@ -2,7 +2,7 @@
 템플릿 관리 API
 템플릿 CRUD, 복사, 테스트 기능 제공
 """
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Body
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 import json
