@@ -93,7 +93,7 @@ export const legacyRedirects = [
  * 호환성 유지가 필요 없는 경우 제거 가능
  * 현재는 모든 레거시 페이지가 삭제되어 빈 배열
  */
-export const legacyRoutes: Array<{ path: string; element: React.ReactElement }> = [
+export const legacyRoutes: Array<{ path: string; element: React.ComponentType }> = [
   // 삭제된 레거시 페이지들
   // { path: '/explore', element: Explore },
   // { path: '/learn', element: LearnIndex },
@@ -111,5 +111,5 @@ export const legacyRoutes: Array<{ path: string; element: React.ReactElement }> 
 /**
  * 404 라우트
  */
-export const notFoundRoute = { path: '*', element: NotFound };
+export const notFoundRoute: { path: string; element: React.ComponentType } = { path: '*', element: NotFound };
 
