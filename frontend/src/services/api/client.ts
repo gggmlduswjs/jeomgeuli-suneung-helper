@@ -20,7 +20,7 @@ export interface ResourceCreateParams {
 export class ResourceService<T, TCreate = Partial<T>, TUpdate = Partial<T>> {
   constructor(
     private basePath: string,
-    private resourceName: string = '리소스'
+    private _resourceName: string = '리소스'
   ) {}
 
   /**

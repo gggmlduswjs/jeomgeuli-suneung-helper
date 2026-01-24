@@ -3,6 +3,7 @@ import VoiceEventBus, { VoiceEventType } from '../../lib/voice/VoiceEventBus';
 import micMode from '../../lib/voice/MicMode';
 import GoogleStreamingProvider from '../../stt/GoogleStreamingProvider';
 import { CircuitBreaker } from '../../lib/voice/CircuitBreaker';
+import { TranscriptProcessor } from '../../lib/voice/TranscriptProcessor';
 import { createWebSpeechSTTProvider } from './providers/WebSpeechSTTProvider';
 import { createWebSpeechTTSProvider } from './providers/WebSpeechTTSProvider';
 import type { STTProvider, TTSProvider, StartSTTOptions } from './types';
