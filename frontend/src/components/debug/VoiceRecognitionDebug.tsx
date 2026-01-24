@@ -1,12 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { useVoiceStore } from '../../store/voice';
-import VoiceEventBus, { VoiceEventType, onMicMode, onMicIntent, onTranscript, onCommand, onError } from '../../lib/voice/VoiceEventBus';
+import { onMicMode, onMicIntent, onTranscript, onCommand, onError } from '../../lib/voice/VoiceEventBus';
 import VoiceService from '../../services/voice';
-import micMode from '../../lib/voice/MicMode';
 
 interface EventLog {
   type: string;
-  detail: any;
+  detail: unknown;
   timestamp: number;
 }
 
@@ -32,7 +31,7 @@ export default function VoiceRecognitionDebug() {
 
   // 이벤트 로깅
   useEffect(() => {
-    const addLog = (type: string, detail: any) => {
+    const addLog = (type: string, detail: unknown) => {
       const log: EventLog = {
         type,
         detail,
@@ -147,17 +146,18 @@ export default function VoiceRecognitionDebug() {
         },
         autoStop: true,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[VoiceDebug] 테스트 실패:', error);
-      alert(`테스트 실패: ${error?.message || error}`);
+      const message = error instanceof Error ? error.message : String(error);
+      alert(`테스트 실패: ${message}`);
     }
   };
 
   const testMicMode = () => {
     console.log('[VoiceDebug] MicMode 테스트');
-    micMode.requestStart();
+    VoiceService.startSTT();
     setTimeout(() => {
-      micMode.requestStop();
+      VoiceService.stopSTT();
     }, 3000);
   };
 
@@ -169,13 +169,13 @@ export default function VoiceRecognitionDebug() {
   const formatTime = (timestamp: number) => {
     if (!timestamp) return '-';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('ko-KR', { 
+    return date.toLocaleTimeString('ko-KR', {
       hour12: false,
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
       fractionalSecondDigits: 3,
-    });
+    } as any);
   };
 
   const getTimeAgo = (timestamp: number) => {

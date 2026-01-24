@@ -1,5 +1,7 @@
 import BrailleGrid from "./BrailleGrid";
-import type { Cell } from "@/lib/brailleMap";
+import type { DotArray } from "../../types";
+
+type Cell = DotArray;
 
 interface BrailleRowProps {
   cells?: Cell[];

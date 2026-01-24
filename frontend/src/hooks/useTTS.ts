@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { TTSOptions, TTSHookReturn } from "@/types";
+import { createModuleLogger } from "../utils/logger";
+
+const logger = createModuleLogger('TTS');
 
 function clamp(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v));
@@ -253,17 +256,14 @@ function useTTS(): TTSHookReturn {
 
   const speak = useCallback(async (text: string | string[], options: TTSOptions = {}) => {
     if (!isSupported) {
-      console.warn("Speech synthesis is not supported in this browser");
+      logger.warn("Speech synthesis is not supported in this browser");
       setError("Speech synthesis is not supported");
       return;
     }
     // Mic Mode에서는 기본적으로 안내 음성 차단 (옵션으로만 허용)
     const allowDuringMic = 'allowDuringMic' in options && options.allowDuringMic === true;
     if (micModeRef.current && !allowDuringMic) {
-      // 개발 환경에서만 로그 출력
-      if (import.meta.env.DEV) {
-        console.log('[TTS] Mic Mode 활성화로 인해 TTS 차단');
-      }
+      logger.log('Mic Mode 활성화로 인해 TTS 차단');
       return;
     }
     
@@ -275,19 +275,16 @@ function useTTS(): TTSHookReturn {
         .map(t => cleanTextForTTS(String(t ?? "")))
         .filter(Boolean);
       if (!texts.length) {
-        console.warn('[TTS] 빈 텍스트로 인해 재생 건너뜀');
+        logger.warn('빈 텍스트로 인해 재생 건너뜀');
         setIsLoading(false);
         return;
       }
 
-      // 개발 환경에서만 로그 출력 (디버깅용)
-      if (import.meta.env.DEV) {
-        console.log('[TTS] speak 호출:', { 
-          textLength: texts.join(' ').length, 
-          textPreview: texts[0]?.substring(0, 50) + '...',
-          queueLength: utteranceQueue.current.length 
-        });
-      }
+      logger.log('speak 호출:', { 
+        textLength: texts.join(' ').length, 
+        textPreview: texts[0]?.substring(0, 50) + '...',
+        queueLength: utteranceQueue.current.length 
+      });
 
       // 새 요청이 들어오면 기존 재생은 정리 후 새 큐로 교체
       hardReset();
@@ -301,8 +298,7 @@ function useTTS(): TTSHookReturn {
       processQueue(options);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
-      // 오류 발생 시에도 사용자에게 피드백 제공
-      console.error("TTS Error:", err);
+      logger.error("TTS Error:", err);
     } finally {
       setIsLoading(false);
     }

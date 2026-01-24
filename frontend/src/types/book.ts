@@ -33,6 +33,9 @@ export interface BookParseStatus {
   book_id: string;
   status: ParseStatus;
   progress: number;
+  current_page?: number;
+  total_pages?: number;
+  message?: string;
 }
 
 /**

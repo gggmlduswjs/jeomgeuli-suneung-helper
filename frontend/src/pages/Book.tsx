@@ -11,6 +11,8 @@ import useSTT from '../hooks/useSTT';
 import useVoiceCommands from '../hooks/useVoiceCommands';
 import ToastA11y from '../components/system/ToastA11y';
 import BookUpload from '../components/textbook/BookUpload';
+import BookInfo from '../components/book/BookInfo';
+import LessonList from '../components/book/LessonList';
 import { booksAPI, lessonsAPI, curriculumAPI, unitsAPI } from '../services/api/client';
 import { literatureAPI, type LiteratureLectureSummary } from '../services/literature';
 import { Subject } from '../types/book';
@@ -57,50 +59,58 @@ export default function Book() {
       loadBook(bookId);
       loadLessons(bookId);
       
-      // 파싱 중이면 상태 폴링
+      // 파싱 중이면 상태 폴링 (5초마다 - 중복 요청 방지)
+      let lastStatus: string | null = null;
       const interval = setInterval(async () => {
         try {
           const status = await booksAPI.getParseStatus(bookId);
           setParseProgress(status.progress);
-            if (status.status === 'DONE' || status.status === 'FAILED') {
-              clearInterval(interval);
-              await loadBook(bookId); // 교재 정보 새로고침 (상태 업데이트)
-              if (status.status === 'DONE') {
-                // 강 목록 새로고침 및 검증
-                await loadLessons(bookId);
-                
-                // DONE이지만 lessons가 비어있는 경우 자동으로 JSON 동기화 시도
-                const currentLessons = await lessonsAPI.listByBook(bookId);
-                if (currentLessons.length === 0) {
-                  console.log('[Book] 파싱 완료되었지만 강의가 없음. 자동 JSON 동기화 시도...');
-                  try {
-                    const syncResult = await booksAPI.syncFromJson(bookId);
-                    if (syncResult.ok) {
-                      console.log('[Book] ✅ 자동 JSON 동기화 성공:', syncResult.message);
-                      await loadLessons(bookId); // 동기화 후 다시 로드
-                      await loadBook(bookId); // 교재 정보도 새로고침
-                      showToastMessage('JSON 파일이 자동으로 동기화되었습니다.');
-                    } else {
-                      console.warn('[Book] ⚠️ 자동 JSON 동기화 실패:', syncResult.message);
-                    }
-                  } catch (syncErr) {
-                    console.error('[Book] 자동 JSON 동기화 중 오류:', syncErr);
-                    // 자동 동기화 실패는 조용히 처리 (사용자가 수동으로 시도할 수 있음)
+          
+          // 상태가 변경되었을 때만 로그 출력
+          if (lastStatus !== status.status && import.meta.env.DEV) {
+            if (import.meta.env.DEV) console.log('[Book] Parse status:', status);
+            lastStatus = status.status;
+          }
+          
+          if (status.status === 'DONE' || status.status === 'FAILED') {
+            clearInterval(interval);
+            await loadBook(bookId); // 교재 정보 새로고침 (상태 업데이트)
+            if (status.status === 'DONE') {
+              // 강 목록 새로고침 및 검증
+              await loadLessons(bookId);
+              
+              // DONE이지만 lessons가 비어있는 경우 자동으로 JSON 동기화 시도
+              const currentLessons = await lessonsAPI.listByBook(bookId);
+              if (currentLessons.length === 0) {
+                if (import.meta.env.DEV) console.log('[Book] 파싱 완료되었지만 강의가 없음. 자동 JSON 동기화 시도...');
+                try {
+                  const syncResult = await booksAPI.syncFromJson(bookId);
+                  if (syncResult.ok) {
+                    if (import.meta.env.DEV) console.log('[Book] ✅ 자동 JSON 동기화 성공:', syncResult.message);
+                    await loadLessons(bookId); // 동기화 후 다시 로드
+                    await loadBook(bookId); // 교재 정보도 새로고침
+                    showToastMessage('JSON 파일이 자동으로 동기화되었습니다.');
+                  } else {
+                    console.warn('[Book] ⚠️ 자동 JSON 동기화 실패:', syncResult.message);
                   }
+                } catch (syncErr) {
+                  console.error('[Book] 자동 JSON 동기화 중 오류:', syncErr);
+                  // 자동 동기화 실패는 조용히 처리 (사용자가 수동으로 시도할 수 있음)
                 }
-                // DONE이지만 lessons가 비어있는 경우는 파싱 실패가 아니라 데이터 준비 중일 수 있음
-                // 에러 메시지는 표시하지 않고, UI에서 적절한 안내만 표시
-              } else if (status.status === 'FAILED') {
-                // 진짜 파싱 실패 시에만 에러 메시지 표시
-                const errorMsg = 'PDF 파싱이 실패했습니다. 파일을 확인하거나 재파싱을 시도해보세요.';
-                setError(errorMsg);
-                speak(errorMsg);
               }
+              // DONE이지만 lessons가 비어있는 경우는 파싱 실패가 아니라 데이터 준비 중일 수 있음
+              // 에러 메시지는 표시하지 않고, UI에서 적절한 안내만 표시
+            } else if (status.status === 'FAILED') {
+              // 진짜 파싱 실패 시에만 에러 메시지 표시
+              const errorMsg = 'PDF 파싱이 실패했습니다. 파일을 확인하거나 재파싱을 시도해보세요.';
+              setError(errorMsg);
+              speak(errorMsg);
             }
+          }
         } catch (err) {
           console.error('[Book] 파싱 상태 조회 실패:', err);
         }
-      }, 2000);
+      }, 5000); // 5초로 증가
       
       return () => clearInterval(interval);
     } else if (subjectParam) {
@@ -136,7 +146,7 @@ export default function Book() {
     try {
       const data = await lessonsAPI.listByBook(id);
       setLessons(data);
-      console.log(`[Book] 강 목록 로드 완료: ${data.length}개`);
+      if (import.meta.env.DEV) console.log(`[Book] 강 목록 로드 완료: ${data.length}개`);
       // 강의가 있지만 일부가 섹션이 없는 경우 로그
       if (data.length > 0) {
         const lessonsWithoutContent = data.filter((lesson: Lesson) => !lesson.unit_count || lesson.unit_count === 0);
@@ -162,7 +172,7 @@ export default function Book() {
         const message = '등록된 문학 강의가 없습니다.';
         speak(message);
       } else {
-        speak(`수능특강 문학 강의 ${data.length}개가 있습니다.`);
+        speak(`문학 강의 ${data.length}개가 있습니다.`);
       }
     } catch (err) {
       const errorMsg = '문학 강의 목록을 불러오는 중 오류가 발생했습니다.';
@@ -259,11 +269,19 @@ export default function Book() {
       if (result.ok) {
         // 교재 정보 새로고침
         await loadBook(bookId);
-        // 파싱 상태 폴링 재시작
+        // 파싱 상태 폴링 재시작 (5초마다 - 중복 요청 방지)
+        let lastStatus: string | null = null;
         const interval = setInterval(async () => {
           try {
             const status = await booksAPI.getParseStatus(bookId);
             setParseProgress(status.progress);
+            
+            // 상태가 변경되었을 때만 로그 출력
+            if (lastStatus !== status.status && import.meta.env.DEV) {
+              if (import.meta.env.DEV) console.log('[Book] Reparse status:', status);
+              lastStatus = status.status;
+            }
+            
             if (status.status === 'DONE' || status.status === 'FAILED') {
               clearInterval(interval);
               await loadBook(bookId);
@@ -273,11 +291,11 @@ export default function Book() {
                 // 재파싱 완료 후에도 강의가 없으면 자동 JSON 동기화 시도
                 const currentLessons = await lessonsAPI.listByBook(bookId);
                 if (currentLessons.length === 0) {
-                  console.log('[Book] 재파싱 완료되었지만 강의가 없음. 자동 JSON 동기화 시도...');
+                  if (import.meta.env.DEV) console.log('[Book] 재파싱 완료되었지만 강의가 없음. 자동 JSON 동기화 시도...');
                   try {
                     const syncResult = await booksAPI.syncFromJson(bookId);
                     if (syncResult.ok) {
-                      console.log('[Book] ✅ 자동 JSON 동기화 성공:', syncResult.message);
+                      if (import.meta.env.DEV) console.log('[Book] ✅ 자동 JSON 동기화 성공:', syncResult.message);
                       await loadLessons(bookId);
                       await loadBook(bookId);
                       showToastMessage('JSON 파일이 자동으로 동기화되었습니다.');
@@ -297,13 +315,13 @@ export default function Book() {
             console.error('[Book] 파싱 상태 조회 실패:', err);
             clearInterval(interval);
           }
-        }, 2000);
+        }, 5000); // 5초로 증가
         
         // 30초 후 타임아웃
         setTimeout(() => clearInterval(interval), 30000);
       }
-    } catch (err: any) {
-      const errorMsg = err.message || '재파싱 중 오류가 발생했습니다.';
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : '재파싱 중 오류가 발생했습니다.';
       setError(errorMsg);
       showToastMessage(errorMsg);
     } finally {
@@ -327,8 +345,8 @@ export default function Book() {
         // 페이지 새로고침하여 커리큘럼 반영
         window.location.reload();
       }
-    } catch (err: any) {
-      const errorMsg = err.message || '커리큘럼 재생성 중 오류가 발생했습니다.';
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : '커리큘럼 재생성 중 오류가 발생했습니다.';
       setError(errorMsg);
       showToastMessage(errorMsg);
     } finally {
@@ -351,8 +369,8 @@ export default function Book() {
         // 교재 정보 새로고침
         await loadBook(bookId);
       }
-    } catch (err: any) {
-      const errorMsg = err.message || 'JSON 동기화 중 오류가 발생했습니다.';
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'JSON 동기화 중 오류가 발생했습니다.';
       setError(errorMsg);
       showToastMessage(errorMsg);
       speak(errorMsg);
@@ -416,7 +434,7 @@ export default function Book() {
                 {subjectParam === Subject.KOREAN ? (
                   <>
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg p-4 mb-4">
-                      <h2 className="text-xl font-bold mb-2 text-blue-900">📚 수능특강 문학</h2>
+                      <h2 className="text-xl font-bold mb-2 text-blue-900">📚 문학 강의</h2>
                       <p className="text-sm text-blue-700">문학 강의를 선택하여 학습을 시작하세요.</p>
                     </div>
                     {literatureLectures.length > 0 ? (
@@ -499,110 +517,22 @@ export default function Book() {
               </div>
             ) : book ? (
               <div className="space-y-4">
-                {/* 교재 정보 */}
-                <div className="bg-card border border-border rounded-lg p-4">
-                  <h2 className="text-xl font-bold mb-2">{book.title}</h2>
-                  <div className="text-sm text-muted space-y-1">
-                    <p>과목: {book.subject}</p>
-                    {book.year && <p>연도: {book.year}</p>}
-                    <p>강 수: {book.lesson_count || 0}개</p>
-                    <p>상태: {book.parse_status}</p>
-                  </div>
-                  
-                  {/* 파싱 진행 상태 */}
-                  {book.parse_status === 'PROCESSING' && (
-                    <div className="mt-4">
-                      <div className="flex justify-between text-xs text-muted mb-1">
-                        <span>파싱 중...</span>
-                        <span>{parseProgress}%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div
-                          className="bg-primary h-2 rounded-full transition-all"
-                          style={{ width: `${parseProgress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                <BookInfo
+                  book={book}
+                  parseProgress={parseProgress}
+                  onReparse={handleReparse}
+                  onSyncFromJson={handleSyncFromJson}
+                  onRecreateCurriculum={handleRecreateCurriculum}
+                  loading={loading}
+                />
 
-                  {/* 파싱 실패 시 재파싱 버튼 */}
-                  {book.parse_status === 'FAILED' && (
-                    <div className="mt-4">
-                      <div className="bg-error/10 border border-error rounded-lg p-3 mb-3">
-                        <p className="text-error text-sm mb-2">파싱에 실패했습니다.</p>
-                        <p className="text-xs text-muted">파일을 확인하거나 재파싱을 시도해보세요.</p>
-                      </div>
-                      <button
-                        onClick={handleReparse}
-                        disabled={loading}
-                        className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {loading ? '재파싱 중...' : '재파싱 시도'}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* 커리큘럼 재생성 및 JSON 동기화 버튼 */}
-                  {book.parse_status === 'DONE' && (
-                    <div className="mt-4 space-y-2">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleSyncFromJson}
-                          disabled={loading}
-                          className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {loading ? '동기화 중...' : 'JSON 동기화'}
-                        </button>
-                        <button
-                          onClick={handleRecreateCurriculum}
-                          disabled={loading}
-                          className="flex-1 px-4 py-2 bg-warning/10 text-warning border border-warning rounded-lg hover:bg-warning/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {loading ? '재생성 중...' : '커리큘럼 재생성'}
-                        </button>
-                      </div>
-                      <p className="text-xs text-muted">
-                        <strong>JSON 동기화:</strong> JSON 파일을 읽어서 DB에 저장 (빠름)<br/>
-                        <strong>커리큘럼 재생성:</strong> 전체 파이프라인 데이터로부터 재생성
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* 강 목록 */}
-                {lessons.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">강 목록</h3>
-                    {lessons.map((lesson) => {
-                      const hasContent = (lesson.unit_count && lesson.unit_count > 0) || (lesson.question_count && lesson.question_count > 0);
-                      return (
-                        <button
-                          key={lesson.lesson_id}
-                          onClick={() => handleLessonSelect(lesson)}
-                          className={`w-full p-4 text-left bg-card border rounded-lg transition-colors ${
-                            hasContent 
-                              ? 'border-border hover:border-primary' 
-                              : 'border-warning/50 hover:border-warning'
-                          }`}
-                        >
-                          <div className="font-medium">{lesson.title}</div>
-                          <div className="text-sm text-muted mt-1">
-                            단위 {lesson.unit_count || 0}개, 문제 {lesson.question_count || 0}개
-                            {!hasContent && (
-                              <span className="ml-2 text-warning text-xs">(콘텐츠 준비 중)</span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                <LessonList lessons={lessons} onLessonSelect={handleLessonSelect} />
 
                 {lessons.length === 0 && book.parse_status === 'DONE' && (
                   <div className="bg-warning/10 border border-warning rounded-lg p-4 text-center">
                     <p className="text-warning font-medium mb-2">강의 데이터를 찾을 수 없습니다.</p>
                     <p className="text-xs text-muted mb-3">
-                      파싱은 완료되었지만 강의가 생성되지 않았을 수 있습니다. 
+                      파싱은 완료되었지만 강의가 생성되지 않았을 수 있습니다.
                       JSON 파일에서 DB로 동기화를 시도해보세요.
                     </p>
                     <div className="flex gap-2 justify-center">

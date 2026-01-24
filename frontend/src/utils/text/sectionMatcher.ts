@@ -234,7 +234,7 @@ export interface BlockData {
     page: number;
     position: string;
   };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface BlocksJsonData {

@@ -19,7 +19,7 @@ const PageLoader = () => (
 export default function App(){
   // 개발 헬스 기록
   (window as any).__APP_HEALTH__ = { ...(window as any).__APP_HEALTH__, appMounted: true };
-  console.log("[APP] mounted", (window as any).__APP_HEALTH__);
+  if (import.meta.env.DEV) console.log("[APP] mounted", (window as any).__APP_HEALTH__);
 
   // 전역 마이크 모드 시 모든 미디어 볼륨/재생 제어 (추가 음소거)
   const pausedMediaRef = useRef<HTMLMediaElement[]>([]);

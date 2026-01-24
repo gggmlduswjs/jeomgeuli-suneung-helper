@@ -14,7 +14,7 @@ interface UseUnitAIExplanationOptions {
   autoSpeak?: boolean; // AI 설명 생성 시 자동으로 TTS 재생 여부
   readingMode?: 'braille-only' | 'audio-first' | 'mixed'; // 읽기 모드
   onTTSComplete?: () => void; // TTS 재생 완료 시 콜백
-  allSections?: any[]; // keywords 섹션 요약 생성을 위한 전체 섹션 데이터
+  allSections?: unknown[]; // keywords 섹션 요약 생성을 위한 전체 섹션 데이터
 }
 
 export function useUnitAIExplanation({
@@ -68,13 +68,13 @@ export function useUnitAIExplanation({
     
     // 섹션이 변경되지 않았고 이미 로딩 중이면 건너뜀
     if (isLoadingRef.current && currentSectionKey === lastSectionKey) {
-      console.log('[useUnitAIExplanation] 이미 로딩 중이므로 건너뜀', { sectionKey: currentSectionKey });
+      if (import.meta.env.DEV) console.log('[useUnitAIExplanation] 이미 로딩 중이므로 건너뜀', { sectionKey: currentSectionKey });
       return;
     }
 
     // 섹션이 변경되었거나 AI 설명이 없으면 새로 로드
     // 이전 섹션의 데이터를 완전히 제거하기 위해 즉시 초기화
-    console.log('[useUnitAIExplanation] AI 설명 로드 시작 (즉시):', {
+    if (import.meta.env.DEV) console.log('[useUnitAIExplanation] AI 설명 로드 시작 (즉시):', {
       unitId: currentUnitId,
       sectionType,
       lastUnitId: lastUnitIdRef.current,
@@ -99,8 +99,12 @@ export function useUnitAIExplanation({
         if (allSections && allSections.length > 0) {
           // 이전 섹션들의 내용을 모두 모음 (문제 제외)
           allContentText = allSections
-            .filter((s: any) => s.section_type !== 'problem' && s.content && s.content.trim())
-            .map((s: any) => s.content.trim());
+            .filter((s): s is { section_type: string; content: string } =>
+              typeof s === 'object' && s !== null &&
+              'section_type' in s && 'content' in s &&
+              s.section_type !== 'problem' && !!s.content && String(s.content).trim() !== ''
+            )
+            .map(s => String(s.content).trim());
         }
         
         // content가 있으면 추가
@@ -113,7 +117,7 @@ export function useUnitAIExplanation({
           allContentText = [unit.title || '단원 요약'];
         }
         
-        console.log('[useUnitAIExplanation] keywords 섹션 - 단원 요약 생성 요청:', { 
+        if (import.meta.env.DEV) console.log('[useUnitAIExplanation] keywords 섹션 - 단원 요약 생성 요청:', { 
           title: unit.title,
           sectionsCount: allSections?.length || 0,
           contentLength: allContentText.length
@@ -129,7 +133,7 @@ export function useUnitAIExplanation({
         // 일반 섹션: 기존 로직 사용
         const contentArray = unit.content.split('\n').filter(line => line.trim());
 
-        console.log('[useUnitAIExplanation] AI 설명 요청:', { 
+        if (import.meta.env.DEV) console.log('[useUnitAIExplanation] AI 설명 요청:', { 
           sectionType, 
           title: unit.title, 
           contentLength: contentArray.length 
@@ -164,7 +168,7 @@ export function useUnitAIExplanation({
 
       if (explanation) {
         setAiExplanation(explanation);
-        console.log('🤖 [AI 설명 생성됨]', { title: unit.title, length: explanation.length });
+        if (import.meta.env.DEV) console.log('🤖 [AI 설명 생성됨]', { title: unit.title, length: explanation.length });
         
         // AI 설명 생성 시 자동으로 TTS 재생
         // 점자 모드가 아닐 때만 TTS 재생, 이미 읽지 않았을 때만
@@ -181,7 +185,7 @@ export function useUnitAIExplanation({
             if (onSpeakRef.current) {
               onSpeakRef.current(explanation, {
                 onEnd: () => {
-                  console.log('[useUnitAIExplanation] AI 설명 TTS 완료 - 다음 섹션으로 이동');
+                  if (import.meta.env.DEV) console.log('[useUnitAIExplanation] AI 설명 TTS 완료 - 다음 섹션으로 이동');
                   if (onTTSCompleteRef.current) {
                     onTTSCompleteRef.current();
                   }
@@ -217,7 +221,7 @@ export function useUnitAIExplanation({
     
     // 섹션이 변경되었을 때만 로드 (단원 ID와 섹션 타입 모두 고려)
     if (sectionChanged) {
-      console.log('[useUnitAIExplanation] 섹션 변경 감지 - 즉시 AI 설명 로드 시작:', { 
+      if (import.meta.env.DEV) console.log('[useUnitAIExplanation] 섹션 변경 감지 - 즉시 AI 설명 로드 시작:', { 
         previous: lastUnitIdRef.current, 
         current: currentUnitId,
         title: unit.title,
@@ -235,7 +239,7 @@ export function useUnitAIExplanation({
       loadAIExplanation();
     } else {
       // 같은 섹션이면 건너뜀 (이미 로드됨)
-      console.log('[useUnitAIExplanation] 같은 섹션이므로 AI 설명 로드 건너뜀', { 
+      if (import.meta.env.DEV) console.log('[useUnitAIExplanation] 같은 섹션이므로 AI 설명 로드 건너뜀', { 
         unitId: currentUnitId,
         sectionType,
         isLoading: isLoadingRef.current

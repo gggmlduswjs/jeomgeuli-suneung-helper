@@ -7,11 +7,11 @@ import { api, type ApiError } from './index';
 export interface ResourceListParams {
   subject?: string;
   book_id?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | undefined;
 }
 
 export interface ResourceCreateParams {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -76,7 +76,8 @@ export class ResourceService<T, TCreate = Partial<T>, TUpdate = Partial<T>> {
 /**
  * 커리큘럼 서비스
  */
-import type { Curriculum, CurriculumDetail, Subject } from '../types/curriculum';
+import type { Curriculum, CurriculumDetail } from '../../types/curriculum';
+import type { Subject as BookSubject } from '../../types/book';
 
 export class CurriculumService extends ResourceService<Curriculum> {
   constructor() {
@@ -93,15 +94,15 @@ export class CurriculumService extends ResourceService<Curriculum> {
   /**
    * 레슨 목록 조회
    */
-  async listLessons(curriculumId: string): Promise<any[]> {
-    return api.get<any[]>(`/curriculum/${curriculumId}/lessons`);
+  async listLessons(curriculumId: string): Promise<Lesson[]> {
+    return api.get<Lesson[]>(`/curriculum/${curriculumId}/lessons`);
   }
 
   /**
    * 특정 레슨 조회
    */
-  async getLesson(curriculumId: string, lessonNumber: number): Promise<any> {
-    return api.get<any>(`/curriculum/${curriculumId}/lessons/${lessonNumber}`);
+  async getLesson(curriculumId: string, lessonNumber: number): Promise<Lesson> {
+    return api.get<Lesson>(`/curriculum/${curriculumId}/lessons/${lessonNumber}`);
   }
 
   /**
@@ -151,7 +152,7 @@ export class CurriculumService extends ResourceService<Curriculum> {
 /**
  * 레슨 서비스
  */
-import type { Lesson } from '../types/lesson';
+import type { Lesson } from '../../types/lesson';
 
 export class LessonService extends ResourceService<Lesson> {
   constructor() {
@@ -193,7 +194,7 @@ export class LessonService extends ResourceService<Lesson> {
 /**
  * 학습 단위 서비스
  */
-import type { Unit } from '../types/unit';
+import type { Unit } from '../../types/unit';
 
 export class UnitService extends ResourceService<Unit> {
   constructor() {
@@ -211,7 +212,7 @@ export class UnitService extends ResourceService<Unit> {
 /**
  * 교재 서비스
  */
-import type { Book, BookParseStatus, Subject, AIProcessingOptions } from '../types/book';
+import type { Book, BookParseStatus, Subject, AIProcessingOptions } from '../../types/book';
 
 export class BookService extends ResourceService<Book> {
   constructor() {

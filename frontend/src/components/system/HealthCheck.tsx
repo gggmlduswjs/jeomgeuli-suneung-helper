@@ -15,9 +15,9 @@ export default function HealthCheck({ children }: HealthCheckProps) {
         const result = await http.get('/health');
         setIsHealthy(result?.ok === true || result?.status === 'healthy');
         setError(null);
-      } catch (e: any) {
+      } catch (e: unknown) {
         setIsHealthy(false);
-        setError(e?.message || 'Health check failed');
+        setError(e instanceof Error ? e.message : 'Health check failed');
         if (import.meta.env.DEV) {
           console.error('[HealthCheck] API health check failed:', e);
         }

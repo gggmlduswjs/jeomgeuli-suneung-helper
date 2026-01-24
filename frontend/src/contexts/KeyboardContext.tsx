@@ -66,7 +66,7 @@ export function KeyboardProvider({ children }: KeyboardProviderProps) {
 
     if (handler) {
       if (debugMode) {
-        console.log(`[KeyboardContext] Handling shortcut: ${key}`);
+        if (import.meta.env.DEV) console.log(`[KeyboardContext] Handling shortcut: ${key}`);
       }
 
       event.preventDefault();
@@ -96,7 +96,7 @@ export function KeyboardProvider({ children }: KeyboardProviderProps) {
     });
 
     if (debugMode) {
-      console.log(`[KeyboardContext] Registered shortcuts:`, Array.from(shortcutsRef.current.keys()));
+      if (import.meta.env.DEV) console.log(`[KeyboardContext] Registered shortcuts:`, Array.from(shortcutsRef.current.keys()));
     }
 
     // Return cleanup function
@@ -110,21 +110,21 @@ export function KeyboardProvider({ children }: KeyboardProviderProps) {
   const unregisterShortcuts = useCallback(() => {
     shortcutsRef.current.clear();
     if (debugMode) {
-      console.log('[KeyboardContext] Unregistered all shortcuts');
+      if (import.meta.env.DEV) console.log('[KeyboardContext] Unregistered all shortcuts');
     }
   }, [debugMode]);
 
   const disableShortcuts = useCallback(() => {
     setIsEnabled(false);
     if (debugMode) {
-      console.log('[KeyboardContext] Shortcuts disabled');
+      if (import.meta.env.DEV) console.log('[KeyboardContext] Shortcuts disabled');
     }
   }, [debugMode]);
 
   const enableShortcuts = useCallback(() => {
     setIsEnabled(true);
     if (debugMode) {
-      console.log('[KeyboardContext] Shortcuts enabled');
+      if (import.meta.env.DEV) console.log('[KeyboardContext] Shortcuts enabled');
     }
   }, [debugMode]);
 

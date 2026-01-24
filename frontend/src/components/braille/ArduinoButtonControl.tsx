@@ -24,7 +24,7 @@ export default function ArduinoButtonControl({
   // 버튼 이벤트 처리
   useEffect(() => {
     const handleButtonEvent = (event: ButtonEvent) => {
-      console.log('[ArduinoButtonControl] 버튼 이벤트:', event);
+      if (import.meta.env.DEV) console.log('[ArduinoButtonControl] 버튼 이벤트:', event);
       
       switch (event) {
         case 'prev':

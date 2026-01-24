@@ -13,16 +13,16 @@ interface LearnState {
   // Textbook state
   currentTextbook: string | null;
   currentUnit: string | null;
-  units: any[];
+  units: unknown[];
 
   // Passage state
   currentPassage: string | null;
-  passageStructure: any | null;
+  passageStructure: unknown | null;
 
   // Question state
-  currentQuestion: any | null;
+  currentQuestion: unknown | null;
   wrongAnswers: Array<{
-    question: any;
+    question: unknown;
     userAnswer: number;
     correctAnswer: number;
     attemptedAt: string;
@@ -36,12 +36,12 @@ interface LearnState {
   // Actions
   setTextbook: (textbookId: string) => void;
   setUnit: (unitId: string) => void;
-  setUnits: (units: any[]) => void;
+  setUnits: (units: unknown[]) => void;
   setPassage: (passage: string) => void;
-  setPassageStructure: (structure: any) => void;
-  setQuestion: (question: any) => void;
+  setPassageStructure: (structure: unknown) => void;
+  setQuestion: (question: unknown) => void;
   addWrongAnswer: (answer: {
-    question: any;
+    question: unknown;
     userAnswer: number;
     correctAnswer: number;
     attemptedAt: string;

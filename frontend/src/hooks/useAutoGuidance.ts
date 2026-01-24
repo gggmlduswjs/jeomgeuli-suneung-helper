@@ -146,7 +146,6 @@ export function useQueuedGuidance(
         const isLast = index === messages.length - 1;
         const timer = setTimeout(() => {
           speak(message, {
-            allowDuringMic,
             onEnd: isLast ? onEnd : undefined,
           });
         }, currentDelay);

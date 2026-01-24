@@ -69,8 +69,8 @@ export class OrbitReaderAdapter implements BrailleDeviceAdapter {
         this.error = "디바이스 연결이 끊어졌습니다.";
       });
 
-    } catch (error: any) {
-      this.error = error?.message || "BLE 연결에 실패했습니다.";
+    } catch (error: unknown) {
+      this.error = error instanceof Error ? error.message : "BLE 연결에 실패했습니다.";
       throw error;
     }
   }
@@ -103,8 +103,9 @@ export class OrbitReaderAdapter implements BrailleDeviceAdapter {
       });
 
       await this.characteristic.writeValue(buffer);
-    } catch (error: any) {
-      this.error = `전송 실패: ${error?.message || '알 수 없는 오류'}`;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : '알 수 없는 오류';
+      this.error = `전송 실패: ${message}`;
       throw error;
     }
   }
@@ -129,8 +130,9 @@ export class OrbitReaderAdapter implements BrailleDeviceAdapter {
       } else {
         throw new Error('잘못된 응답 형식');
       }
-    } catch (error: any) {
-      this.error = `텍스트 전송 실패: ${error?.message || '알 수 없는 오류'}`;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : '알 수 없는 오류';
+      this.error = `텍스트 전송 실패: ${message}`;
       throw error;
     }
   }

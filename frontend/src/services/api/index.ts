@@ -6,9 +6,21 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1초
 
 export interface ApiError {
-  detail?: string;
+  detail?: string | { message?: string; [key: string]: unknown };
   message?: string;
   error?: string;
+}
+
+export class EnhancedApiError extends Error {
+  response?: { data: ApiError; status: number };
+  detail?: ApiError['detail'];
+
+  constructor(message: string, response?: { data: ApiError; status: number }) {
+    super(message);
+    this.name = 'EnhancedApiError';
+    this.response = response;
+    this.detail = response?.data.detail;
+  }
 }
 
 /**
@@ -39,9 +51,22 @@ async function fetchWithRetry<T>(
     const response = await fetchFn();
     if (!response.ok) {
       const error: ApiError = await response.json().catch(() => ({
-        detail: `HTTP ${response.status}`,
+        detail: `HTTP ${response.status}: ${response.statusText}`,
       }));
-      throw new Error(error.detail || error.message || error.error || 'API 요청 실패');
+      
+      // detail이 객체인 경우 message 필드 추출
+      let errorMessage: string;
+      if (error.detail && typeof error.detail === 'object') {
+        errorMessage = error.detail.message || JSON.stringify(error.detail);
+      } else {
+        errorMessage = error.detail || error.message || error.error || `HTTP ${response.status}: ${response.statusText}`;
+      }
+
+      const apiError = new EnhancedApiError(errorMessage, {
+        data: error,
+        status: response.status
+      });
+      throw apiError;
     }
     return response.json();
   } catch (error) {
@@ -69,6 +94,8 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
+  baseURL: API_BASE,
+
   get: async <T>(path: string): Promise<T> => {
     // 캐시 방지 헤더 추가 (항상 최신 데이터 가져오기)
     return fetchWithRetry<T>(() => fetch(`${API_BASE}${path}`, {
@@ -81,9 +108,20 @@ export const api = {
     }));
   },
 
-  post: async <T>(path: string, body?: any): Promise<T> => {
+  post: async <T>(path: string, body?: unknown): Promise<T> => {
     return fetchWithRetry<T>(() => fetch(`${API_BASE}${path}`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    }));
+  },
+
+  put: async <T>(path: string, body?: unknown): Promise<T> => {
+    return fetchWithRetry<T>(() => fetch(`${API_BASE}${path}`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache, no-store, must-revalidate',

@@ -42,7 +42,7 @@ export const aiAPI = {
     mode: 'sequential' | 'interactive',
     question?: string
   ) {
-    const body: any = { mode };
+    const body: { mode: string; question?: string } = { mode };
     if (question) {
       body.question = question;
     }

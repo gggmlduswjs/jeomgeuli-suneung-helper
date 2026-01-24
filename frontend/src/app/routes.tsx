@@ -15,11 +15,16 @@ const Main = lazy(() => import('../pages/Main'));
 const Book = lazy(() => import('../pages/Book'));
 const Lesson = lazy(() => import('../pages/Lesson'));
 const Unit = lazy(() => import('../pages/Unit'));
+const LiteratureLectures = lazy(() => import('../pages/LiteratureLectures'));
+const LiteratureLectureDetail = lazy(() => import('../pages/LiteratureLectureDetail'));
 
 // 레거시 페이지 (호환성 유지) - 존재하는 페이지만 import
 const Curriculum = lazy(() => import('../pages/Curriculum'));
 const LearnRedirect = lazy(() => import('../components/routing/LearnRedirect'));
 const NotFound = lazy(() => import('../pages/NotFound'));
+
+// 관리자 페이지
+const Admin = lazy(() => import('../pages/Admin'));
 
 // 삭제된 페이지들 (주석 처리)
 // const Passage = lazy(() => import('../pages/Passage/Passage'));
@@ -56,8 +61,15 @@ export const routes = [
   { path: '/lesson/:lessonId', element: Lesson },
   { path: '/unit/:unitId', element: Unit },
 
+  // Literature routes
+  { path: '/literature/lectures', element: LiteratureLectures },
+  { path: '/literature/lectures/:lectureId', element: LiteratureLectureDetail },
+
   // Legacy routes (compatibility maintained)
   { path: '/curriculum', element: Curriculum },
+  
+  // Admin routes
+  { path: '/admin', element: Admin },
   
   // Redirect legacy routes
   { path: '/textbook', element: BookSelect }, // Textbook -> BookSelect로 리다이렉트
@@ -81,7 +93,7 @@ export const legacyRedirects = [
  * 호환성 유지가 필요 없는 경우 제거 가능
  * 현재는 모든 레거시 페이지가 삭제되어 빈 배열
  */
-export const legacyRoutes: Array<{ path: string; element: any }> = [
+export const legacyRoutes: Array<{ path: string; element: React.ReactElement }> = [
   // 삭제된 레거시 페이지들
   // { path: '/explore', element: Explore },
   // { path: '/learn', element: LearnIndex },

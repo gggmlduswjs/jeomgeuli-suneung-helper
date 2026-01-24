@@ -1,5 +1,16 @@
 // 통합 타입 정의 파일
 
+// 다른 타입 파일들 re-export (import 일관성 확보)
+export * from './api';
+export * from './answer';
+export * from './book';
+export * from './curriculum';
+export * from './lesson';
+export * from './progress';
+export * from './unit';
+export * from './voice';
+export * from './errors';
+
 // API 응답 타입
 export interface ApiResponse {
   answer?: string;
@@ -7,13 +18,13 @@ export interface ApiResponse {
   keywords?: string[];
   braille_words?: string[];
   mode?: string;
-  actions?: Record<string, any>;
-  meta?: Record<string, any>;
+  actions?: Record<string, unknown>;
+  meta?: Record<string, unknown>;
   error?: string;
-  news?: any[];
+  news?: unknown[];
   query?: string;
   ok?: boolean;
-  data?: any;
+  data?: unknown;
 }
 
 // 점자 관련 타입
@@ -52,7 +63,7 @@ export interface ChatMessage {
   role: Role;
   type: 'text' | 'card';
   text?: string;
-  payload?: any;
+  payload?: unknown;
   keywords?: string[]; // 메시지별 키워드 추가
   createdAt: number;
 }

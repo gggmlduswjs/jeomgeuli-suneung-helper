@@ -4,7 +4,7 @@
  */
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { booksAPI, lessonsAPI, unitsAPI } from '../services/api/client';
+import { booksAPI } from '../services/api/client';
 import type { Book } from '../types/book';
 import { useKeyboardShortcuts } from '../contexts/KeyboardContext';
 import { useAutoGuidance } from '../hooks/useAutoGuidance';
@@ -12,6 +12,7 @@ import { useTTS } from '../hooks/useTTS';
 import AppShellMobile from '../components/ui/AppShellMobile';
 import ToastA11y from '../components/system/ToastA11y';
 import BookUpload from '../components/textbook/BookUpload';
+import BookListItem from '../components/bookselect/BookListItem';
 
 export default function BookSelect() {
   const navigate = useNavigate();
@@ -53,12 +54,16 @@ export default function BookSelect() {
     }
   };
 
-  // Auto-announce on load
+  // Auto-announce on load (파싱 중이 아닐 때만)
   const autoAnnounceMessage = books.length > 0
     ? `교재 선택. ${books.length}개의 교재가 있습니다. 1부터 ${Math.min(books.length, 9)}까지 번호를 눌러 선택하거나, 플러스 키로 새 교재를 추가하세요.`
     : '교재 선택. 등록된 교재가 없습니다. 플러스 키를 눌러 새 교재를 추가하세요.';
 
-  useAutoGuidance(autoAnnounceMessage, [loading, books.length]);
+  // 파싱 중이 아니고 로딩이 완료되었을 때만 자동 안내
+  const isParsing = parsingBookId !== null || reparsingBookId !== null;
+  useAutoGuidance(autoAnnounceMessage, [loading, books.length], {
+    enabled: !loading && !isParsing
+  });
 
   // Keyboard shortcuts
   const shortcuts: Record<string, () => void> = {
@@ -164,15 +169,31 @@ export default function BookSelect() {
         clearInterval(parseStatusIntervalRef.current);
       }
       
-      // 파싱 상태 폴링 (5초마다)
+      // 파싱 상태 폴링 (10초마다 - 중복 요청 방지)
+      let lastStatus: string | null = null;
+      let checkCount = 0;
       parseStatusIntervalRef.current = setInterval(async () => {
         try {
+          checkCount++;
           const status = await booksAPI.getParseStatus(uploadedBook.book_id);
-          // 개발 환경에서만 로그 출력 (상태 변경 시에만)
-          if (import.meta.env.DEV && status.progress % 10 === 0) {
-            console.log('[BookSelect] Upload parse status:', status);
+
+          // 진행 메시지 생성
+          const progressMsg = status.message || `${status.progress}%`;
+
+          // 상태가 변경되었을 때만 로그 출력
+          if (lastStatus !== status.status) {
+            if (import.meta.env.DEV) console.log(`[BookSelect] Upload parse status 변경: ${lastStatus} -> ${status.status} (${progressMsg})`);
+            lastStatus = status.status;
+            // 상태 변경 시 토스트 메시지 표시
+            if (status.status === 'PROCESSING') {
+              showToastMsg(`파싱 진행 중... ${progressMsg}`);
+            }
+          } else if (checkCount % 6 === 0) {
+            // 1분마다 상태 로그 (파싱이 진행 중임을 확인)
+            if (import.meta.env.DEV) console.log(`[BookSelect] 파싱 진행 중... (${progressMsg}, 체크 횟수: ${checkCount})`);
+            showToastMsg(`파싱 진행 중... ${progressMsg}`);
           }
-          
+
           if (status.status === 'DONE' || status.status === 'FAILED') {
             if (parseStatusIntervalRef.current) {
               clearInterval(parseStatusIntervalRef.current);
@@ -180,19 +201,32 @@ export default function BookSelect() {
             }
             setParsingBookId(null);
             await loadBooks(); // 교재 목록 새로고침
-            
+
             if (status.status === 'DONE') {
+              if (import.meta.env.DEV) console.log(`[BookSelect] 파싱 완료! (총 체크 횟수: ${checkCount})`);
               showToastMsg('파싱이 완료되었습니다!');
               speak('파싱이 완료되었습니다.');
             } else {
+              if (import.meta.env.DEV) console.log(`[BookSelect] 파싱 실패 (총 체크 횟수: ${checkCount})`);
               showToastMsg('파싱이 실패했습니다. 재파싱을 시도해보세요.');
               speak('파싱이 실패했습니다.');
             }
           }
-        } catch (err) {
+        } catch (err: unknown) {
           console.error('[BookSelect] Failed to check parse status:', err);
+          // 교재가 삭제되었거나 찾을 수 없는 경우 interval 정리
+          const message = err instanceof Error ? err.message : '';
+          if (message && message.includes('교재를 찾을 수 없습니다')) {
+            if (parseStatusIntervalRef.current) {
+              clearInterval(parseStatusIntervalRef.current);
+              parseStatusIntervalRef.current = null;
+            }
+            setParsingBookId(null);
+            await loadBooks(); // 교재 목록 새로고침
+            showToastMsg('교재를 찾을 수 없습니다.');
+          }
         }
-      }, 5000);
+      }, 10000); // 10초로 증가
       
       // 컴포넌트 언마운트 시 정리
       setTimeout(() => {
@@ -225,9 +259,9 @@ export default function BookSelect() {
       } else {
         throw new Error(result?.message || '삭제 실패');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[BookSelect] Failed to delete book:', err);
-      const errorMsg = err.message || '교재 삭제 중 오류가 발생했습니다.';
+      const errorMsg = err instanceof Error ? err.message : '교재 삭제 중 오류가 발생했습니다.';
       showToastMsg(errorMsg);
       speak(errorMsg);
     }
@@ -246,12 +280,9 @@ export default function BookSelect() {
       } else {
         throw new Error(result.message || 'JSON 동기화 실패');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[BookSelect] Failed to sync from JSON:', err);
-      const errorMsg = err.response?.data?.message
-        || err.response?.data?.detail
-        || err.message
-        || 'JSON 동기화 중 오류가 발생했습니다.';
+      const errorMsg = err instanceof Error ? err.message : 'JSON 동기화 중 오류가 발생했습니다.';
       showToastMsg(errorMsg);
       speak('JSON 동기화 중 오류가 발생했습니다.');
     }
@@ -263,9 +294,9 @@ export default function BookSelect() {
     speak('교재를 재파싱합니다. 잠시만 기다려주세요.');
 
     try {
-      console.log('[BookSelect] Reparse request for book:', bookId);
+      if (import.meta.env.DEV) console.log('[BookSelect] Reparse request for book:', bookId);
       const result = await booksAPI.reparse(bookId);
-      console.log('[BookSelect] Reparse response:', result);
+      if (import.meta.env.DEV) console.log('[BookSelect] Reparse response:', result);
 
       if (result.ok) {
         showToastMsg('재파싱이 시작되었습니다.');
@@ -276,13 +307,29 @@ export default function BookSelect() {
           clearInterval(parseStatusIntervalRef.current);
         }
         
-        // 5초마다 상태 체크
+        // 10초마다 상태 체크 (중복 요청 방지)
+        let lastStatus: string | null = null;
+        let checkCount = 0;
         parseStatusIntervalRef.current = setInterval(async () => {
           try {
+            checkCount++;
             const status = await booksAPI.getParseStatus(bookId);
-            // 개발 환경에서만 로그 출력 (상태 변경 시에만)
-            if (import.meta.env.DEV && status.progress % 10 === 0) {
-              console.log('[BookSelect] Parse status:', status);
+
+            // 진행 메시지 생성
+            const progressMsg = status.message || `${status.progress}%`;
+
+            // 상태가 변경되었을 때만 로그 출력
+            if (lastStatus !== status.status) {
+              if (import.meta.env.DEV) console.log(`[BookSelect] 재파싱 상태 변경: ${lastStatus} -> ${status.status} (${progressMsg})`);
+              lastStatus = status.status;
+              // 상태 변경 시 토스트 메시지 표시
+              if (status.status === 'PROCESSING') {
+                showToastMsg(`재파싱 진행 중... ${progressMsg}`);
+              }
+            } else if (checkCount % 6 === 0) {
+              // 1분마다 상태 로그 (파싱이 진행 중임을 확인)
+              if (import.meta.env.DEV) console.log(`[BookSelect] 재파싱 진행 중... (${progressMsg}, 체크 횟수: ${checkCount})`);
+              showToastMsg(`재파싱 진행 중... ${progressMsg}`);
             }
 
             if (status.status === 'DONE') {
@@ -292,6 +339,7 @@ export default function BookSelect() {
               }
               setReparsingBookId(null);
               await loadBooks();
+              if (import.meta.env.DEV) console.log(`[BookSelect] 재파싱 완료! (총 체크 횟수: ${checkCount})`);
               showToastMsg('재파싱이 완료되었습니다!');
               speak('재파싱이 완료되었습니다.');
             } else if (status.status === 'FAILED') {
@@ -300,13 +348,26 @@ export default function BookSelect() {
                 parseStatusIntervalRef.current = null;
               }
               setReparsingBookId(null);
+              if (import.meta.env.DEV) console.log(`[BookSelect] 재파싱 실패 (총 체크 횟수: ${checkCount})`);
               showToastMsg('재파싱이 실패했습니다.');
               speak('재파싱이 실패했습니다. 관리자에게 문의하세요.');
             }
-          } catch (err) {
+          } catch (err: unknown) {
             console.error('[BookSelect] Failed to check parse status:', err);
+            // 교재가 삭제되었거나 찾을 수 없는 경우 interval 정리
+            const message = err instanceof Error ? err.message : '';
+            if (message && message.includes('교재를 찾을 수 없습니다')) {
+              if (parseStatusIntervalRef.current) {
+                clearInterval(parseStatusIntervalRef.current);
+                parseStatusIntervalRef.current = null;
+              }
+              setReparsingBookId(null);
+              setParsingBookId(null);
+              await loadBooks(); // 교재 목록 새로고침
+              showToastMsg('교재를 찾을 수 없습니다.');
+            }
           }
-        }, 5000);
+        }, 10000); // 10초로 증가
 
         // 5분 후 타임아웃
         setTimeout(() => {
@@ -321,20 +382,18 @@ export default function BookSelect() {
         console.error('[BookSelect] Reparse failed:', errorMsg, result);
         throw new Error(errorMsg);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[BookSelect] Failed to reparse:', err);
-      console.error('[BookSelect] Error details:', {
-        message: err.message,
-        response: err.response,
-        stack: err.stack
-      });
+      if (err instanceof Error) {
+        console.error('[BookSelect] Error details:', {
+          message: err.message,
+          stack: err.stack
+        });
+      }
       setReparsingBookId(null);
 
       // 더 자세한 에러 메시지 표시
-      const errorMsg = err.response?.data?.message
-        || err.response?.data?.detail
-        || err.message
-        || '재파싱 중 오류가 발생했습니다.';
+      const errorMsg = err instanceof Error ? err.message : '재파싱 중 오류가 발생했습니다.';
 
       showToastMsg(errorMsg);
       speak('재파싱 중 오류가 발생했습니다.');
@@ -393,6 +452,13 @@ export default function BookSelect() {
           <p className="text-sm text-muted">학습할 교재를 선택하세요</p>
         </div>
 
+        {/* 업로드된 교재 */}
+        {books.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-3">📖 업로드된 교재</h2>
+          </div>
+        )}
+
         {books.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center">
             <p className="text-muted mb-4">등록된 교재가 없습니다.</p>
@@ -410,114 +476,21 @@ export default function BookSelect() {
         ) : (
           <>
             <div className="space-y-3 flex-1">
-              {books.map((book, index) => {
-                const isParsed = book.parse_status === 'DONE';
-                const isProcessing = book.parse_status === 'PROCESSING' || parsingBookId === book.book_id;
-                const isFailed = book.parse_status === 'FAILED';
-                const isReparsing = reparsingBookId === book.book_id;
-
-                return (
-                  <div
-                    key={book.book_id}
-                    onMouseEnter={() => setSelectedIndex(index)}
-                    className={`w-full rounded-2xl transition-all duration-300 ${
-                      !isParsed && !isFailed
-                        ? 'bg-muted/50 border border-border/50 opacity-60'
-                        : selectedIndex === index
-                        ? 'border-2 border-primary shadow-soft-lg scale-[1.01]'
-                        : 'border border-border/50 shadow-soft hover:shadow-soft-lg hover:border-primary/30'
-                    }`}
-                    style={!isParsed && !isFailed ? {} : selectedIndex === index 
-                      ? { background: 'rgba(49, 130, 246, 0.1)' }
-                      : { background: 'linear-gradient(135deg, rgb(249, 250, 251) 0%, rgb(255, 255, 255) 100%)' }}
-                  >
-                    <button
-                      onClick={() => isParsed && handleSelectBook(index)}
-                      disabled={!isParsed || isReparsing}
-                      className="w-full p-5 text-left"
-                      aria-label={`${index + 1}번: ${book.title}${!isParsed ? ' (사용 불가)' : ''}`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-lg font-semibold">
-                          [{index + 1}] {book.title}
-                        </span>
-                        {isProcessing && (
-                          <span className="text-xs px-3 py-1.5 bg-primary/10 text-primary rounded-full font-medium border border-primary/20 animate-pulse-slow">
-                            {isReparsing ? '재파싱 중' : '파싱 중'}
-                          </span>
-                        )}
-                        {isFailed && !isReparsing && (
-                          <span className="text-xs px-3 py-1.5 bg-danger/10 text-danger rounded-full font-medium border border-danger/20">
-                            실패
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm opacity-90">
-                        <p>강 {book.lesson_count || 0}개</p>
-                        {book.year && <p>{book.year}년</p>}
-                        {!isParsed && !isReparsing && (
-                          <p className="text-xs text-warning mt-1">
-                            {isProcessing
-                              ? '교재 처리 중입니다'
-                              : '교재를 사용할 수 없습니다'}
-                          </p>
-                        )}
-                      </div>
-                    </button>
-
-                    {/* Action buttons */}
-                    <div className="px-4 pb-4 flex gap-2 flex-wrap">
-                      {/* JSON 동기화 버튼 (파싱 완료된 모든 교재에 표시) */}
-                      {isParsed && !isReparsing && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSyncFromJson(book.book_id);
-                          }}
-                          className="flex-1 px-4 py-2.5 text-sm bg-primary/10 text-primary border border-primary/30 rounded-xl
-                                     hover:bg-primary/20 hover:border-primary/50 transition-all duration-300
-                                     hover:shadow-soft font-medium min-w-[120px]"
-                          aria-label="JSON 동기화"
-                        >
-                          JSON 동기화
-                        </button>
-                      )}
-
-                      {/* Reparse button for failed books or when no lessons */}
-                      {(isFailed || (book.lesson_count === 0 && isParsed)) && !isReparsing && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleReparse(book.book_id);
-                          }}
-                          className="flex-1 px-4 py-2.5 text-sm bg-warning/10 text-warning border border-warning/30 rounded-xl
-                                     hover:bg-warning/20 hover:border-warning/50 transition-all duration-300
-                                     hover:shadow-soft font-medium min-w-[120px]"
-                          aria-label="R키: 재파싱"
-                        >
-                          [R] 재파싱
-                        </button>
-                      )}
-
-                      {/* Delete button for all books (when selected) */}
-                      {!isReparsing && selectedIndex === index && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(book.book_id, book.title);
-                          }}
-                          className="flex-1 px-4 py-2.5 text-sm bg-danger/10 text-danger border border-danger/30 rounded-xl
-                                     hover:bg-danger/20 hover:border-danger/50 transition-all duration-300
-                                     hover:shadow-soft font-medium min-w-[120px]"
-                          aria-label="D키: 삭제"
-                        >
-                          [D] 삭제
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+              {books.map((book, index) => (
+                <BookListItem
+                  key={book.book_id}
+                  book={book}
+                  index={index}
+                  isSelected={selectedIndex === index}
+                  isReparsing={reparsingBookId === book.book_id}
+                  isParsing={parsingBookId === book.book_id}
+                  onSelect={() => handleSelectBook(index)}
+                  onReparse={() => handleReparse(book.book_id)}
+                  onSyncFromJson={() => handleSyncFromJson(book.book_id)}
+                  onDelete={() => handleDelete(book.book_id, book.title)}
+                  onMouseEnter={() => setSelectedIndex(index)}
+                />
+              ))}
             </div>
 
             {/* Add book button */}

@@ -7,13 +7,13 @@ declare global {
     keywords?: string[];
     braille_words?: string[];
     mode?: string;
-    actions?: Record<string, any>;
-    meta?: Record<string, any>;
+    actions?: Record<string, unknown>;
+    meta?: Record<string, unknown>;
     error?: string;
-    news?: any[];
+    news?: unknown[];
     query?: string;
     ok?: boolean;
-    data?: any;
+    data?: unknown;
   }
 
   // Bluetooth API 타입 정의

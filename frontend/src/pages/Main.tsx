@@ -20,6 +20,10 @@ import { useProgressStore } from '../store/progressStore';
 import { useBookStore } from '../store/bookStore';
 import { useLessonStore } from '../store/lessonStore';
 import { useLearnStore } from '../store/learnStore';
+import { createModuleLogger } from '../utils/logger';
+import { DEFAULT_USER_ID, ROUTES } from '../constants';
+
+const logger = createModuleLogger('Main');
 
 export default function Main() {
   const navigate = useNavigate();
@@ -95,11 +99,11 @@ export default function Main() {
       setStoreBooks(booksData);
       
       // 이어하기 진도 로드
-      const progress = await progressAPI.getContinue('u_demo');
+      const progress = await progressAPI.getContinue(DEFAULT_USER_ID);
       setCurrentProgress(progress);
       setProgress(progress);
     } catch (err) {
-      console.error('[Main] 데이터 로드 실패:', err);
+      logger.error('데이터 로드 실패:', err);
     } finally {
       setLoading(false);
     }
@@ -114,7 +118,7 @@ export default function Main() {
     setCurrentProgress(null);
     showToastMessage('모든 교재 및 강의 데이터가 초기화되었습니다.');
     speak('모든 교재 및 강의 데이터가 초기화되었습니다.');
-    console.log('[Main] 모든 교재 및 강의 데이터 초기화됨');
+    logger.log('모든 교재 및 강의 데이터 초기화됨');
   };
 
   return (
@@ -152,7 +156,7 @@ export default function Main() {
             <SubjectSelectCard
               onSubjectSelect={(subject) => {
                 // 교재 선택 페이지로 이동 (BookSelect로 통합)
-                navigate('/books');
+                navigate(ROUTES.BOOKS);
               }}
             />
 
@@ -173,6 +177,25 @@ export default function Main() {
                 speak('점자 디바이스 연결이 해제되었습니다.');
               }}
             />
+
+            {/* 관리자 페이지 링크 */}
+            <div className="bg-card border border-border rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-2">관리자</h3>
+              <button
+                onClick={() => {
+                  navigate('/admin');
+                  showToastMessage('관리자 페이지로 이동합니다.');
+                  speak('관리자 페이지로 이동합니다.');
+                }}
+                className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors mb-2"
+                aria-label="관리자 페이지"
+              >
+                관리자 페이지
+              </button>
+              <p className="text-xs text-muted">
+                교재 관리, 업로드, 파싱 상태 모니터링
+              </p>
+            </div>
 
             {/* 데이터 초기화 버튼 */}
             <div className="bg-card border border-border rounded-lg p-4">

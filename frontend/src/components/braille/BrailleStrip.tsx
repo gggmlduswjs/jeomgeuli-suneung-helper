@@ -40,7 +40,7 @@ export default function BrailleStrip({ text, size = "normal" }: BrailleStripProp
           const okFlag = typeof result === "object" && result && "ok" in result ? (result as any).ok : true;
           setError(okFlag ? null : ((result as any)?.error ?? "convert_failed"));
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error("BrailleStrip convertBraille error:", e);
         if (!cancelled) {
           setCells([]);

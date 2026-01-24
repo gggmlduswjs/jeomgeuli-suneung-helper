@@ -26,8 +26,9 @@ export function useAILearningAssistant(unitId?: string, lessonId?: string) {
       speak(response.answer);
       
       return response.answer;
-    } catch (error) {
-      console.error('[AI Learning Assistant] 질문 실패:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('[AI Learning Assistant] 질문 실패:', errorMessage);
       const errorMsg = '죄송합니다. 답변을 생성하는 중 오류가 발생했습니다.';
       speak(errorMsg);
       throw error;

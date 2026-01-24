@@ -14,7 +14,7 @@ interface GlobalVoiceRecognitionProps {
 }
 
 export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceRecognitionProps) {
-  const { start: startSTT, stop: stopSTT, isListening, transcript, alternatives } = useSTT();
+  const { start: startSTT, stop: stopSTT, isListening, transcript } = useSTT();
   const { speak, stop: stopTTS } = useTTS();
   const navigate = useNavigate();
   const location = useLocation();

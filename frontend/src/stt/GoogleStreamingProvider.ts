@@ -36,8 +36,9 @@ export default class GoogleStreamingProvider {
       };
       this.ws.onerror = () => this.onErrorCb?.({ code: 'ws_error' });
       await this.initMic();
-    } catch (e: any) {
-      this.onErrorCb?.({ code: 'start_failed', message: e?.message });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : undefined;
+      this.onErrorCb?.({ code: 'start_failed', message });
       this.listening = false;
     }
   }

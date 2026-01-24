@@ -81,7 +81,7 @@ export function useBrailleBLE(config: BrailleBLEConfig = {}) {
 
       // 이미 연결되어 있으면 재연결 시도
       if (device && device.gatt?.connected) {
-        console.log("[BLE] 이미 연결된 디바이스가 있습니다.");
+        if (import.meta.env.DEV) console.log("[BLE] 이미 연결된 디바이스가 있습니다.");
         return;
       }
 
@@ -95,17 +95,17 @@ export function useBrailleBLE(config: BrailleBLEConfig = {}) {
             setCharacteristic(char);
             setIsConnected(true);
             setDeviceName(device.name || "점자 디스플레이");
-            console.log("[BLE] 기존 디바이스로 재연결 성공:", device.name);
+            if (import.meta.env.DEV) console.log("[BLE] 기존 디바이스로 재연결 성공:", device.name);
             return;
           }
         } catch (reconnectError) {
-          console.log("[BLE] 기존 디바이스 재연결 실패, 새로 연결 시도:", reconnectError);
+          if (import.meta.env.DEV) console.log("[BLE] 기존 디바이스 재연결 실패, 새로 연결 시도:", reconnectError);
           // 재연결 실패 시 새로 연결
         }
       }
 
       // 새 디바이스 연결
-      console.log("[BLE] 새 디바이스 연결 시도...");
+      if (import.meta.env.DEV) console.log("[BLE] 새 디바이스 연결 시도...");
       const newDevice = await (navigator as any).bluetooth.requestDevice({
         filters: [
           { namePrefix: namePrefix },
@@ -129,23 +129,24 @@ export function useBrailleBLE(config: BrailleBLEConfig = {}) {
       setIsConnected(true);
       setDeviceName(newDevice.name || "점자 디스플레이");
 
-      console.log("[BLE] 연결 성공:", newDevice.name);
+      if (import.meta.env.DEV) console.log("[BLE] 연결 성공:", newDevice.name);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[BLE] 연결 실패:", error);
-      
+
+      const err = error as { name?: string; message?: string };
       // 사용자가 취소한 경우는 오류로 처리하지 않음
-      if (error?.name === 'NotFoundError' || error?.name === 'SecurityError') {
-        const message = error.name === 'SecurityError' 
+      if (err?.name === 'NotFoundError' || err?.name === 'SecurityError') {
+        const message = err.name === 'SecurityError'
           ? "Bluetooth 권한이 필요합니다. 브라우저 설정에서 권한을 허용해주세요."
           : "디바이스를 찾을 수 없거나 사용자가 취소했습니다.";
         setError(message);
-        console.log("[BLE]", message);
+        if (import.meta.env.DEV) console.log("[BLE]", message);
         return;
       }
-      
+
       // 다른 오류는 설정
-      setError(error?.message || "BLE 연결에 실패했습니다.");
+      setError(err?.message || "BLE 연결에 실패했습니다.");
       throw error;
     }
   }, [device, isBluetoothSupported, serviceUUID, charUUID, namePrefix]);
@@ -159,7 +160,7 @@ export function useBrailleBLE(config: BrailleBLEConfig = {}) {
     setCharacteristic(null);
     setDeviceName(null);
     setError(null);
-    console.log("[BLE] 연결 해제됨");
+    if (import.meta.env.DEV) console.log("[BLE] 연결 해제됨");
   }, [device]);
 
   /**
@@ -184,10 +185,11 @@ export function useBrailleBLE(config: BrailleBLEConfig = {}) {
       });
 
       await characteristic.writeValue(buffer);
-      console.log(`[BLE] ${cells.length}개 셀 전송 완료`);
-    } catch (error: any) {
+      if (import.meta.env.DEV) console.log(`[BLE] ${cells.length}개 셀 전송 완료`);
+    } catch (error: unknown) {
       console.error("[BLE] 점자 패턴 전송 실패:", error);
-      setError(`전송 실패: ${error?.message || '알 수 없는 오류'}`);
+      const message = error instanceof Error ? error.message : '알 수 없는 오류';
+      setError(`전송 실패: ${message}`);
       throw error;
     }
   }, [characteristic, isConnected]);
@@ -217,9 +219,10 @@ export function useBrailleBLE(config: BrailleBLEConfig = {}) {
       } else {
         throw new Error('잘못된 응답 형식');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[BLE] 텍스트 전송 실패:", error);
-      setError(`텍스트 전송 실패: ${error?.message || '알 수 없는 오류'}`);
+      const message = error instanceof Error ? error.message : '알 수 없는 오류';
+      setError(`텍스트 전송 실패: ${message}`);
       throw error;
     }
   }, [writeCells]);

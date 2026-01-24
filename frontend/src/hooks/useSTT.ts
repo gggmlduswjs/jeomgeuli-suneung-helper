@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import VoiceService from '../services/voice';
 import { useVoiceStore } from '../store/voice';
+import { createModuleLogger } from '../utils/logger';
+
+const logger = createModuleLogger('STT');
 
 interface STTHookReturn {
   start: () => void;
@@ -24,7 +27,7 @@ export function useSTT(): STTHookReturn {
 
   const start = () => {
     VoiceService.startSTT().catch((err) => {
-      console.error('[useSTT] STT 시작 실패:', err);
+      logger.error('STT 시작 실패:', err);
     });
   };
 

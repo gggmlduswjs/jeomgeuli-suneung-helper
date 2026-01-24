@@ -60,13 +60,17 @@ export default function LearningSummary() {
         setBook(bookData);
       }
 
-      // TODO: Calculate actual session stats from store or API
-      // For now, using placeholder values
+      // FIXME: 실제 세션 통계 계산 필요
+      // 요구사항:
+      // 1. 세션 시작/종료 시간 추적용 sessionStore 생성
+      // 2. 답변 제출 시 정답/오답 누적 저장
+      // 3. answersAPI에서 세션 통계 조회 API 추가
+      // 현재는 플레이스홀더 값 사용
       setSessionStats({
-        questionsCompleted: 5,
-        correctAnswers: 4,
-        accuracy: 80,
-        timeSpent: '27분',
+        questionsCompleted: progress?.completed_units || 0,
+        correctAnswers: 0, // answersAPI에서 조회 필요
+        accuracy: 0, // 계산 필요
+        timeSpent: '0분', // sessionStore에서 조회 필요
       });
     } catch (err) {
       console.error('[LearningSummary] Failed to load summary:', err);

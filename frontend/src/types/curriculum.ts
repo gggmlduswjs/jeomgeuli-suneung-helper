@@ -29,9 +29,9 @@ export interface LearningUnit {
 export interface LessonInfo {
   lesson_number: number;
   title: string;
-  learning_units: any[];
-  sections: any[];
-  pdf_references: any[];
+  learning_units: unknown[];
+  sections: unknown[];
+  pdf_references: unknown[];
   dependencies: number[];
   estimated_time: number;
 }

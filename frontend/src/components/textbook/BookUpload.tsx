@@ -57,7 +57,7 @@ export default function BookUpload({ onUploadComplete, onSpeak }: BookUploadProp
     }
   };
 
-  const handleAIOptionChange = (key: keyof AIProcessingOptions, value: any) => {
+  const handleAIOptionChange = (key: keyof AIProcessingOptions, value: string | boolean) => {
     setAIOptions(prev => ({
       ...prev,
       [key]: value
@@ -97,8 +97,8 @@ export default function BookUpload({ onUploadComplete, onSpeak }: BookUploadProp
       const book = await booksAPI.upload(file, title, subject, year, aiOptions);
       onSpeak?.(`${book.title} 업로드가 완료되었습니다.`);
       onUploadComplete(book);
-    } catch (err: any) {
-      const errorMsg = err.message || '업로드 중 오류가 발생했습니다.';
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : '업로드 중 오류가 발생했습니다.';
       setError(errorMsg);
       onSpeak?.(errorMsg);
     } finally {
@@ -129,7 +129,7 @@ export default function BookUpload({ onUploadComplete, onSpeak }: BookUploadProp
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full p-2 border border-border rounded-lg"
-            placeholder="예: 수능특강 2026 문학"
+            placeholder="예: 문학 교재"
             disabled={uploading}
           />
         </div>

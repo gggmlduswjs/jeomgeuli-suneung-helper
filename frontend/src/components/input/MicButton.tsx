@@ -32,10 +32,10 @@ export default function MicButton({ onResult, className = "", label = "음성 �
 
   const start = async () => {
     try {
-      console.log('[MicButton] 음성 인식 시작 시도...');
+      if (import.meta.env.DEV) console.log('[MicButton] 음성 인식 시작 시도...');
       await VoiceService.startSTT({
         onResult: (text) => {
-          console.log(`[MicButton] 인식 결과: "${text}"`);
+          if (import.meta.env.DEV) console.log(`[MicButton] 인식 결과: "${text}"`);
           onResult?.(text);
         },
         onError: (errorMsg) => {
@@ -52,16 +52,16 @@ export default function MicButton({ onResult, className = "", label = "음성 �
   };
 
   const stop = () => {
-    console.log('[MicButton] 음성 인식 중지 요청');
+    if (import.meta.env.DEV) console.log('[MicButton] 음성 인식 중지 요청');
     VoiceService.stopSTT();
   };
 
   const handleClick = () => {
     if (isListening) {
-      console.log('[MicButton] 마이크 버튼 클릭: 중지');
+      if (import.meta.env.DEV) console.log('[MicButton] 마이크 버튼 클릭: 중지');
       stop();
     } else {
-      console.log('[MicButton] 마이크 버튼 클릭: 시작');
+      if (import.meta.env.DEV) console.log('[MicButton] 마이크 버튼 클릭: 시작');
       start();
     }
   };

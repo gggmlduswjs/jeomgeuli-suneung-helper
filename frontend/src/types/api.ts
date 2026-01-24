@@ -99,7 +99,7 @@ export interface ChatResponse {
 
 export interface ExploreResponse {
   answer: string;
-  news: any[];
+  news: unknown[];
   query: string;
   ok?: boolean;
   error?: string;

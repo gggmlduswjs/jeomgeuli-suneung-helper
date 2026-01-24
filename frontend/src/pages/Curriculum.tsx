@@ -26,7 +26,7 @@ export default function CurriculumPage() {
     try {
       const data = await curriculumAPI.list(selectedSubject);
       setCurricula(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMsg = '커리큘럼 목록을 불러오는 중 오류가 발생했습니다.';
       setError(errorMsg);
       speak(errorMsg);

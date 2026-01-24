@@ -21,13 +21,13 @@ export interface SubjectMetadata {
   work_text?: string;
   passage_text?: string;
   question_stem?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
  * subject_metadata를 파싱
  */
-export function parseSubjectMetadata(metadata: any): SubjectMetadata | null {
+export function parseSubjectMetadata(metadata: unknown): SubjectMetadata | null {
   if (!metadata) return null;
 
   try {
@@ -44,7 +44,7 @@ export function parseSubjectMetadata(metadata: any): SubjectMetadata | null {
 /**
  * 키워드 추출
  */
-export function extractKeywords(metadata: any): string[] {
+export function extractKeywords(metadata: unknown): string[] {
   const parsed = parseSubjectMetadata(metadata);
   return parsed?.keywords || [];
 }
