@@ -3,9 +3,11 @@
 TOC 강의 목록을 활용한 강의 경계 검증 및 보정
 """
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from difflib import SequenceMatcher
 import re
+
+from app.infrastructure.pdf.types import LectureInfo, JSONDict
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +15,7 @@ logger = logging.getLogger(__name__)
 class LectureBoundaryValidator:
     """강의 목록을 활용한 경계 검증"""
     
-    def __init__(self, toc_lecture_list: List[Dict[str, Any]]):
+    def __init__(self, toc_lecture_list: List[LectureInfo]):
         """
         Args:
             toc_lecture_list: TOC 강의 목록
@@ -29,13 +31,13 @@ class LectureBoundaryValidator:
     
     def validate_lecture_boundaries(
         self,
-        extracted_lectures: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        extracted_lectures: List[LectureInfo]
+    ) -> JSONDict:
         """추출된 강의 목록을 TOC와 비교하여 검증
-        
+
         Args:
             extracted_lectures: 추출된 강의 목록
-            
+
         Returns:
             {
                 'validated_lectures': 검증된 강의 목록,
