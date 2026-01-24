@@ -129,13 +129,13 @@ class ParserConfigManager:
             return {}
     
     @classmethod
-    def get_default_config(cls, subject: str) -> Dict[str, Any]:
+    def get_default_config(cls, subject: str) -> JSONDict:
         """
         기본 설정만 반환 (파일 로드 없이)
-        
+
         Args:
             subject: 과목명
-            
+
         Returns:
             기본 설정 딕셔너리
         """
