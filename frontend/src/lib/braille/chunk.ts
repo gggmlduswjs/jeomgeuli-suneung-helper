@@ -179,7 +179,7 @@ function splitBySmart(text: string, maxCells: number, _preserveMeaning: boolean)
     }
   } else {
     // 중요 부분이 없으면 단어 단위로 분할
-    return splitByWord(text, maxCells, preserveMeaning);
+    return splitByWord(text, maxCells, _preserveMeaning);
   }
 
   return chunks.length > 0 ? chunks : [text];

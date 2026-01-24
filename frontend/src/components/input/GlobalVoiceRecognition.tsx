@@ -275,7 +275,7 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
         // 명령 매칭 시 즉시 마이크 끄기
         if (isListening) {
           if (import.meta.env.DEV) console.log('[GlobalVoice] 명령 매칭 - 마이크 자동 종료');
-          micMode.requestStop();
+          VoiceService.stopSTT();
         }
         // 포인터 상태 리셋
         activePointerRef.current = null;
@@ -301,7 +301,7 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
         // 메뉴 선택 시 즉시 마이크 끄기
         if (isListening) {
           if (import.meta.env.DEV) console.log('[GlobalVoice] 메뉴 선택 - 마이크 자동 종료');
-          micMode.requestStop();
+          VoiceService.stopSTT();
         }
         // 포인터 상태 리셋
         activePointerRef.current = null;
@@ -401,7 +401,7 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
         setIsLongPressing(true);
         setShowAnimation(true);
         stopTTS(); // TTS 중지 (홈 화면 등에서 안내 멘트 중단)
-        micMode.requestStart();
+        VoiceService.startSTT();
       }
     }, 300); // 300ms 후에 길게 누르기로 인식
 
@@ -493,7 +493,7 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
         const timeSinceLastCommand2 = Date.now() - commandExecutedRef.current;
         if (isLongPressing && !currentListening && activePointerRef.current && timeSinceLastCommand2 >= 1000) {
           if (import.meta.env.DEV) console.log('[GlobalVoice] 음성 인식이 자동 중단됨 - 재시작');
-          micMode.requestStart();
+          VoiceService.startSTT();
         }
       }, 400); // 딜레이 단축: 800ms → 400ms
       return () => clearTimeout(timer);
