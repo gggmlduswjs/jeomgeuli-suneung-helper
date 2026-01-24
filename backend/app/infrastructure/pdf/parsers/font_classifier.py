@@ -3,7 +3,9 @@
 템플릿의 font_info를 활용하여 섹션 타입 판별
 """
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Optional, List
+
+from app.infrastructure.pdf.types import JSONDict
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +13,7 @@ logger = logging.getLogger(__name__)
 class FontBasedClassifier:
     """폰트 정보 기반 섹션 분류"""
     
-    def __init__(self, font_info: Optional[Dict[str, Any]] = None):
+    def __init__(self, font_info: Optional[JSONDict] = None):
         """
         Args:
             font_info: 폰트 정보 딕셔너리
@@ -30,15 +32,15 @@ class FontBasedClassifier:
     
     def classify_by_font(
         self,
-        text_block: Dict[str, Any],
+        text_block: JSONDict,
         line_text: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[JSONDict]:
         """폰트 정보로 섹션 타입 판별
-        
+
         Args:
             text_block: 텍스트 블록 정보 (font_size, font_weight, font_family 포함 가능)
             line_text: 텍스트 내용 (선택)
-            
+
         Returns:
             {
                 'type': 섹션 타입 ('concept', 'passage', 'problem', None),
@@ -151,15 +153,15 @@ class FontBasedClassifier:
     
     def classify_line(
         self,
-        line: List[Dict[str, Any]],
+        line: List[JSONDict],
         line_text: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[JSONDict]:
         """줄 단위로 폰트 기반 분류
-        
+
         Args:
             line: 단어 딕셔너리 리스트 (각 단어에 폰트 정보 포함 가능)
             line_text: 결합된 텍스트 (선택)
-            
+
         Returns:
             분류 결과 또는 None
         """
