@@ -42,13 +42,6 @@ export function inferTextType(section: ScriptSection): 'explanation' | 'note' | 
     '옆에다', '여기 쓸게요', '써 드릴게요', '이것까지'
   ];
   
-  // 해설 패턴 (설명, 개념, 분석)
-  const _explanationPatterns = [
-    '설명', '이해', '의미', '개념', '정의', '이유',
-    '왜', '어떻게', '분석', '해석', '작품', '시',
-    '이야기', '얘기', '말이야', '거야', '거죠', '거든요'
-  ];
-  
   // 제목 기반 우선 판단
   if (title.includes('문제')) {
     return 'instruction';

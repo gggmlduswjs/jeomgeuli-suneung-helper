@@ -1,15 +1,15 @@
 // 통합 타입 정의 파일
 
 // 다른 타입 파일들 re-export (import 일관성 확보)
-export * from './api';
+// Note: Subject와 Unit은 여러 모듈에서 export하므로 명시적으로 사용처에서 import
 export * from './answer';
-export * from './book';
-export * from './curriculum';
-export * from './lesson';
 export * from './progress';
-export * from './unit';
 export * from './voice';
 export * from './errors';
+
+// 중복되는 타입은 개별 파일에서 직접 import하세요:
+// - Subject: './book' 또는 './curriculum'에서
+// - Unit: './api' 또는 './unit'에서
 
 // API 응답 타입
 export interface ApiResponse {
