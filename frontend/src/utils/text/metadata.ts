@@ -34,7 +34,7 @@ export function parseSubjectMetadata(metadata: unknown): SubjectMetadata | null 
     if (typeof metadata === 'string') {
       return JSON.parse(metadata);
     }
-    return metadata;
+    return metadata as SubjectMetadata;
   } catch (e) {
     console.warn('[Subject Metadata] 파싱 실패:', e);
     return null;

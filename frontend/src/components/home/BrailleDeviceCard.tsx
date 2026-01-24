@@ -3,7 +3,7 @@
  * BLE 상태 및 배터리 표시
  */
 import { useState } from 'react';
-import { Bluetooth, Battery, Wifi, WifiOff } from 'lucide-react';
+import { Bluetooth, Wifi, WifiOff } from 'lucide-react';
 import useBrailleBLE from '../../hooks/useBrailleBLE';
 
 interface BrailleDeviceCardProps {

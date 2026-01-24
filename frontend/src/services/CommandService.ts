@@ -26,7 +26,7 @@ class CommandServiceClass {
       const handler = handlers[cached as keyof CommandHandlers];
       if (handler) {
         try {
-          handler();
+          (handler as () => void)();
           return true;
         } catch (error) {
           console.error(`[CommandService] 캐시된 핸들러 실행 오류 (${cached}):`, error);
@@ -144,7 +144,7 @@ class CommandServiceClass {
         const handler = handlers[command];
         if (handler) {
           try {
-            handler();
+            (handler as () => void)();
             return true;
           } catch (error) {
             console.error(`[CommandService] 핸들러 실행 오류 (${command}):`, error);

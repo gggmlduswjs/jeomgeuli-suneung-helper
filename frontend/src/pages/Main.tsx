@@ -70,18 +70,6 @@ export default function Main() {
           speak('진행 중인 학습이 없습니다.');
         }
       },
-      이어하기: () => {
-        if (currentProgress?.unit_id) {
-          stopTTS();
-          navigate(`/unit/${currentProgress.unit_id}`);
-          showToastMessage('학습을 이어갑니다.');
-          speak('학습을 이어갑니다.');
-          stopSTT();
-        } else {
-          showToastMessage('진행 중인 학습이 없습니다.');
-          speak('진행 중인 학습이 없습니다.');
-        }
-      },
     },
   });
 

@@ -67,7 +67,7 @@ export default function LearningSummary() {
       // 3. answersAPI에서 세션 통계 조회 API 추가
       // 현재는 플레이스홀더 값 사용
       setSessionStats({
-        questionsCompleted: progress?.completed_units || 0,
+        questionsCompleted: 0, // TODO: 실제 완료한 문제 수 조회 필요
         correctAnswers: 0, // answersAPI에서 조회 필요
         accuracy: 0, // 계산 필요
         timeSpent: '0분', // sessionStore에서 조회 필요

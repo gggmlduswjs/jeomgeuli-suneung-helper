@@ -50,21 +50,20 @@ export default function PerformanceMonitor() {
       <div className="text-xs space-y-1">
         <div>
           <span className="text-muted">메트릭 수:</span>{' '}
-          <span className="font-mono">{report.summary.totalMetrics}</span>
+          <span className="font-mono">{report.totalMetrics}</span>
         </div>
-        {report.summary.totalMetrics > 0 && (
+        {report.totalMetrics > 0 && (
           <>
             <div>
-              <span className="text-muted">평균:</span>{' '}
+              <span className="text-muted">평균 렌더 시간:</span>{' '}
               <span className="font-mono">
-                {report.summary.averageValue.toFixed(2)}ms
+                {report.averageRenderTime.toFixed(2)}ms
               </span>
             </div>
             <div>
-              <span className="text-muted">최소/최대:</span>{' '}
+              <span className="text-muted">느린 액션:</span>{' '}
               <span className="font-mono">
-                {report.summary.minValue.toFixed(2)}ms /{' '}
-                {report.summary.maxValue.toFixed(2)}ms
+                {report.slowActions.length}개
               </span>
             </div>
           </>
@@ -73,7 +72,7 @@ export default function PerformanceMonitor() {
 
       <button
         onClick={() => {
-          performanceMonitor.clearMetrics();
+          performanceMonitor.clear();
           setIsVisible(false);
         }}
         className="mt-2 text-xs text-muted hover:text-fg"

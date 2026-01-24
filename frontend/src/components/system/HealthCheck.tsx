@@ -5,6 +5,11 @@ interface HealthCheckProps {
   children: React.ReactNode;
 }
 
+interface HealthCheckResponse {
+  ok?: boolean;
+  status?: string;
+}
+
 export default function HealthCheck({ children }: HealthCheckProps) {
   const [isHealthy, setIsHealthy] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +17,7 @@ export default function HealthCheck({ children }: HealthCheckProps) {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const result = await http.get('/health');
+        const result = await http.get<HealthCheckResponse>('/health');
         setIsHealthy(result?.ok === true || result?.status === 'healthy');
         setError(null);
       } catch (e: unknown) {
