@@ -4,19 +4,15 @@
 """
 import logging
 import time
-from typing import Optional, Tuple, Dict, Any, List
+from typing import Optional, Tuple, List, Dict
 from pathlib import Path
-
-from typing import Optional, Tuple, Dict, Any, List
-from pathlib import Path
-import logging
-import time
 
 from .template_manager import TemplateManager
 from .template import ParsingTemplate
 from .unified_parser import UnifiedTemplateParser
 from .base import BaseParser
 from app.core.config import settings
+from app.infrastructure.pdf.types import OCRPageData, JSONDict
 
 logger = logging.getLogger(__name__)
 
@@ -64,17 +60,17 @@ class HybridRouter:
     def select_parser(
         self,
         subject: str,
-        ocr_data: List[Dict[str, Any]],
+        ocr_data: List[OCRPageData],
         config_path: Optional[Path] = None,
         book_id: Optional[str] = None
-    ) -> Tuple[BaseParser, str, Dict[str, Any]]:
+    ) -> Tuple[BaseParser, str, JSONDict]:
         """적합한 파서 선택 및 반환
-        
+
         Args:
             subject: 과목명 ('literature', 'math1', 'english')
             ocr_data: 페이지별 OCR 결과 리스트
             config_path: config.json 경로 (폴백용)
-            
+
         Returns:
             (파서 인스턴스, 사용된 전략, 메타데이터) 튜플
             전략: 'template', 'ai', 'fallback'
@@ -237,11 +233,11 @@ class HybridRouter:
     def _try_template_matching(
         self,
         subject: str,
-        ocr_data: List[Dict[str, Any]],
+        ocr_data: List[OCRPageData],
         book_id: Optional[str] = None
     ) -> Optional[Tuple[ParsingTemplate, float]]:
         """템플릿 매칭 시도
-        
+
         Returns:
             (템플릿, 신뢰도) 튜플 또는 None
         """
@@ -290,17 +286,17 @@ class HybridRouter:
     def _try_ai_parsing(
         self,
         subject: str,
-        ocr_data: List[Dict[str, Any]],
+        ocr_data: List[OCRPageData],
         config_path: Optional[Path] = None,
         book_id: Optional[str] = None
     ) -> Optional[BaseParser]:
         """AI 파싱 시도 (통합 파서 사용)
-        
+
         Args:
             subject: 과목명
             ocr_data: OCR 데이터
             config_path: config.json 경로 (폴백용)
-            
+
         Returns:
             UnifiedTemplateParser 인스턴스 (AI 파싱 활성화) 또는 None
         """
@@ -377,7 +373,7 @@ class HybridRouter:
         else:
             self.metrics[metric_key] = elapsed_time
     
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> JSONDict:
         """성능 메트릭 반환"""
         total = self.metrics['total_requests']
         if total == 0:
