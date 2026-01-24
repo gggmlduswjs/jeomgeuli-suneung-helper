@@ -4,7 +4,7 @@ PDF Processing Type Definitions
 Common type definitions for OCR data, parsing results, and other
 data structures used throughout the PDF processing pipeline.
 """
-from typing import TypedDict, Optional, List, Tuple, Union, Any
+from typing import TypedDict, Optional, List, Tuple, Union
 
 
 # ============================================================================
@@ -143,8 +143,10 @@ class TemplateConfig(TypedDict, total=False):
 # Error Detail Types
 # ============================================================================
 
-# Error details can contain various types of information
-ErrorDetails = dict[str, Union[str, int, float, bool, None, List[Any], dict[str, Any]]]
+# Error details can contain various types of information (similar to JSON)
+# Using forward references for recursive types
+ErrorDetailsValue = Union[str, int, float, bool, None, List['ErrorDetailsValue'], dict[str, 'ErrorDetailsValue']]
+ErrorDetails = dict[str, ErrorDetailsValue]
 
 
 # ============================================================================
