@@ -353,15 +353,26 @@ export const templatesAPI = {
   /**
    * AI를 사용하여 목차 텍스트 정제
    */
-  async cleanTocText(tocText: string): Promise<{
+  async cleanTocText(
+    tocText: string,
+    customPrompt?: string
+  ): Promise<{
     ok: boolean;
     cleaned_text: string;
     changes_made: string;
   }> {
+    const payload: { toc_text: string; custom_prompt?: string } = {
+      toc_text: tocText
+    };
+
+    if (customPrompt?.trim()) {
+      payload.custom_prompt = customPrompt.trim();
+    }
+
     return api.post<{
       ok: boolean;
       cleaned_text: string;
       changes_made: string;
-    }>('/templates/clean-toc-text', { toc_text: tocText });
+    }>('/templates/clean-toc-text', payload);
   },
 };

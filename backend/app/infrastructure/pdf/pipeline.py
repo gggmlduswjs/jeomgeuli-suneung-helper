@@ -309,6 +309,10 @@ class UnifiedPipeline:
 
             # 2. 하이브리드 라우터를 통한 파서 선택
             logger.info("2. 파서 선택 중...")
+            # 템플릿 재로드 (새로 생성된 템플릿 감지)
+            logger.info("   템플릿 재로드 중...")
+            self.hybrid_router.template_manager.reload_templates()
+            logger.info(f"   로드된 템플릿: {len(self.hybrid_router.template_manager.templates)}개")
             try:
                 parser, strategy, metadata = self.hybrid_router.select_parser(
                     subject=self.subject,

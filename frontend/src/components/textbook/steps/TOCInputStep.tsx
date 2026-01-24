@@ -14,6 +14,7 @@ interface TOCInputStepProps {
   extractingText: boolean;
   extractingTocText: boolean;
   cleaningTocText: boolean;
+  customCleaningPrompt: string;
   onTocPagesChange: (pages: string) => void;
   onTocTextChange: (text: string) => void;
   onLectureExamplesChange: (text: string) => void;
@@ -22,6 +23,7 @@ interface TOCInputStepProps {
   onExtractTocText: () => void;
   onCleanTocText: () => void;
   onExtractTextExamples: () => void;
+  onCustomCleaningPromptChange: (prompt: string) => void;
 }
 
 export default function TOCInputStep({
@@ -34,6 +36,7 @@ export default function TOCInputStep({
   extractingText,
   extractingTocText,
   cleaningTocText,
+  customCleaningPrompt,
   onTocPagesChange,
   onTocTextChange,
   onLectureExamplesChange,
@@ -41,7 +44,8 @@ export default function TOCInputStep({
   onExpectedCountChange,
   onExtractTocText,
   onCleanTocText,
-  onExtractTextExamples
+  onExtractTextExamples,
+  onCustomCleaningPromptChange
 }: TOCInputStepProps) {
   return (
     <div className="space-y-6">
@@ -105,6 +109,39 @@ export default function TOCInputStep({
             추출된 텍스트가 올바른지 확인하고 필요시 수정하세요
           </p>
 
+          {/* 커스텀 정제 규칙 설정 (접기/펼치기) */}
+          {tocText.trim().length > 20 && (
+            <details className="mt-3 border border-border rounded-lg p-3 bg-card/30">
+              <summary className="text-sm font-medium cursor-pointer hover:text-primary transition-colors flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                커스텀 정제 규칙 설정 (선택)
+              </summary>
+              <div className="mt-3 space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  AI가 목차를 정제할 때 적용할 규칙을 직접 작성할 수 있습니다.
+                  <br />
+                  예: "페이지 번호 제거", "1강, 2강 형식으로 통일", "특수문자 제거" 등
+                </p>
+                <textarea
+                  value={customCleaningPrompt}
+                  onChange={(e) => onCustomCleaningPromptChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
+                  rows={3}
+                  maxLength={1000}
+                  placeholder="예: 페이지 번호를 모두 제거하고, 각 강의를 '1강. 제목' 형식으로 통일"
+                />
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-muted-foreground">
+                    비워두면 기본 규칙(OCR 오류 수정)이 적용됩니다
+                  </span>
+                  <span className={customCleaningPrompt.length > 900 ? 'text-warning' : 'text-muted-foreground'}>
+                    {customCleaningPrompt.length} / 1000
+                  </span>
+                </div>
+              </div>
+            </details>
+          )}
+
           {/* AI로 목차 텍스트 정제 버튼 */}
           {tocText.trim().length > 20 && (
             <button
@@ -113,7 +150,11 @@ export default function TOCInputStep({
               className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 rounded-lg hover:from-purple-500/20 hover:to-blue-500/20 transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50"
             >
               <Sparkles className="w-4 h-4" />
-              {cleaningTocText ? 'AI 정제 중...' : 'AI로 목차 텍스트 정제 (OCR 오류 수정)'}
+              {cleaningTocText
+                ? 'AI 정제 중...'
+                : customCleaningPrompt.trim()
+                  ? 'AI로 목차 텍스트 정제 (커스텀 규칙)'
+                  : 'AI로 목차 텍스트 정제 (OCR 오류 수정)'}
             </button>
           )}
         </div>

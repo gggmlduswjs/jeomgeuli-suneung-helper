@@ -58,6 +58,7 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
   // 텍스트 자동 추출
   const [extractingTocText, setExtractingTocText] = useState(false);
   const [cleaningTocText, setCleaningTocText] = useState(false);
+  const [customCleaningPrompt, setCustomCleaningPrompt] = useState('');
   const [extractingText, setExtractingText] = useState(false);
   const [extractedTextExamples, setExtractedTextExamples] = useState<{ [key: string]: string[] } | null>(null);
   const [samplePagesForExtraction, setSamplePagesForExtraction] = useState<string>('15,30,50');
@@ -246,10 +247,14 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
     setCleaningTocText(true);
     setError(null);
     try {
-      const result = await templatesAPI.cleanTocText(tocText);
+      const result = await templatesAPI.cleanTocText(
+        tocText,
+        customCleaningPrompt.trim() || undefined
+      );
       setTocText(result.cleaned_text);
 
-      onSpeak?.(`목차 텍스트를 정제했습니다. ${result.changes_made}`);
+      const ruleType = customCleaningPrompt.trim() ? '커스텀 규칙' : '기본 규칙';
+      onSpeak?.(`목차 텍스트를 정제했습니다 (${ruleType}). ${result.changes_made}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '목차 텍스트 정제 중 오류가 발생했습니다.';
       onSpeak?.(message);
@@ -740,6 +745,7 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
           extractingText={extractingText}
           extractingTocText={extractingTocText}
           cleaningTocText={cleaningTocText}
+          customCleaningPrompt={customCleaningPrompt}
           onTocPagesChange={setTocPages}
           onTocTextChange={setTocText}
           onLectureExamplesChange={setTocLectureExamples}
@@ -748,6 +754,7 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
           onExtractTocText={handleExtractTocText}
           onCleanTocText={handleCleanTocText}
           onExtractTextExamples={handleExtractTextExamples}
+          onCustomCleaningPromptChange={setCustomCleaningPrompt}
         />
 
         {error && (

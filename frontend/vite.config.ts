@@ -114,11 +114,15 @@ export default defineConfig({
       "/api/v1": {
         target: process.env.API_BASE_URL || "http://localhost:8000",
         changeOrigin: true,
+        timeout: 300000, // 5분 타임아웃 (PDF 처리용)
+        proxyTimeout: 300000,
       },
       // 레거시 Django API (점진적 전환)
       "/api": {
         target: process.env.API_BASE_URL || "http://localhost:8000",
         changeOrigin: true,
+        timeout: 300000,
+        proxyTimeout: 300000,
       },
     },
     hmr: { host: "localhost", protocol: "ws" }
