@@ -114,7 +114,7 @@ class PdfplumberExtractor(TextExtractor):
                     return []
 
                 pages_to_process = end - start + 1
-                print(f"    pdfplumber: {pages_to_process}개 페이지 처리 중... (페이지 {start}-{end})")
+                logger.info(f"   pdfplumber: {pages_to_process}개 페이지 처리 중... (페이지 {start}-{end})")
 
                 for page_num in range(start, end + 1):
                     page = pdf.pages[page_num - 1]
@@ -323,7 +323,7 @@ class OCRExtractor(TextExtractor):
 
         all_ocr_data = [None] * total_pages
 
-        print(f"\n[OCR] 병렬 처리 시작: {max_workers}개 워커, {total_pages}개 페이지")
+        logger.info(f"[OCR] 병렬 처리 시작: {max_workers}개 워커, {total_pages}개 페이지")
 
         with ProcessPoolExecutor(
             max_workers=max_workers,
@@ -344,8 +344,11 @@ class OCRExtractor(TextExtractor):
                 try:
                     ocr_data = future.result()
                     all_ocr_data[idx] = ocr_data
-                    print(f"\r[OCR] 진행: {completed}/{total_pages} ({progress_pct:.1f}%) - 완료: 페이지 {idx + 1}", end='', flush=True)
-                    
+
+                    # 10% 단위로 진행률 로그
+                    if completed % max(1, total_pages // 10) == 0 or completed == total_pages:
+                        logger.info(f"[OCR] 진행: {completed}/{total_pages} ({progress_pct:.1f}%) - 완료: 페이지 {idx + 1}")
+
                     # 진행률 콜백 호출
                     if self.progress_callback:
                         try:
@@ -362,7 +365,6 @@ class OCRExtractor(TextExtractor):
                         'width': [],
                         'height': []
                     }
-                    print(f"\r[OCR] 진행: {completed}/{total_pages} ({progress_pct:.1f}%) - 실패: 페이지 {idx + 1}", end='', flush=True)
                     
                     # 진행률 콜백 호출 (실패해도 진행률 업데이트)
                     if self.progress_callback:
@@ -371,7 +373,7 @@ class OCRExtractor(TextExtractor):
                         except Exception as e:
                             logger.warning(f"진행률 콜백 실패 (계속 진행): {e}")
 
-        print()  # 줄바꿈
+        logger.info(f"[OCR] 병렬 처리 완료: {total_pages}개 페이지")
         return all_ocr_data
 
     def _ocr_pages_sequential(self, page_images: List[Image.Image]) -> List[Dict[str, Any]]:
@@ -385,9 +387,10 @@ class OCRExtractor(TextExtractor):
 
         for i, page_image in enumerate(page_images, 1):
             try:
-                # 프로그레스 표시
+                # 10% 단위로 진행률 로그
                 progress_pct = (i / total_pages) * 100
-                print(f"\r[OCR] 진행: {i}/{total_pages} ({progress_pct:.1f}%) ", end='', flush=True)
+                if i % max(1, total_pages // 10) == 0 or i == total_pages:
+                    logger.info(f"[OCR] 진행: {i}/{total_pages} ({progress_pct:.1f}%)")
 
                 ocr_data = self._ocr_page(page_image, i)
                 all_ocr_data.append(ocr_data)
@@ -416,7 +419,7 @@ class OCRExtractor(TextExtractor):
                     except Exception as e:
                         logger.warning(f"진행률 콜백 실패 (계속 진행): {e}")
 
-        print()  # 줄바꿈
+        logger.info(f"[OCR] 순차 처리 완료: {total_pages}개 페이지")
         return all_ocr_data
 
     def _ocr_page(self, page_image: Image.Image, page_num: int) -> Dict[str, Any]:
@@ -522,7 +525,7 @@ class PyMuPDFExtractor(TextExtractor):
                 return []
 
             pages_to_process = end - start + 1
-            print(f"    PyMuPDF: {pages_to_process}개 페이지 처리 중... (페이지 {start}-{end})")
+            logger.info(f"   PyMuPDF: {pages_to_process}개 페이지 처리 중... (페이지 {start}-{end})")
 
             # PDF 포인트 (72 DPI) → 이미지 픽셀 (DPI) 변환
             scale_x = self.dpi / 72.0

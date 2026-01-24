@@ -195,15 +195,12 @@ class UnifiedPipeline:
 
         try:
             # 1. 텍스트 추출
-            print(f"\n[Pipeline] ========================================")
-            print(f"[Pipeline] 1. 텍스트 추출 시작")
-            print(f"[Pipeline] 추출기: {type(self.extractor).__name__}")
-            print(f"[Pipeline] OCR 사용: {isinstance(self.extractor, OCRExtractor)}")
-            print(f"[Pipeline] ========================================\n")
-
-            logger.info("1. 텍스트 추출 중...")
-            logger.info(f"   추출기 타입: {type(self.extractor).__name__}")
+            logger.info("="*50)
+            logger.info("1. 텍스트 추출 시작")
+            logger.info(f"   추출기: {type(self.extractor).__name__}")
+            logger.info(f"   OCR 사용: {isinstance(self.extractor, OCRExtractor)}")
             logger.info(f"   PDF 경로: {pdf_path}")
+            logger.info("="*50)
 
             # 템플릿 기반 페이지 범위 최적화 (템플릿이 있고 페이지 정보가 있으면)
             # 원래 값 보존을 위해 로컬 변수 사용
@@ -237,17 +234,14 @@ class UnifiedPipeline:
                 )
 
                 if self._should_switch_to_ocr(sample_data):
-                    print(f"[Pipeline] [AUTO] 텍스트 레이어 부족/깨짐 감지 → OCR로 자동 전환")
-                    logger.info("[Pipeline] auto 모드: OCR로 전환")
+                    logger.info("[AUTO 모드] 텍스트 레이어 부족/깨짐 감지 → OCR로 자동 전환")
                     self.extractor = self._create_ocr_extractor()
                 else:
-                    print(f"[Pipeline] [AUTO] 텍스트 레이어 양호 → pdfplumber 유지")
-                    logger.info("[Pipeline] auto 모드: pdfplumber 유지")
+                    logger.info("[AUTO 모드] 텍스트 레이어 양호 → pdfplumber 유지")
                     self.extractor = self._pdf_extractor
             
             if isinstance(self.extractor, OCRExtractor):
                 # OCR 사용 시: PDF를 이미지로 변환 후 추출
-                print(f"[Pipeline] [OK] OCR 모드 진입! PDF -> 이미지 변환 시작")
                 logger.info("   OCR 모드: PDF를 이미지로 변환 중...")
                 from pdf2image import convert_from_path
                 try:
@@ -257,19 +251,17 @@ class UnifiedPipeline:
                     # Poppler 경로 (자동 감지 또는 환경 변수)
                     if settings.POPPLER_PATH:
                         convert_kwargs['poppler_path'] = settings.POPPLER_PATH
-                        print(f"[Pipeline] Poppler 경로: {settings.POPPLER_PATH}")
+                        logger.debug(f"   Poppler 경로: {settings.POPPLER_PATH}")
                     else:
-                        print(f"[Pipeline] [WARNING] Poppler 경로 없음 - 자동 감지 시도")
+                        logger.warning("   Poppler 경로 없음 - 자동 감지 시도")
 
                     first_page = effective_start_page or 1
                     convert_kwargs['first_page'] = first_page
                     if effective_end_page:
                         convert_kwargs['last_page'] = effective_end_page
 
-                    print(f"[Pipeline] 페이지 범위: {first_page} ~ {effective_end_page or '끝'}")
                     logger.info(f"   페이지 범위: {first_page} ~ {effective_end_page or '끝'}")
                     page_images = convert_from_path(pdf_path, **convert_kwargs)
-                    print(f"[Pipeline] [OK] 이미지 변환 완료: {len(page_images)}개 페이지")
                     logger.info(f"   이미지 변환 완료: {len(page_images)}개 페이지")
                     
                     # OCR 진행률 콜백 설정
@@ -289,7 +281,6 @@ class UnifiedPipeline:
                     raise
             else:
                 # PdfplumberExtractor 사용 시: PDF 경로 직접 전달
-                print(f"[Pipeline] [INFO] pdfplumber 모드 (빠름, 텍스트 레이어 필요)")
                 logger.info("   pdfplumber 모드: 텍스트 추출 중...")
                 try:
                     first_page = effective_start_page or 1
@@ -298,7 +289,7 @@ class UnifiedPipeline:
                         first_page=first_page,
                         last_page=effective_end_page
                     )
-                    print(f"[Pipeline] pdfplumber 추출 완료: {len(ocr_data)}개 페이지")
+                    logger.info(f"   pdfplumber 추출 완료: {len(ocr_data)}개 페이지")
                 except Exception as e:
                     logger.error(f"   pdfplumber 추출 실패: {e}")
                     logger.exception(e)

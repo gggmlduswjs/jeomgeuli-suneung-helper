@@ -321,7 +321,7 @@ class LiteratureParser(BaseParser):
             # 템플릿에 저장된 TOC 강의 목록이 있으면 우선 사용 (관리자가 입력한 정보)
             toc_lecture_list = self.config.get('toc_lecture_list', [])
             if toc_lecture_list:
-                print(f"\n[LiteratureParser] 템플릿에 저장된 TOC 강의 목록 사용: {len(toc_lecture_list)}개")
+                logger.info(f"템플릿에 저장된 TOC 강의 목록 사용: {len(toc_lecture_list)}개")
                 for lecture_info in toc_lecture_list:
                     lecture_data = {
                         'lecture_id': lecture_info.get('lecture_id'),
@@ -334,7 +334,7 @@ class LiteratureParser(BaseParser):
                     if lecture_data['start_page']:
                         logger.info(f"강의 {lecture_data['lecture_id']}: {lecture_data['start_page']}~{lecture_data['end_page'] or '끝'}페이지")
                     lectures.append(lecture_data)
-                print(f"✅ [템플릿 TOC] {len(lectures)}개 강의 로드 완료 (페이지 범위 정보 포함)")
+                logger.info(f"[템플릿 TOC] {len(lectures)}개 강의 로드 완료 (페이지 범위 정보 포함)")
                 # 템플릿에서 강의 목록을 가져왔으므로 OCR 기반 추출은 스킵
                 return lectures
 
@@ -345,9 +345,9 @@ class LiteratureParser(BaseParser):
             if not toc_patterns:
                 toc_patterns = [r'^\d+강\s*\|\s*[가-힣]', r'^\d+강\s*\|']
 
-            print(f"\n[LiteratureParser] 강의 추출 시작...")
-            print(f"  - TOC 추출 범위: 페이지 1-{TOC_END_PAGE}")
-            print(f"  - 컨텐츠 추출 시작: 페이지 {START_PAGE}+")
+            logger.info(f"강의 추출 시작...")
+            logger.info(f"  - TOC 추출 범위: 페이지 1-{TOC_END_PAGE}")
+            logger.info(f"  - 컨텐츠 추출 시작: 페이지 {START_PAGE}+")
 
             # 1단계: TOC에서 강의 추출 (페이지 1-7, 텍스트가 깨끗함)
             for ocr_page in ocr_data:
@@ -363,9 +363,9 @@ class LiteratureParser(BaseParser):
 
                 # 디버깅: TOC 페이지의 텍스트 출력
                 if page_num in [4, 5, 6]:
-                    print(f"\n=== TOC Page {page_num} 상위 30개 텍스트 ===")
+                    logger.debug(f"TOC Page {page_num} 상위 30개 텍스트:")
                     for i, text in enumerate(merged_texts[:30]):
-                        print(f"  [{i}] {text[:80]}")
+                        logger.debug(f"  [{i}] {text[:80]}")
 
                 # TOC에서 강의 제목 찾기
                 for text in merged_texts:
@@ -417,13 +417,13 @@ class LiteratureParser(BaseParser):
                                         'page': page_num,
                                         'source': 'toc'
                                     })
-                                    print(f"✅ [TOC] 강의 감지: {title} (페이지 {page_num})")
+                                    logger.info(f"[TOC] 강의 감지: {title} (페이지 {page_num})")
                                     break
 
             # 2단계: 컨텐츠 페이지에서 강의 추출 (페이지 8+, CID 폰트 문제 있을 수 있음)
             # TOC에서 이미 추출했다면 스킵할 수도 있지만, 혹시 모르니 시도
             if len(lectures) == 0:
-                print(f"\n[LiteratureParser] TOC에서 강의를 찾지 못했습니다. 컨텐츠 페이지에서 시도합니다...")
+                logger.info(f"TOC에서 강의를 찾지 못했습니다. 컨텐츠 페이지에서 시도합니다...")
 
                 for ocr_page in ocr_data:
                     page_num = ocr_page.get('page_num', 0)
@@ -438,9 +438,9 @@ class LiteratureParser(BaseParser):
 
                     # 디버깅: 페이지 8, 9, 10의 합쳐진 텍스트 출력
                     if page_num in [8, 9, 10]:
-                        print(f"\n=== Content Page {page_num} 합쳐진 상위 20개 텍스트 ===")
+                        logger.debug(f"Content Page {page_num} 합쳐진 상위 20개 텍스트:")
                         for i, text in enumerate(merged_texts[:20]):
-                            print(f"  [{i}] {text}")
+                            logger.debug(f"  [{i}] {text}")
 
                     # 상위 50개 텍스트 확인 (페이지 상단)
                     for text in merged_texts[:50]:
@@ -464,15 +464,15 @@ class LiteratureParser(BaseParser):
                                             'page': page_num,
                                             'source': 'content'
                                         })
-                                        print(f"✅ [CONTENT] 강의 감지: {cleaned} (페이지 {page_num})")
+                                        logger.info(f"[CONTENT] 강의 감지: {cleaned} (페이지 {page_num})")
                                         break
 
             # lecture_id 순서대로 정렬
             lectures.sort(key=lambda x: x['lecture_id'])
 
-            print(f"\n[LiteratureParser] 강의 추출 완료: {len(lectures)}개 강의 발견")
+            logger.info(f"강의 추출 완료: {len(lectures)}개 강의 발견")
             for lec in lectures:
-                print(f"  - 강의 {lec['lecture_id']}: {lec['title']}")
+                logger.info(f"  - 강의 {lec['lecture_id']}: {lec['title']}")
 
             return lectures
         except Exception as e:
