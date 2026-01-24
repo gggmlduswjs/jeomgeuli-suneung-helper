@@ -309,9 +309,10 @@ export default function UnitPage() {
             )}
             
             {/* 답안 결과 */}
-            {answerResult && (
+            {answerResult && userAnswer !== null && (
               <AnswerResultComponent
                 result={answerResult}
+                userAnswer={userAnswer}
                 onSpeak={speak}
               />
             )}
