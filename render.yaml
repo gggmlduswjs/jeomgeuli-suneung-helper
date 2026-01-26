@@ -36,7 +36,6 @@ services:
   - type: web
     name: jeomgeuli-frontend
     env: static
-    region: singapore
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     routes:
