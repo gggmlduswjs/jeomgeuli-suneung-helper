@@ -1,5 +1,5 @@
 services:
-  # Backend API Service (Python 네이티브 환경)
+  # Backend API Service (Python FastAPI)
   - type: web
     name: jeomgeuli-backend
     env: python
@@ -12,21 +12,21 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: DATABASE_URL
-        sync: false  # Set this in Render dashboard
+        sync: false  # Render 대시보드에서 PostgreSQL 데이터베이스 생성 후 설정
       - key: OPENAI_API_KEY
-        sync: false  # Set this in Render dashboard
-      - key: MATHPIX_APP_ID
-        sync: false  # Optional
-      - key: MATHPIX_APP_KEY
-        sync: false  # Optional
-      - key: ROBOFLOW_API_KEY
-        sync: false  # Optional
-      - key: ROBOFLOW_WORKSPACE_ID
-        sync: false  # Optional
-      - key: ROBOFLOW_PROJECT_ID
-        sync: false  # Optional
+        sync: false  # OpenAI API 키를 Render 대시보드에서 설정
       - key: CORS_ORIGINS
         value: https://jeomgeuli-frontend.onrender.com,http://localhost:5173,http://localhost:3000
+      - key: MATHPIX_APP_ID
+        sync: false  # 선택사항: MathPix API 사용 시
+      - key: MATHPIX_APP_KEY
+        sync: false  # 선택사항: MathPix API 사용 시
+      - key: ROBOFLOW_API_KEY
+        sync: false  # 선택사항: Roboflow API 사용 시
+      - key: ROBOFLOW_WORKSPACE_ID
+        sync: false  # 선택사항: Roboflow API 사용 시
+      - key: ROBOFLOW_PROJECT_ID
+        sync: false  # 선택사항: Roboflow API 사용 시
     disk:
       name: backend-data
       mountPath: /opt/render/project/src/backend/data
@@ -44,8 +44,6 @@ services:
         source: /*
         destination: /index.html
     envVars:
-      # Vite 환경 변수는 VITE_ 접두사 필요
-      # Render 대시보드에서 Backend 서비스 URL로 수동 설정 필요
-      # 예: https://jeomgeuli-backend.onrender.com
+      # Backend 서비스 URL (Backend 배포 후 자동으로 생성된 URL로 변경)
       - key: VITE_API_BASE_URL
-        sync: false  # Backend 배포 후 URL을 수동으로 설정하세요
+        sync: false  # Backend 배포 후 URL을 수동으로 설정하세요 (예: https://jeomgeuli-backend.onrender.com/api/v1)
