@@ -2,15 +2,21 @@
 강의별 페이지 범위 수정
 
 2단 레이아웃 때문에 뒤섞인 페이지 범위를 정확하게 수정
+프로젝트 루트에서: python scripts/fix_page_ranges.py
 """
+import os
 import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+os.chdir(ROOT)
 
 print("=" * 80)
 print("페이지 범위 수정")
 print("=" * 80)
 
 # 템플릿 로드
-with open('template_final.json', 'r', encoding='utf-8') as f:
+with open(ROOT / 'template_final.json', 'r', encoding='utf-8') as f:
     template = json.load(f)
 
 # 기존 강의 목록

@@ -8,8 +8,9 @@
 .
 ├── backend/          # FastAPI 백엔드
 ├── frontend/         # React + TypeScript 프론트엔드
-├── data/            # 데이터 디렉토리
-├── archive/         # 정리된 임시 파일들 (포트폴리오용)
+├── scripts/         # 목차·템플릿 유틸 스크립트 (python scripts/xxx.py)
+├── data/            # 데이터·입력 파일 (toc_raw_input.txt 등)
+├── archive/         # 정리된 임시·보관 파일
 └── README.md        # 이 파일
 ```
 

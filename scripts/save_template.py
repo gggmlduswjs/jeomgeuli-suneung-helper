@@ -1,10 +1,15 @@
-"""템플릿 저장 (API)"""
+"""템플릿 저장 (API). 프로젝트 루트에서: python scripts/save_template.py"""
+import os
 import requests
 import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+os.chdir(ROOT)
 
 print("템플릿 저장 중...")
 
-with open('template_fixed.json', 'r', encoding='utf-8') as f:
+with open(ROOT / 'template_fixed.json', 'r', encoding='utf-8') as f:
     template = json.load(f)
 
 response = requests.post(

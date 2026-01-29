@@ -2,11 +2,16 @@
 추출된 목차 정제 + 템플릿 생성 (한 번에)
 
 사용법:
-1. extract_full_toc.py로 toc_extracted_full.txt 생성
-2. python clean_and_generate.py 실행
+1. scripts/extract_full_toc.py로 toc_extracted_full.txt 생성
+2. 프로젝트 루트에서: python scripts/clean_and_generate.py
 """
+import os
 import requests
 import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+os.chdir(ROOT)
 
 print("=" * 80)
 print("목차 정제 + 템플릿 자동 생성")

@@ -2,11 +2,16 @@
 사용자가 제공한 전체 목차 텍스트 처리
 
 사용법:
-1. 이미 원본 텍스트가 toc_raw_input.txt에 저장되어 있음
-2. python process_user_toc.py 실행
+1. 원본 텍스트를 data/toc_raw_input.txt에 저장
+2. 프로젝트 루트에서: python scripts/process_user_toc.py
 """
+import os
 import requests
 import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+os.chdir(ROOT)
 
 print("=" * 80)
 print("사용자 제공 목차 처리 (전체)")
@@ -18,11 +23,11 @@ print("=" * 80)
 print("\n[1] 원본 목차 로드 중...")
 
 try:
-    with open('toc_raw_input.txt', 'r', encoding='utf-8') as f:
+    with open(ROOT / 'data' / 'toc_raw_input.txt', 'r', encoding='utf-8') as f:
         toc_raw = f.read()
     print(f"    로드 완료: {len(toc_raw)} 글자, {len(toc_raw.splitlines())} 줄")
 except FileNotFoundError:
-    print("\n[ERROR] toc_raw_input.txt 파일을 찾을 수 없습니다.")
+    print("\n[ERROR] data/toc_raw_input.txt 파일을 찾을 수 없습니다.")
     exit(1)
 
 # ========================================

@@ -3,11 +3,15 @@
 
 사용법:
 1. toc_full.txt에 전체 목차 텍스트 붙여넣기
-2. python generate_template_from_toc.py 실행
-3. 생성된 template을 확인하고 필요시 수정
+2. 프로젝트 루트에서: python scripts/generate_template_from_toc.py
 """
+import os
 import requests
 import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+os.chdir(ROOT)
 
 print("=" * 80)
 print("EBS 수능특강 문학 템플릿 생성기")

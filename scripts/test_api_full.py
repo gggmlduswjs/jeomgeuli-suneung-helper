@@ -1,6 +1,11 @@
-"""API 전체 테스트"""
+"""API 전체 테스트. 프로젝트 루트에서: python scripts/test_api_full.py"""
+import os
 import requests
 import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+os.chdir(ROOT)
 
 print("=" * 80)
 print("API 테스트")

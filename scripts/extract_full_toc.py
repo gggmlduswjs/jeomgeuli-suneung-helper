@@ -2,15 +2,20 @@
 PDF에서 목차 전체 추출 (2단 구성 자동 처리)
 
 사용법:
-1. PDF 파일을 이 디렉토리에 복사하고 파일명을 아래에 입력
-2. python extract_full_toc.py 실행
+1. PDF를 data/pdfs/에 두고 아래 경로 수정
+2. 프로젝트 루트에서: python scripts/extract_full_toc.py
 """
+import os
 import requests
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+os.chdir(ROOT)
 
 # ========================================
 # 설정
 # ========================================
-PDF_FILE_PATH = "data/pdfs/2026 수능특강_ 문학.pdf"  # PDF 파일 경로
+PDF_FILE_PATH = ROOT / "data/pdfs/2026 수능특강_ 문학.pdf"  # PDF 파일 경로
 TOC_PAGES = "3,4,5,6,7"  # 목차 페이지 번호 (페이지 3부터 7까지 시도)
 
 print("=" * 80)
@@ -28,7 +33,7 @@ print("    (2단 구성 자동 처리 + 페이지 번호 순서 정렬)")
 try:
     with open(PDF_FILE_PATH, 'rb') as f:
         files = {
-            'pdf_file': (PDF_FILE_PATH, f, 'application/pdf'),
+            'pdf_file': (str(PDF_FILE_PATH), f, 'application/pdf'),
             'toc_pages': (None, TOC_PAGES)
         }
         

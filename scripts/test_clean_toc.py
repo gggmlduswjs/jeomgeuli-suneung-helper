@@ -1,6 +1,11 @@
-"""목차 텍스트 정제 및 강의 추출 테스트"""
+"""목차 텍스트 정제 및 강의 추출 테스트. 프로젝트 루트에서: python scripts/test_clean_toc.py"""
+import os
 import requests
 import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+os.chdir(ROOT)
 
 # 원본 OCR 텍스트
 toc_raw = """1강
