@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { aiAPI } from '../services/ai';
 import useTTS from './useTTS';
+import { markdownToPlainText } from '../utils/text/markdownToPlainText';
 
 export function useAILearningAssistant(unitId?: string, lessonId?: string) {
   const { speak } = useTTS();
@@ -22,8 +23,8 @@ export function useAILearningAssistant(unitId?: string, lessonId?: string) {
       
       setLastAnswer(response.answer);
       
-      // TTS로 답변 재생
-      speak(response.answer);
+      // TTS로 답변 재생 (마크다운 특수기호 제거)
+      speak(markdownToPlainText(response.answer));
       
       return response.answer;
     } catch (error: unknown) {

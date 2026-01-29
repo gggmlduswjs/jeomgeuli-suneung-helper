@@ -64,13 +64,26 @@ def generate_curriculum_id(subject: str, title: Optional[str] = None, year: Opti
     return "_".join(parts)
 
 
-def generate_lesson_id(subject: str, lesson_number: int) -> str:
+def generate_lesson_id(subject: str, lesson_number: int, book_id: Optional[str] = None) -> str:
     """레슨 ID 생성
-    
-    형식: lesson_{subject}_{lesson_number:02d}
-    예: lesson_korean_01, lesson_math_05
+
+    형식: lesson_{subject}_{lesson_number:02d} 또는 lesson_{book_id}_{lesson_number:02d}
+    예: lesson_korean_01, lesson_book_korean_2026_abc123_01
+
+    Args:
+        subject: 과목
+        lesson_number: 강의 번호
+        book_id: 교재 ID (선택, 지정 시 교재별 고유 ID 생성)
     """
     subject_lower = subject.lower()
+
+    # book_id가 제공되면 교재별 고유 ID 생성
+    if book_id:
+        # book_id의 마지막 6자 (UUID 부분) 추출
+        book_suffix = book_id.split('_')[-1] if '_' in book_id else book_id[-6:]
+        return f"lesson_{subject_lower}_{book_suffix}_{lesson_number:02d}"
+
+    # 하위 호환성: book_id 없으면 기존 형식
     return f"lesson_{subject_lower}_{lesson_number:02d}"
 
 

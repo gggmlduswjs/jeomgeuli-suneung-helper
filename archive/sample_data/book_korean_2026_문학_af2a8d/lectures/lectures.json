@@ -1,0 +1,543 @@
+{
+  "lectures": [
+    {
+      "lecture_id": 1,
+      "title": "1강 | 시의 표현과 형식",
+      "start_page": 8,
+      "end_page": 10,
+      "lesson_id_str": "lesson_korean_af2a8d_01"
+    },
+    {
+      "lecture_id": 2,
+      "title": "2강 | 시의 내용",
+      "start_page": 11,
+      "end_page": 14,
+      "lesson_id_str": "lesson_korean_af2a8d_02"
+    },
+    {
+      "lecture_id": 3,
+      "title": "3강 | 소설의 서술상 특징",
+      "start_page": 15,
+      "end_page": 17,
+      "lesson_id_str": "lesson_korean_af2a8d_03"
+    },
+    {
+      "lecture_id": 4,
+      "title": "4강 | 소설의 내용 구성 요소",
+      "start_page": 18,
+      "end_page": 22,
+      "lesson_id_str": "lesson_korean_af2a8d_04"
+    },
+    {
+      "lecture_id": 5,
+      "title": "5강 | 극의 특성과 극 문학의 구성 요소",
+      "start_page": 23,
+      "end_page": 27,
+      "lesson_id_str": "lesson_korean_af2a8d_05"
+    },
+    {
+      "lecture_id": 6,
+      "title": "6강 | 교술 문학의 특성과 구성 요소",
+      "start_page": 28,
+      "end_page": 30,
+      "lesson_id_str": "lesson_korean_af2a8d_06"
+    },
+    {
+      "lecture_id": 7,
+      "title": "7강 | 작품의 작가 및 독자 맥락",
+      "start_page": 31,
+      "end_page": 34,
+      "lesson_id_str": "lesson_korean_af2a8d_07"
+    },
+    {
+      "lecture_id": 8,
+      "title": "8강 | 작품의 문학사적, 상호 텍스트적 맥락",
+      "start_page": 35,
+      "end_page": 39,
+      "lesson_id_str": "lesson_korean_af2a8d_08"
+    },
+    {
+      "lecture_id": 9,
+      "title": "9강 | 작품의 사회·문화적, 역사적 맥락",
+      "start_page": 40,
+      "end_page": 43,
+      "lesson_id_str": "lesson_korean_af2a8d_09"
+    },
+    {
+      "lecture_id": 10,
+      "title": "10강 | 모죽지랑가 (득오) / 화왕가 (이익)",
+      "start_page": 44,
+      "end_page": 45,
+      "lesson_id_str": "lesson_korean_af2a8d_10"
+    },
+    {
+      "lecture_id": 11,
+      "title": "11강 | 정과정곡 (정서) / 소악부 중 <제6장> (민사평)",
+      "start_page": 46,
+      "end_page": 48,
+      "lesson_id_str": "lesson_korean_af2a8d_11"
+    },
+    {
+      "lecture_id": 12,
+      "title": "12강 | 귀거래 귀거래 말뿐이오 ~ (이현보)",
+      "start_page": 49,
+      "end_page": 50,
+      "lesson_id_str": "lesson_korean_af2a8d_12"
+    },
+    {
+      "lecture_id": 13,
+      "title": "13강 | 사 우가 중 <제2수> (이신의)",
+      "start_page": 51,
+      "end_page": 52,
+      "lesson_id_str": "lesson_korean_af2a8d_13"
+    },
+    {
+      "lecture_id": 14,
+      "title": "14강 | 오륜가 (박선장)",
+      "start_page": 53,
+      "end_page": 55,
+      "lesson_id_str": "lesson_korean_af2a8d_14"
+    },
+    {
+      "lecture_id": 15,
+      "title": "15강 | 북천가 (김진형)",
+      "start_page": 56,
+      "end_page": 59,
+      "lesson_id_str": "lesson_korean_af2a8d_15"
+    },
+    {
+      "lecture_id": 16,
+      "title": "16강 | 용부가 (작자 미상)",
+      "start_page": 60,
+      "end_page": 63,
+      "lesson_id_str": "lesson_korean_af2a8d_16"
+    },
+    {
+      "lecture_id": 17,
+      "title": "17강 | 동유가 (홍정유)",
+      "start_page": 64,
+      "end_page": 66,
+      "lesson_id_str": "lesson_korean_af2a8d_17"
+    },
+    {
+      "lecture_id": 18,
+      "title": "18강 | 나물 캐는 노래 (작자 미상)",
+      "start_page": 67,
+      "end_page": 69,
+      "lesson_id_str": "lesson_korean_af2a8d_18"
+    },
+    {
+      "lecture_id": 19,
+      "title": "19강 | 초한가 (작자 미상) / 장진주사 (정철)",
+      "start_page": 70,
+      "end_page": 73,
+      "lesson_id_str": "lesson_korean_af2a8d_19"
+    },
+    {
+      "lecture_id": 20,
+      "title": "20강 | 잠령민정 (임제) / 우국가 (이덕일)",
+      "start_page": 74,
+      "end_page": 76,
+      "lesson_id_str": "lesson_korean_af2a8d_20"
+    },
+    {
+      "lecture_id": 21,
+      "title": "21강 | 그날이 오면 (심훈) / 산상의 노래 (조지훈)",
+      "start_page": 77,
+      "end_page": 79,
+      "lesson_id_str": "lesson_korean_af2a8d_21"
+    },
+    {
+      "lecture_id": 22,
+      "title": "22강 | 황혼 (이육사) / 성에꽃 (최두석)",
+      "start_page": 80,
+      "end_page": 82,
+      "lesson_id_str": "lesson_korean_af2a8d_22"
+    },
+    {
+      "lecture_id": 23,
+      "title": "23강 | 불사조 (정지용) / 꽃씨 (문병란)",
+      "start_page": 83,
+      "end_page": 85,
+      "lesson_id_str": "lesson_korean_af2a8d_23"
+    },
+    {
+      "lecture_id": 24,
+      "title": "24강 | 달·포도·잎사귀 (장만영) / 아침 시 (최하림)",
+      "start_page": 86,
+      "end_page": 88,
+      "lesson_id_str": "lesson_korean_af2a8d_24"
+    },
+    {
+      "lecture_id": 25,
+      "title": "25강 | 생명의 서·일장 (유치환)",
+      "start_page": 89,
+      "end_page": 91,
+      "lesson_id_str": "lesson_korean_af2a8d_25"
+    },
+    {
+      "lecture_id": 26,
+      "title": "26강 | 역사 (신석정) / 지리산 뻐꾹새 (송수권)",
+      "start_page": 92,
+      "end_page": 94,
+      "lesson_id_str": "lesson_korean_af2a8d_26"
+    },
+    {
+      "lecture_id": 27,
+      "title": "27강 | 전라도 가시내 (이용악) / 나목 (신경림)",
+      "start_page": 95,
+      "end_page": 97,
+      "lesson_id_str": "lesson_korean_af2a8d_27"
+    },
+    {
+      "lecture_id": 28,
+      "title": "28강 | 병원 (윤동주) / 벽 (김기택)",
+      "start_page": 98,
+      "end_page": 99,
+      "lesson_id_str": "lesson_korean_af2a8d_28"
+    },
+    {
+      "lecture_id": 29,
+      "title": "29강 | 눈물 (김현승) / 강우 (김춘수)",
+      "start_page": 100,
+      "end_page": 102,
+      "lesson_id_str": "lesson_korean_af2a8d_29"
+    },
+    {
+      "lecture_id": 30,
+      "title": "30강 | 파밭 가에서 (김수영) / 들국 (김용택)",
+      "start_page": 103,
+      "end_page": 105,
+      "lesson_id_str": "lesson_korean_af2a8d_30"
+    },
+    {
+      "lecture_id": 31,
+      "title": "31강 | 흙 (문정희) / 느티나무로부터 (복효근)",
+      "start_page": 106,
+      "end_page": 108,
+      "lesson_id_str": "lesson_korean_af2a8d_31"
+    },
+    {
+      "lecture_id": 32,
+      "title": "32강 | 남백월 이성 노힐부득과 달달박박 (작자 미상)",
+      "start_page": 109,
+      "end_page": 112,
+      "lesson_id_str": "lesson_korean_af2a8d_32"
+    },
+    {
+      "lecture_id": 33,
+      "title": "33강 | 채생기우 (이현기)",
+      "start_page": 113,
+      "end_page": 116,
+      "lesson_id_str": "lesson_korean_af2a8d_33"
+    },
+    {
+      "lecture_id": 34,
+      "title": "34강 | 김진옥전 (작자 미상)",
+      "start_page": 117,
+      "end_page": 120,
+      "lesson_id_str": "lesson_korean_af2a8d_34"
+    },
+    {
+      "lecture_id": 35,
+      "title": "35강 | 숙향전 (작자 미상)",
+      "start_page": 121,
+      "end_page": 124,
+      "lesson_id_str": "lesson_korean_af2a8d_35"
+    },
+    {
+      "lecture_id": 36,
+      "title": "36강 | 정진사전 (작자 미상)",
+      "start_page": 125,
+      "end_page": 128,
+      "lesson_id_str": "lesson_korean_af2a8d_36"
+    },
+    {
+      "lecture_id": 37,
+      "title": "37강 | 강도몽유록 (작자 미상)",
+      "start_page": 129,
+      "end_page": 132,
+      "lesson_id_str": "lesson_korean_af2a8d_37"
+    },
+    {
+      "lecture_id": 38,
+      "title": "38강 | 옥소전 (작자 미상)",
+      "start_page": 133,
+      "end_page": 136,
+      "lesson_id_str": "lesson_korean_af2a8d_38"
+    },
+    {
+      "lecture_id": 39,
+      "title": "39강 | 천수석 (작자 미상)",
+      "start_page": 137,
+      "end_page": 140,
+      "lesson_id_str": "lesson_korean_af2a8d_39"
+    },
+    {
+      "lecture_id": 40,
+      "title": "40강 | 수궁가 (작자 미상)",
+      "start_page": 141,
+      "end_page": 145,
+      "lesson_id_str": "lesson_korean_af2a8d_40"
+    },
+    {
+      "lecture_id": 41,
+      "title": "41강 | 심청전 (작자 미상)",
+      "start_page": 146,
+      "end_page": 150,
+      "lesson_id_str": "lesson_korean_af2a8d_41"
+    },
+    {
+      "lecture_id": 42,
+      "title": "42강 | 지봉전 (작자 미상)",
+      "start_page": 151,
+      "end_page": 154,
+      "lesson_id_str": "lesson_korean_af2a8d_42"
+    },
+    {
+      "lecture_id": 43,
+      "title": "43강 | 무정 (이광수)",
+      "start_page": 155,
+      "end_page": 158,
+      "lesson_id_str": "lesson_korean_af2a8d_43"
+    },
+    {
+      "lecture_id": 44,
+      "title": "44강 | 날개 (이상)",
+      "start_page": 159,
+      "end_page": 162,
+      "lesson_id_str": "lesson_korean_af2a8d_44"
+    },
+    {
+      "lecture_id": 45,
+      "title": "45강 | 태평천하 (채만식)",
+      "start_page": 163,
+      "end_page": 166,
+      "lesson_id_str": "lesson_korean_af2a8d_45"
+    },
+    {
+      "lecture_id": 46,
+      "title": "46강 | 판문점 (이호철)",
+      "start_page": 171,
+      "end_page": 174,
+      "lesson_id_str": "lesson_korean_af2a8d_46"
+    },
+    {
+      "lecture_id": 47,
+      "title": "47강 | 차나 한잔 (김승옥)",
+      "start_page": 175,
+      "end_page": 178,
+      "lesson_id_str": "lesson_korean_af2a8d_47"
+    },
+    {
+      "lecture_id": 48,
+      "title": "48강 | 황홀한 실종 (이청준)",
+      "start_page": 179,
+      "end_page": 183,
+      "lesson_id_str": "lesson_korean_af2a8d_48"
+    },
+    {
+      "lecture_id": 49,
+      "title": "49강 | 당제 (송기숙)",
+      "start_page": 184,
+      "end_page": 187,
+      "lesson_id_str": "lesson_korean_af2a8d_49"
+    },
+    {
+      "lecture_id": 50,
+      "title": "50강 | 방울새 (양귀자)",
+      "start_page": 188,
+      "end_page": 191,
+      "lesson_id_str": "lesson_korean_af2a8d_50"
+    },
+    {
+      "lecture_id": 51,
+      "title": "51강 | 새를 찾아서 (김주영)",
+      "start_page": 192,
+      "end_page": 195,
+      "lesson_id_str": "lesson_korean_af2a8d_51"
+    },
+    {
+      "lecture_id": 52,
+      "title": "52강 | 새의 선물 (은희경)",
+      "start_page": 196,
+      "end_page": 199,
+      "lesson_id_str": "lesson_korean_af2a8d_52"
+    },
+    {
+      "lecture_id": 53,
+      "title": "53강 | 강령 탈춤의 특징 / 강령 탈춤 (작자 미상)",
+      "start_page": 200,
+      "end_page": 203,
+      "lesson_id_str": "lesson_korean_af2a8d_53"
+    },
+    {
+      "lecture_id": 54,
+      "title": "54강 | 계축일기 (작자 미상)",
+      "start_page": 204,
+      "end_page": 206,
+      "lesson_id_str": "lesson_korean_af2a8d_54"
+    },
+    {
+      "lecture_id": 55,
+      "title": "55강 | 해유록 (신유한)",
+      "start_page": 207,
+      "end_page": 210,
+      "lesson_id_str": "lesson_korean_af2a8d_55"
+    },
+    {
+      "lecture_id": 56,
+      "title": "56강 | 야뇌당기 (이덕무) / 아암기 (이용휴)",
+      "start_page": 211,
+      "end_page": 213,
+      "lesson_id_str": "lesson_korean_af2a8d_56"
+    },
+    {
+      "lecture_id": 57,
+      "title": "57강 | 산불 (차범석)",
+      "start_page": 214,
+      "end_page": 218,
+      "lesson_id_str": "lesson_korean_af2a8d_57"
+    },
+    {
+      "lecture_id": 58,
+      "title": "58강 | 쥬라기의 사람들 (이강백)",
+      "start_page": 219,
+      "end_page": 222,
+      "lesson_id_str": "lesson_korean_af2a8d_58"
+    },
+    {
+      "lecture_id": 59,
+      "title": "59강 | 동주 (신연식)",
+      "start_page": 223,
+      "end_page": 226,
+      "lesson_id_str": "lesson_korean_af2a8d_59"
+    },
+    {
+      "lecture_id": 60,
+      "title": "60강 | 우리들의 블루스 (노희경)",
+      "start_page": 227,
+      "end_page": 231,
+      "lesson_id_str": "lesson_korean_af2a8d_60"
+    },
+    {
+      "lecture_id": 61,
+      "title": "61강 | 한계사의 노스님에게 (이규보) / 소화사 (이인상)",
+      "start_page": 232,
+      "end_page": 236,
+      "lesson_id_str": "lesson_korean_af2a8d_61"
+    },
+    {
+      "lecture_id": 62,
+      "title": "62강 | 임계탄 (작자 미상) / 절비자설 (박전)",
+      "start_page": 237,
+      "end_page": 242,
+      "lesson_id_str": "lesson_korean_af2a8d_62"
+    },
+    {
+      "lecture_id": 63,
+      "title": "63강 | 새장 속의 학 (이매창) / 선상탄 (박인로)",
+      "start_page": 243,
+      "end_page": 248,
+      "lesson_id_str": "lesson_korean_af2a8d_63"
+    },
+    {
+      "lecture_id": 64,
+      "title": "64강 | 몽천요 (윤선도) / 구운몽 (김만중)",
+      "start_page": 249,
+      "end_page": 254,
+      "lesson_id_str": "lesson_korean_af2a8d_64"
+    },
+    {
+      "lecture_id": 65,
+      "title": "65강 | 화전가 (작자 미상) / 의유당관북유람일기 (의유당)",
+      "start_page": 255,
+      "end_page": 261,
+      "lesson_id_str": "lesson_korean_af2a8d_65"
+    },
+    {
+      "lecture_id": 66,
+      "title": "66강 | 남신의주 유동 박시봉방 (백석)",
+      "start_page": 262,
+      "end_page": 266,
+      "lesson_id_str": "lesson_korean_af2a8d_66"
+    },
+    {
+      "lecture_id": 67,
+      "title": "67강 | 경사 (박목월) / 겨울나무를 보며 (박재삼)",
+      "start_page": 267,
+      "end_page": 271,
+      "lesson_id_str": "lesson_korean_af2a8d_67"
+    },
+    {
+      "lecture_id": 68,
+      "title": "68강 | 감나무 그늘 아래 (고재종)",
+      "start_page": 272,
+      "end_page": 276,
+      "lesson_id_str": "lesson_korean_af2a8d_68"
+    },
+    {
+      "lecture_id": 69,
+      "title": "69강 | 광화문, 겨울, 불꽃, 나무 (이문재) / 화단 (이태준)",
+      "start_page": 277,
+      "end_page": 282,
+      "lesson_id_str": "lesson_korean_af2a8d_69"
+    },
+    {
+      "lecture_id": 70,
+      "title": "70강 | 현대 소설에서 신빙성 없는 서술자의 특성과 효과",
+      "start_page": 283,
+      "end_page": 295,
+      "lesson_id_str": "lesson_korean_af2a8d_70"
+    },
+    {
+      "lecture_id": 71,
+      "title": "71강 | 메밀꽃 필 무렵 (이효석)",
+      "start_page": 296,
+      "end_page": 299,
+      "lesson_id_str": "lesson_korean_af2a8d_71"
+    },
+    {
+      "lecture_id": 73,
+      "title": "73강 | 실전학습1 회 [05~1 0] 출새곡 (조우인) / 망설 (홍성민)",
+      "start_page": 300,
+      "end_page": 305,
+      "lesson_id_str": "lesson_korean_af2a8d_73"
+    },
+    {
+      "lecture_id": 74,
+      "title": "74강 | 실전학습1 회 [ 1 1 ~ 1 4] 도둑맞은 가난 (박완서)",
+      "start_page": 306,
+      "end_page": 309,
+      "lesson_id_str": "lesson_korean_af2a8d_74"
+    },
+    {
+      "lecture_id": 75,
+      "title": "75강 | 실전학습1 회 [ 1 5~ 1 7] 그 복숭아나무 곁으로 (나희덕)",
+      "start_page": 310,
+      "end_page": 311,
+      "lesson_id_str": "lesson_korean_af2a8d_75"
+    },
+    {
+      "lecture_id": 76,
+      "title": "76강 | 실전학습 2 회 [ 0 1~04] 호질 (박지원)",
+      "start_page": 312,
+      "end_page": 316,
+      "lesson_id_str": "lesson_korean_af2a8d_76"
+    },
+    {
+      "lecture_id": 78,
+      "title": "78강 | 실전학습 2 회 [05~1 0] 여수 (오장환)",
+      "start_page": 317,
+      "end_page": 320,
+      "lesson_id_str": "lesson_korean_af2a8d_78"
+    },
+    {
+      "lecture_id": 79,
+      "title": "79강 | 실전학습 2 회 [ 1 1 ~ 1 4] 삼대 (염상섭)",
+      "start_page": 321,
+      "end_page": null,
+      "lesson_id_str": "lesson_korean_af2a8d_79"
+    }
+  ]
+}

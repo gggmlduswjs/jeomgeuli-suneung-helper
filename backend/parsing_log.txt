@@ -1,0 +1,75 @@
+[2026-01-27 18:50:26] [INFO] [app.infrastructure.pdf.pipeline] [UnifiedPipeline] 로거 레벨을 INFO로 설정
+[2026-01-27 18:50:26] [INFO] [app.infrastructure.pdf.pipeline] UnifiedPipeline 초기화 완료: literature, OCR=auto, Save=True, BookID=book_korean_2026_수능특강_문학_5b2984
+[2026-01-27 18:50:26] [INFO] [app.services.book_service] [book_service] 파이프라인 설정: DPI=200, 병렬=True (워커 2개), OCR=True
+[2026-01-27 18:50:26] [INFO] [app.services.book_service] [book_service] PDF 파일 확인: C:\Users\user\Desktop\jeomgeuli-suneung-helper\data\uploads\book_korean_2026_수능특강_문학_5b2984.pdf
+[2026-01-27 18:50:26] [INFO] [app.services.book_service] [book_service] PDF 파일 존재 여부: True
+[2026-01-27 18:50:26] [INFO] [app.services.book_service] [book_service] PDF 파일 크기: 21929659 bytes
+[2026-01-27 18:50:26] [INFO] [app.services.book_service] [book_service] 파이프라인 실행 시작...
+[2026-01-27 18:50:26] [INFO] [app.services.book_service] [book_service] 진행률 업데이트: 20% (텍스트 추출 시작)
+[2026-01-27 18:50:26] [INFO] [app.infrastructure.pdf.pipeline] UnifiedPipeline 시작: C:\Users\user\Desktop\jeomgeuli-suneung-helper\data\uploads\book_korean_2026_수능특강_문학_5b2984.pdf
+[2026-01-27 18:50:26] [INFO] [app.infrastructure.pdf.pipeline] 1. 텍스트 추출 시작 (추출기: PdfplumberExtractor)
+[2026-01-27 18:50:26] [INFO] [app.infrastructure.pdf.page_range_calculator] [PageRangeCalculator] 템플릿 기반 페이지 범위 계산: 1~85 (강의: 12~85, TOC: 1~7)
+[2026-01-27 18:50:26] [INFO] [app.infrastructure.pdf.pipeline]    📋 템플릿 기반 페이지 범위 적용: 1~85
+[2026-01-27 18:50:26] [INFO] [app.infrastructure.pdf.pipeline]    Auto 모드: 샘플 검사 (페이지 1-5)
+[2026-01-27 18:50:27] [INFO] [app.infrastructure.pdf.extractors.base]    pdfplumber: 5개 페이지 처리 중... (페이지 1-5)
+[2026-01-27 18:50:27] [INFO] [app.infrastructure.pdf.pipeline]    텍스트 레이어 양호 → pdfplumber 사용
+[2026-01-27 18:50:27] [INFO] [app.infrastructure.pdf.pipeline]    pdfplumber 2단계: 샘플 추출 (페이지 1~5)
+[2026-01-27 18:50:27] [INFO] [app.infrastructure.pdf.extractors.base]    pdfplumber: 5개 페이지 처리 중... (페이지 1-5)
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.pipeline] 2. 파서 선택 중...
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [템플릿] 커리큘럼 구조: 강의 기반, 단위 순서: ['concept', 'passage', 'problem'], 단위 목록: ['concept', 'passage', 'problem']
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [템플릿] region_hints 로드: ['concept', 'passage', 'problem'] (3개 레이블)
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [템플릿] region_text_examples 로드: ['concept', 'passage', 'problem'] (36개 예시)
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.unified_parser]   - concept: 20개 예시
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.unified_parser]   - passage: 7개 예시
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.unified_parser]   - problem: 9개 예시
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [템플릿] TOC 텍스트 로드: 2370자 (강의 제목 검증에 활용)
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [템플릿] TOC 강의 목록 로드: 9개
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [템플릿] 강의별 페이지 범위 로드: 8개 강의
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 템플릿 사용: ebs_수능특강_literature_2026 (신뢰도: 0.85)
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.parsers.hybrid_router] [HybridRouter] 템플릿 사용: ebs_수능특강_literature_2026 (전략: template_single, 시간: 0.00초)
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.pipeline]    전략: template, 템플릿: ebs_수능특강_literature_2026 (신뢰도: 1.00)
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.pipeline]    pdfplumber 2단계: 나머지 추출 (페이지 6~85)
+[2026-01-27 18:50:28] [INFO] [app.infrastructure.pdf.extractors.base]    pdfplumber: 80개 페이지 처리 중... (페이지 6-85)
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.pipeline]    추출 완료: 85개 페이지
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.pipeline] 3. 파싱 중 (파서: UnifiedTemplateParser)
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] 
+[UnifiedParser] 템플릿에 저장된 TOC 강의 목록 사용: 9개
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] 강의 1: 12~23페이지
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] 강의 3: 24~52페이지
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] 강의 6: 29~35페이지
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] 강의 7: 36~85페이지
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] 강의 9: 44~끝페이지
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] 강의 4: 53~66페이지
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] 강의 5: 67~28페이지
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] 강의 8: 86~43페이지
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] ✅ [템플릿 TOC] 9개 강의 로드 완료 (페이지 범위 정보 포함)
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] literature 파싱 완료: 9개 강의, 234개 문제 (템플릿: ebs_수능특강_literature_2026)
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.pipeline]    완료: 9개 강의, 234개 문제
+[2026-01-27 18:50:38] [INFO] [app.infrastructure.pdf.pipeline] 4. 강의 콘텐츠 추출 중...
+[2026-01-27 18:50:38] [ERROR] [app.infrastructure.pdf.pipeline]    실패: UnifiedTemplateParser.extract_sections() got an unexpected keyword argument 'crop_images'
+[2026-01-27 18:50:38] [ERROR] [app.services.book_service] [book_service] ========================================
+[2026-01-27 18:50:38] [ERROR] [app.services.book_service] [book_service] [에러] 파이프라인 실행 중 예외 발생
+[2026-01-27 18:50:38] [ERROR] [app.services.book_service] [book_service] ========================================
+[2026-01-27 18:50:38] [ERROR] [app.services.book_service] [book_service] 에러 타입: ParsingError
+[2026-01-27 18:50:38] [ERROR] [app.services.book_service] [book_service] 에러 메시지: 강의 콘텐츠 추출 중 오류 발생: UnifiedTemplateParser.extract_sections() got an unexpected keyword argument 'crop_images' (lecture_count=9)
+[2026-01-27 18:50:38] [ERROR] [app.services.book_service] [book_service] PDF 경로: C:\Users\user\Desktop\jeomgeuli-suneung-helper\data\uploads\book_korean_2026_수능특강_문학_5b2984.pdf
+[2026-01-27 18:50:38] [ERROR] [app.services.book_service] Traceback (most recent call last):
+  File "C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\app\infrastructure\pdf\pipeline.py", line 372, in process
+    lecture_contents = self.lecture_extractor.extract(ocr_data, lectures, self.parser)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\app\infrastructure\pdf\lecture_contents_extractor.py", line 140, in extract
+    sections = parser.extract_sections(lecture_ocr_data, crop_images=True)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: UnifiedTemplateParser.extract_sections() got an unexpected keyword argument 'crop_images'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\app\services\book_service.py", line 296, in process_pdf_background
+    result = pipeline.process(pdf_path)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\app\infrastructure\pdf\pipeline.py", line 378, in process
+    raise ParsingError(
+app.infrastructure.pdf.exceptions.ParsingError: 강의 콘텐츠 추출 중 오류 발생: UnifiedTemplateParser.extract_sections() got an unexpected keyword argument 'crop_images' (lecture_count=9)
+
+[2026-01-27 18:50:38] [ERROR] [app.services.book_service] [book_service] ========================================

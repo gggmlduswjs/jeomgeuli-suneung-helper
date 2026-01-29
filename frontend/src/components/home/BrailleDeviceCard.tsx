@@ -86,7 +86,7 @@ export default function BrailleDeviceCard({
           </div>
         </div>
 
-        {/* TODO: batteryLevel 기능 추가 시 활성화
+        {/* batteryLevel 기능은 향후 구현 예정
         {isConnected && batteryLevel !== null && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-600">배터리</span>

@@ -1,0 +1,1000 @@
+﻿    """?뚯씠?꾨씪??寃곌낵瑜?而ㅻ━?섎읆?쇰줈 蹂??""
+    from app.core.config import settings
+    
+    logger = logging.getLogger(__name__)
+    
+    # 而ㅻ━?섎읆 ID ?앹꽦
+    curriculum_id = f"cur_{uuid.uuid4().hex[:12]}"
+    
+    # ?뚯씠?꾨씪???곗씠??寃쎈줈 (援먯옱蹂꾨줈 遺꾨━??
+    # 援먯옱蹂??붾젆?좊━: data/{subject}/{book_id}/
+    data_dir = settings.API_DIR / "data" / pipeline_subject / book_id
+    lectures_dir = data_dir / "lectures"
+    
+    # 怨쇰ぉ 寃利? pipeline_subject? subject_enum???쇱튂?섎뒗吏 ?뺤씤
+    expected_subject_mapping = {
+        "literature": Subject.KOREAN,
+        "math1": Subject.MATH,
+        "english": Subject.ENGLISH
+    }
+    expected_subject = expected_subject_mapping.get(pipeline_subject)
+    if expected_subject and expected_subject != subject_enum:
+        logger.warning(f"[books] ?좑툘 寃쎄퀬: pipeline_subject({pipeline_subject})? subject_enum({subject_enum})???쇱튂?섏? ?딆쓬!")
+        logger.warning(f"[books] ?덉긽 怨쇰ぉ: {expected_subject}, ?ㅼ젣 怨쇰ぉ: {subject_enum}")
+    
+    # book_id媛 ?덉쑝硫?Book??subject??寃利?    if book_id:
+        book = db.query(Book).filter(Book.book_id == book_id).first()
+        if book and book.subject != subject_enum:
+            logger.warning(f"[books] ?좑툘 寃쎄퀬: Book.subject({book.subject})? subject_enum({subject_enum})???쇱튂?섏? ?딆쓬!")
+            logger.warning(f"[books] Book.subject瑜?{subject_enum}?쇰줈 ?낅뜲?댄듃?⑸땲??")
+            book.subject = subject_enum
+            db.commit()
+    
+    # ?붾젆?좊━ 議댁옱 ?뺤씤
+    if not lectures_dir.exists():
+        print(f"[books] ??寃쎄퀬: 媛뺤쓽 ?붾젆?좊━媛 議댁옱?섏? ?딆쓬: {lectures_dir}")
+        return curriculum_id
+    
+    # lectures.json ????ㅼ젣 lecture_*.json ?뚯씪?ㅼ쓣 吏곸젒 ?쎄린
+    lecture_files = sorted(lectures_dir.glob("lecture_*.json"))
+    # lectures.json? ?쒖쇅
+    lecture_files = [f for f in lecture_files if f.name != "lectures.json"]
+    
+    if not lecture_files:
+        print(f"[books] ??寃쎄퀬: 媛뺤쓽 ?뚯씪??李얠쓣 ???놁쓬: {lectures_dir}")
+        print(f"[books] ?붾젆?좊━ ?댁슜: {list(lectures_dir.glob('*'))}")
+        return curriculum_id
+    
+    print(f"[books] ??JSON ?뚯씪 諛쒓껄: {len(lecture_files)}媛?)
+    
+    print(f"[books] 諛쒓껄??媛뺤쓽 ?뚯씪: {len(lecture_files)}媛?)
+    
+    # 媛??뚯씪?먯꽌 lecture_id 異붿텧?섏뿬 lectures 由ъ뒪???앹꽦
+    # 怨쇰ぉ 寃利? JSON ?뚯씪??subject ?꾨뱶 ?뺤씤
+    lectures = []
+    skipped_count = 0
+    for lecture_file in lecture_files:
+        try:
+            with open(lecture_file, "r", encoding="utf-8") as f:
+                lecture_data = json.load(f)
+            
+            # 怨쇰ぉ 寃利? JSON ?뚯씪??subject媛 ?쇱튂?섎뒗吏 ?뺤씤
+            json_subject = lecture_data.get("subject", "").lower()
+            expected_subject = pipeline_subject.lower()
+            
+            if json_subject and json_subject != expected_subject:
+                logger.warning(f"[books] ?좑툘 寃쎄퀬: {lecture_file.name}??subject({json_subject})媛 ?덉긽 怨쇰ぉ({expected_subject})怨??쇱튂?섏? ?딆쓬. 嫄대꼫?.")
+                skipped_count += 1
+                continue
+            
+            lecture_id = lecture_data.get("lecture_id", 0)
+            if lecture_id == 0:
+                # ?뚯씪紐낆뿉??lecture_id 異붿텧 (lecture_01.json -> 1)
+                import re
+                match = re.search(r'lecture_(\d+)\.json', lecture_file.name)
+                if match:
+                    lecture_id = int(match.group(1))
+            
+            # lecture_number??lecture_id? ?숈씪?섍쾶 ?ㅼ젙
+            lecture_number = lecture_data.get("lecture_number", lecture_id)
+            title = lecture_data.get("title", f"{lecture_number}媛?)
+            
+            lectures.append({
+                "lecture_id": lecture_id,
+                "lecture_number": lecture_number,
+                "title": title,
+                "file": lecture_file
+            })
+        except Exception as e:
+            print(f"[books] 寃쎄퀬: ?뚯씪 ?쎄린 ?ㅽ뙣 {lecture_file}: {e}")
+            continue
+    
+    if skipped_count > 0:
+        logger.warning(f"[books] ?좑툘 {skipped_count}媛?媛뺤쓽 ?뚯씪??怨쇰ぉ 遺덉씪移섎줈 嫄대꼫?곗뼱吏?)
+    
+    if not lectures:
+        print(f"[books] 寃쎄퀬: 媛뺤쓽 ?곗씠?곌? ?놁쓬")
+        return curriculum_id
+    
+    print(f"[books] 濡쒕뱶??媛뺤쓽: {len(lectures)}媛?)
+    
+    # 而ㅻ━?섎읆 ?앹꽦 (book_id媛 None?????덉쓬)
+    # subject_enum 寃利?(?곗씠???쇨???
+    curriculum = Curriculum(
+        curriculum_id=curriculum_id,
+        book_id=book_id,  # None?????덉쓬
+        subject=subject_enum,  # 怨쇰ぉ ?꾨뱶 紐낆떆?곸쑝濡??ㅼ젙
+        title=title,
+        status=CurriculumStatus.DONE,
+        lesson_count=len(lectures),  # ?ㅼ젣 JSON ?뚯씪 媛쒖닔
+    )
+    db.add(curriculum)
+    db.commit()
+    db.refresh(curriculum)
+    
+    logger.info(f"[books] Curriculum ?앹꽦: {curriculum_id}, 怨쇰ぉ: {subject_enum}, 媛뺤쓽: {len(lectures)}媛?)
+    
+    # 媛?媛뺤쓽(lecture)瑜??덉뒯(lesson)?쇰줈 蹂??    # 媛?JSON ?뚯씪???섎굹??Lesson?쇰줈 蹂??(?⑥닚??
+    import re
+    
+    for lecture in lectures:
+        lecture_id = lecture.get("lecture_id", 0)
+        lecture_number = lecture.get("lecture_number", lecture_id)
+        lecture_file = lecture.get("file")
+        
+        if not lecture_file or not lecture_file.exists():
+            print(f"[books] 寃쎄퀬: 媛뺤쓽 ?뚯씪??李얠쓣 ???놁쓬: {lecture_file}")
+            continue
+        
+        # 媛뺤쓽 ?곸꽭 ?뚯씪 ?쎄린
+        with open(lecture_file, "r", encoding="utf-8") as f:
+            lecture_data = json.load(f)
+        
+        # 怨쇰ぉ ?ш?利?(?댁쨷 ?뺤씤)
+        json_subject = lecture_data.get("subject", "").lower()
+        expected_subject = pipeline_subject.lower()
+        if json_subject and json_subject != expected_subject:
+            logger.warning(f"[books] ?좑툘 寃쎄퀬: {lecture_file.name}??subject({json_subject})媛 ?덉긽 怨쇰ぉ({expected_subject})怨??쇱튂?섏? ?딆쓬. 嫄대꼫?.")
+            continue
+        
+        # lecture_data.title???덉뒯 ?쒕ぉ?쇰줈 ?ъ슜 (?? "1媛?| ?쒖쓽 ?쒗쁽怨??뺤떇 >>> 怨좎쟾 ?쒓?")
+        lecture_title = lecture_data.get("title", f"{lecture_number}媛?)
+        
+        # ?쒕ぉ???녾굅???덈Т 吏㏃쑝硫?湲곕낯 ?쒕ぉ ?ъ슜
+        if not lecture_title or len(lecture_title.strip()) < 2:
+            lecture_title = f"{lecture_number}媛?
+        
+        sections = lecture_data.get("sections", [])
+        problems = lecture_data.get("problems", [])  # 臾몄젣 紐⑸줉 異붽?
+        
+        # ?뱀뀡怨?臾몄젣媛 ?놁뼱??理쒖냼??鍮?LearningUnit???앹꽦?섏뿬 Lesson???앹꽦?섎룄濡???        if not sections and not problems:
+            print(f"[books] 寃쎄퀬: 媛뺤쓽 {lecture_id}???뱀뀡?대굹 臾몄젣媛 ?놁쓬 - 鍮?LearningUnit ?앹꽦")
+            # 鍮?LearningUnit ?앹꽦 (Lesson???앹꽦?섎룄濡??섍린 ?꾪븿)
+            order = lecture_number * 10000
+            empty_learning_unit = LearningUnit(
+                unit_id=f"lu_{uuid.uuid4().hex[:12]}",
+                curriculum_id=curriculum_id,
+                section_type="general",
+                title=lecture_title,
+                content="",
+                order=order,
+                break_points=None,
+                pdf_references=json.dumps([{
+                    "lecture_id": lecture_id,
+                    "lecture_title": lecture_title,
+                    "page": lecture_data.get("page", 0)
+                }], ensure_ascii=False),
+                subject_metadata=None,
+            )
+            db.add(empty_learning_unit)
+            print(f"[books]   鍮?LearningUnit ?앹꽦: {empty_learning_unit.unit_id} (order: {order})")
+            continue
+        
+        # ?뱀뀡 ?몃뜳??異붿쟻 (蹂몃Ц/臾몄젣 異붽? ?쒖뿉???쒖꽌 ?좎?)
+        # ?ㅼ젣 DB????λ릺???쒖꽌瑜?異붿쟻
+        actual_unit_index = 0
+        
+        # 媛??뱀뀡???대?吏 ?⑥쐞濡??숈뒿 ?⑥쐞 蹂??        print(f"[books] 媛뺤쓽 {lecture_id} ({lecture_number}媛?: ?뱀뀡 {len(sections)}媛? 臾몄젣 {len(problems)}媛?諛쒓껄")
+
+        # Lesson? _convert_learning_units_to_units?먯꽌 ?앹꽦?섎?濡??ш린?쒕뒗 ?앹꽦?섏? ?딆쓬
+        # LearningUnit留??앹꽦?섍퀬, ?섏쨷??Lesson怨?Unit?쇰줈 蹂??
+        # ?대?吏 ?붾젆?좊━ 寃쎈줈 (援먯옱蹂?
+        from app.core.config import settings
+        # 援먯옱蹂??붾젆?좊━: data/{subject}/{book_id}/
+        data_dir = settings.API_DIR / "data" / pipeline_subject / book_id
+        concepts_dir = data_dir / "concepts_images"
+        content_dir = data_dir / "content_images"
+        problems_dir = data_dir / "problems_images"
+
+        # ?섏씠吏蹂꾨줈 媛숈? ??낆쓽 ?뱀뀡 ?몃뜳?ㅻ? 異붿쟻 (?대?吏 以묐났 諛⑹?)
+        page_section_counters = {}  # {(page, section_type): current_index}
+
+        def get_section_index_in_page(page, section_type):
+            """?대떦 ?섏씠吏?먯꽌 媛숈? ??낆쓽 ?뱀뀡??紐?踰덉㎏?몄? 諛섑솚"""
+            key = (page, section_type)
+            if key not in page_section_counters:
+                page_section_counters[key] = 0
+            current_idx = page_section_counters[key]
+            page_section_counters[key] += 1
+            return current_idx
+
+        # ?뱀뀡????낅퀎濡?遺꾨쪟?섏뿬 ?쒖꽌 蹂댁옣: 媛쒕뀗 -> 蹂몃Ц -> 臾몄젣
+        concept_sections = []
+        content_sections = []
+        other_sections = []
+
+        for idx, section in enumerate(sections):
+            section_type = section.get("type", "general")
+            if section_type == "general":
+                # ?쒕ぉ 湲곕컲?쇰줈 ???異붿젙
+                title_lower = section.get("title", "").lower()
+                if "媛쒕뀗" in title_lower or "concept" in title_lower:
+                    section_type = "concept"
+                elif "蹂몃Ц" in title_lower or "?묓뭹" in title_lower or "content" in title_lower:
+                    section_type = "content"
+            
+            if section_type == "concept":
+                concept_sections.append((idx, section))
+            elif section_type == "content":
+                content_sections.append((idx, section))
+            else:
+                other_sections.append((idx, section))
+        
+        # ?쒖꽌?濡?泥섎━: 媛쒕뀗 -> 蹂몃Ц -> 湲고?
+        sorted_sections = concept_sections + content_sections + other_sections
+        print(f"[books]   ?뱀뀡 ?쒖꽌: 媛쒕뀗 {len(concept_sections)}媛? 蹂몃Ц {len(content_sections)}媛? 湲고? {len(other_sections)}媛?)
+        
+        for idx, section in sorted_sections:
+            unit_id = f"lu_{uuid.uuid4().hex[:12]}"
+            print(f"[books]   ?뱀뀡 {idx}: type={section.get('type', 'general')}, title={section.get('title', 'N/A')[:50]}")
+            
+            # section_type 異붿텧 (ML 湲곕컲 遺꾨쪟 ?곗꽑, Fallback: ?뺢퇋??
+            section_type = section.get("type", "general")
+            if section_type == "general":
+                # ML 湲곕컲 ?뱀뀡 ???遺꾨쪟 ?쒕룄
+                if ML_CLASSIFIER_AVAILABLE:
+                    try:
+                        classifier = get_section_classifier()
+                        section_title = section.get("title", "")
+                        section_content_text = content_text if isinstance(content_text, str) else "\n".join(str(line) for line in content_text) if isinstance(content_text, list) else ""
+                        
+                        classification_result = classifier.classify_section_type(
+                            title=section_title,
+                            content=section_content_text[:1000],  # 泥섏쓬 1000?먮쭔 ?ъ슜 (?깅뒫 理쒖쟻??
+                            threshold=0.5
+                        )
+                        
+                        if classification_result["confidence"] >= 0.5:
+                            section_type = classification_result["section_type"]
+                            print(f"[books]   ML 遺꾨쪟: '{section_title[:30]}' -> {section_type} (?좊ː?? {classification_result['confidence']:.2f})")
+                        else:
+                            # ?좊ː?꾧? ??쑝硫??뺢퇋??湲곕컲 遺꾨쪟濡?Fallback
+                            section_type = classification_result["section_type"]
+                    except Exception as e:
+                        print(f"[books]   ML ?뱀뀡 遺꾨쪟 ?ㅽ뙣, ?뺢퇋???ъ슜: {e}")
+                        section_type = "general"
+                
+                # ML 遺꾨쪟 ?ㅽ뙣 ???뺢퇋??湲곕컲 遺꾨쪟 (Fallback)
+                if section_type == "general" and section.get("title"):
+                    title_lower = section.get("title", "").lower()
+                    if "媛쒕뀗" in title_lower or "concept" in title_lower:
+                        section_type = "concept"
+                    elif "?덉떆" in title_lower or "example" in title_lower:
+                        section_type = "example"
+                    elif "臾몄젣" in title_lower or "problem" in title_lower:
+                        section_type = "problem"
+                    elif "?꾨왂" in title_lower or "strategy" in title_lower:
+                        section_type = "strategy"
+                    elif "?ㅻ━?뷀뀒?댁뀡" in title_lower or "ot" in title_lower:
+                        section_type = "ot"
+            
+            # content?먯꽌 ?묓뭹(???곕Ц)???ы븿?섏뼱 ?덈뒗吏 ?뺤씤
+            # ?묓뭹? 蹂댄넻 "- ?묎?紐? ?뚯옉?덈챸?? ?뺤떇?쇰줈 ?앸굹嫄곕굹, ?쒖쟻 ?쒗쁽???ы븿??            content_text = section.get("content", "")
+            if isinstance(content_text, list):
+                content_text = "\n".join(str(line) for line in content_text)
+            
+            # ?묓뭹 媛먯?: ML 湲곕컲 媛먯? ?곗꽑, Fallback: ?뺢퇋??            is_work = False
+            work_start_idx_ml = None
+            
+            if isinstance(content_text, str):
+                # ML 湲곕컲 ?묓뭹 媛먯? ?쒕룄
+                if ML_CLASSIFIER_AVAILABLE:
+                    try:
+                        classifier = get_section_classifier()
+                        work_detection = classifier.detect_work_content(
+                            content=content_text[:2000],  # 泥섏쓬 2000?먮쭔 ?ъ슜
+                            threshold=0.6
+                        )
+                        
+                        if work_detection["is_work"]:
+                            is_work = True
+                            work_start_idx_ml = work_detection.get("work_start_index")
+                            print(f"[books]   ?묓뭹 媛먯? (ML): {section.get('title', 'N/A')[:50]} (?좊ː?? {work_detection['confidence']:.2f})")
+                    except Exception as e:
+                        print(f"[books]   ML ?묓뭹 媛먯? ?ㅽ뙣, ?뺢퇋???ъ슜: {e}")
+                
+                # ML 媛먯? ?ㅽ뙣 ???뺢퇋??湲곕컲 媛먯? (Fallback)
+                if not is_work:
+                    import re
+                    # ?묎?紐??⑦꽩: "- 諛뺣몢吏? ?뚰빐?? 媛숈? ?뺤떇
+                    work_pattern = r'-\s*[媛-??s]+,?\s*??媛-??s]+??
+                    if re.search(work_pattern, content_text):
+                        is_work = True
+                        print(f"[books]   ?묓뭹 媛먯? (?묎?紐??⑦꽩): {section.get('title', 'N/A')[:50]}")
+                    # ?먮뒗 content媛 ?쒖쟻 ?쒗쁽(諛섎났, ?댁쑉 ?????ы븿?섎뒗 寃쎌슦
+                    elif any(keyword in content_text for keyword in ["?댁빞", "?잛븘??, "怨좎슫", "泥?궛"]):
+                        # ?쒖쟻 諛섎났 ?⑦꽩 ?뺤씤
+                        if content_text.count("?댁빞") > 2 or content_text.count("?잛븘??) > 2:
+                            is_work = True
+                            print(f"[books]   ?묓뭹 媛먯? (?쒖쟻 ?쒗쁽): {section.get('title', 'N/A')[:50]} (?댁빞: {content_text.count('?댁빞')}, ?잛븘?? {content_text.count('?잛븘??)})")
+            
+            # content_raw 癒쇱? 媛?몄삤湲?(?묓뭹 遺꾨━ ?꾩뿉)
+            content_raw = section.get("content", "")
+            content = None  # content 珥덇린??            work_added = False  # ?묓뭹 ?뱀뀡??異붽??섏뿀?붿? 異붿쟻
+            
+            # ?묓뭹???ы븿??寃쎌슦 蹂꾨룄??"content" ?뱀뀡?쇰줈 遺꾨━
+            if is_work and section_type != "content":
+                # ?먮낯 ?뱀뀡? 媛쒕뀗 ?ㅻ챸 遺遺꾨쭔 ?④린怨? ?묓뭹? 蹂꾨룄 ?뱀뀡?쇰줈 遺꾨━
+                # ?묓뭹 ?쒖옉 遺遺?李얘린 (ML 寃곌낵 ?곗꽑, Fallback: ?뺢퇋??
+                content_lines = section.get("content", [])
+                if isinstance(content_lines, list):
+                    work_start_idx = work_start_idx_ml  # ML?먯꽌 媛먯????몃뜳???ъ슜
+                    
+                    # ML?먯꽌 媛먯??섏? 紐삵븳 寃쎌슦 ?뺢퇋??湲곕컲 ?먯깋
+                    if work_start_idx is None:
+                        for i, line in enumerate(content_lines):
+                            if isinstance(line, str) and ("?댁빞 ?잛븘?? in line or "?댁빞," in line or "-" in line and "?? in line):
+                                work_start_idx = i
+                                break
+                    
+                    if work_start_idx is not None and work_start_idx > 0:
+                        # 媛쒕뀗 遺遺꾧낵 ?묓뭹 遺遺?遺꾨━
+                        concept_content = content_lines[:work_start_idx]
+                        work_content = content_lines[work_start_idx:]
+                        
+                        print(f"[books]   ?묓뭹 遺꾨━: work_start_idx={work_start_idx}, 媛쒕뀗 以???{len(concept_content)}, ?묓뭹 以???{len(work_content)}")
+                        
+                        # ?먮낯 ?뱀뀡? 媛쒕뀗 遺遺꾨쭔 ???                        content = "\n".join(str(line) for line in concept_content) if concept_content else ""
+                        
+                        # ?묓뭹 ?뱀뀡 異붽? (?먮낯 ?뱀뀡 ????꾩뿉)
+                        work_unit_id = f"lu_{uuid.uuid4().hex[:12]}"
+                        work_content_str = "\n".join(str(line) for line in work_content)
+                        
+                        # ?묓뭹 ?쒕ぉ 異붿텧 (留덉?留?以꾩뿉??
+                        work_title = section.get("title", f"{lecture_number}媛?蹂몃Ц")
+                        if work_content:
+                            last_line = str(work_content[-1])
+                            if "-" in last_line and "?? in last_line:
+                                # "- 諛뺣몢吏? ?뚰빐?? ?뺤떇?먯꽌 ?묓뭹紐?異붿텧
+                                import re
+                                match = re.search(r'??[^??+)??, last_line)
+                                if match:
+                                    work_title = f"蹂몃Ц: {match.group(1)}"
+                        
+                        # 蹂몃Ц ?뱀뀡???대?吏 ?⑥쐞濡??앹꽦
+                        # ?묓뭹? 蹂댄넻 ?ㅼ쓬 ?섏씠吏???덉쓬 (?먮낯 ?뱀뀡 ?섏씠吏 + 1)
+                        work_page = section.get("page", 0)
+                        # content ?대?吏??蹂댄넻 ?ㅼ쓬 ?섏씠吏???덉쑝誘濡?page + 1 ?쒕룄
+                        # 癒쇱? ?먮낯 ?섏씠吏濡?李얘퀬, ?놁쑝硫??ㅼ쓬 ?섏씠吏濡?李얘린
+                        work_images = []
+                        if not content_dir.exists():
+                            print(f"[books]   寃쎄퀬: 蹂몃Ц ?대?吏 ?붾젆?좊━媛 議댁옱?섏? ?딆쓬: {content_dir}")
+                        else:
+                            # ?⑦꽩1: content_p{page:02d}_*.png (?먮낯 ?섏씠吏)
+                            if work_page > 0:
+                                pattern1 = f"content_p{work_page:02d}_*.png"
+                                work_images = sorted(list(content_dir.glob(pattern1)))
+                                print(f"[books]   蹂몃Ц ?대?吏 寃??(?⑦꽩1: {pattern1}): {len(work_images)}媛?諛쒓껄")
+                            
+                            # ?⑦꽩2: content_p{page+1:02d}_*.png (?ㅼ쓬 ?섏씠吏)
+                            if not work_images and work_page > 0:
+                                next_page = work_page + 1
+                                pattern2 = f"content_p{next_page:02d}_*.png"
+                                next_images = sorted(list(content_dir.glob(pattern2)))
+                                if next_images:
+                                    work_images = next_images
+                                    work_page = next_page  # ?섏씠吏 踰덊샇 ?낅뜲?댄듃
+                                    print(f"[books]   蹂몃Ц ?대?吏 寃??(?⑦꽩2: {pattern2}): {len(work_images)}媛?諛쒓껄")
+                            
+                            # ?⑦꽩3: content_{lecture_id:02d}_*.png (媛뺤쓽 ID 湲곕컲)
+                            if not work_images:
+                                pattern3 = f"content_{lecture_id:02d}_*.png"
+                                work_images = sorted(list(content_dir.glob(pattern3)))
+                                print(f"[books]   蹂몃Ц ?대?吏 寃??(?⑦꽩3: {pattern3}): {len(work_images)}媛?諛쒓껄")
+                            
+                            if not work_images:
+                                print(f"[books]   寃쎄퀬: 蹂몃Ц ?대?吏瑜?李얠쓣 ???놁쓬 (page {work_page})")
+                        
+                        if work_images:
+                            print(f"[books]   蹂몃Ц ?뱀뀡???대?吏 {len(work_images)}媛?諛쒓껄")
+
+                            # 蹂몃Ц ?띿뒪?몃? ?대?吏 媛쒖닔濡?洹좊벑 遺꾪븷
+                            work_content_lines = [line for line in work_content_str.split('\n') if line.strip()]
+
+                            if len(work_images) == 1:
+                                work_content_splits = [work_content_str]
+                            else:
+                                lines_per_work_image = max(1, len(work_content_lines) // len(work_images))
+                                work_content_splits = []
+
+                                for img_idx in range(len(work_images)):
+                                    start_idx = img_idx * lines_per_work_image
+                                    # 留덉?留??대?吏???⑥? ?띿뒪???꾩껜 ?ы븿
+                                    if img_idx == len(work_images) - 1:
+                                        end_idx = len(work_content_lines)
+                                    else:
+                                        end_idx = start_idx + lines_per_work_image
+
+                                    split_work_content = '\n'.join(work_content_lines[start_idx:end_idx])
+                                    work_content_splits.append(split_work_content)
+                                    print(f"[books]     蹂몃Ц ?대?吏 {img_idx + 1}: ?쇱씤 {start_idx+1}-{end_idx} ({end_idx - start_idx}以?")
+
+                            for img_idx, img_path in enumerate(work_images):
+                                work_unit_id = f"lu_{uuid.uuid4().hex[:12]}"
+                                # ?대?吏媛 1媛쒕㈃ ?먮낯 ?쒕ぉ 洹몃?濡? ?щ윭 媛쒕㈃ 踰덊샇 異붽?
+                                work_unit_title = work_title if len(work_images) == 1 else f"{work_title} - {img_idx + 1}"
+
+                                # ???대?吏???대떦?섎뒗 蹂몃Ц ?띿뒪??媛?몄삤湲?                                image_work_content = work_content_splits[img_idx] if img_idx < len(work_content_splits) else ""
+
+                                work_order = lecture_id * 10000 + actual_unit_index
+                                work_pdf_ref = {
+                                    "page": work_page,
+                                    "lecture_id": lecture_id,
+                                    "lecture_number": lecture_number,
+                                    "lecture_title": lecture_title,
+                                    "section_index": actual_unit_index,
+                                    "is_work": True,
+                                    "image_index": img_idx,
+                                    "image_filename": img_path.name,
+                                    "full_work_content": work_content_str  # ???꾩껜 ?묓뭹 ?띿뒪?????                                }
+
+                                work_unit = LearningUnit(
+                                    unit_id=work_unit_id,
+                                    curriculum_id=curriculum_id,
+                                    lesson_id=None,
+                                    section_type="content",  # 蹂몃Ц ???                                    title=work_unit_title,
+                                    content=image_work_content,  # ??遺꾪븷??蹂몃Ц ?띿뒪?몃쭔 ?ы븿
+                                    order=work_order,
+                                    break_points=None,
+                                    pdf_references=json.dumps([work_pdf_ref], ensure_ascii=False),
+                                )
+                                db.add(work_unit)
+                                actual_unit_index += 1
+                                work_added = True  # ?대?吏媛 ?덉뼱??work_added ?ㅼ젙
+                                print(f"[books]   蹂몃Ц ?대?吏 ?⑥쐞 異붽?: {work_unit_title[:50]} (?대?吏: {img_path.name}, ?띿뒪?? {len(image_work_content)}?? ?꾩껜: {len(work_content_str)}?? order: {work_order})")
+                        else:
+                            # ?대?吏媛 ?놁쑝硫?湲곗〈泥섎읆 1媛쒕쭔 ?앹꽦
+                            work_order = lecture_id * 10000 + actual_unit_index
+                            work_pdf_ref = {
+                                "page": work_page,
+                                "lecture_id": lecture_id,
+                                "lecture_number": lecture_number,
+                                "lecture_title": lecture_title,
+                                "section_index": actual_unit_index,
+                                "is_work": True,
+                                "full_work_content": work_content_str  # ???대?吏媛 ?놁뼱???꾩껜 ?묓뭹 ?댁슜 ???                            }
+                            
+                            work_unit = LearningUnit(
+                                unit_id=work_unit_id,
+                                curriculum_id=curriculum_id,
+                                lesson_id=None,
+                                section_type="content",  # 蹂몃Ц ???                                title=work_title,
+                                content=work_content_str,
+                                order=work_order,
+                                break_points=None,
+                                pdf_references=json.dumps([work_pdf_ref], ensure_ascii=False),
+                            )
+                            db.add(work_unit)
+                            actual_unit_index += 1
+                            work_added = True
+                            print(f"[books]   ?묓뭹 ?뱀뀡 異붽? (?대?吏 ?놁쓬): {work_title[:50]} (?꾩껜 ?댁슜: {len(work_content_str)}?? order: {work_order})")
+                    elif work_start_idx == 0:
+                        print(f"[books]   寃쎄퀬: ?묓뭹??泥?以꾨????쒖옉 (work_start_idx=0), 遺꾨━?섏? ?딆쓬")
+                    else:
+                        print(f"[books]   寃쎄퀬: ?묓뭹 ?쒖옉 ?꾩튂瑜?李얠쓣 ???놁쓬 (work_start_idx=None)")
+            
+            # content媛 ?꾩쭅 ?ㅼ젙?섏? ?딆? 寃쎌슦 (?묓뭹 遺꾨━?섏? ?딆? 寃쎌슦)
+            if content is None:
+                if isinstance(content_raw, list):
+                    content = "\n".join(str(line) for line in content_raw)
+                else:
+                    content = str(content_raw)
+            
+            # ?묓뭹??遺꾨━??寃쎌슦?먮룄 媛쒕뀗 遺遺꾩씠 ?덉쑝硫??먮낯 ?뱀뀡 ???            # content媛 鍮꾩뼱?덉뼱???대?吏媛 ?덇굅???쒕ぉ???덉쑝硫?Unit ?앹꽦
+            # (蹂몃Ц/臾몄젣???대?吏留??덉뼱???숈뒿 媛??
+            has_content = content and content.strip()
+            has_title = section.get("title") and section.get("title").strip()
+            
+            if not has_content and not has_title:
+                if work_added:
+                    print(f"[books]   ?먮낯 ?뱀뀡 '{section.get('title', 'N/A')[:50]}'?(?? ?묓뭹??遺꾨━?섏뿀怨?媛쒕뀗 遺遺꾩씠 ?놁뼱 ??ν븯吏 ?딆쓬")
+                else:
+                    print(f"[books]   ?뱀뀡 '{section.get('title', 'N/A')[:50]}'?(?? ?댁슜怨??쒕ぉ??紐⑤몢 ?놁뼱 ??ν븯吏 ?딆쓬")
+                continue  # ?ㅼ쓬 ?뱀뀡?쇰줈 ?섏뼱媛?            
+            # content媛 鍮꾩뼱?덉쑝硫??쒕ぉ??content濡??ъ슜 (理쒖냼?쒖쓽 ?댁슜 蹂댁옣)
+            if not has_content:
+                content = section.get("title", f"{lecture_number}媛?{section_type}")
+                print(f"[books]   ?뱀뀡 '{section.get('title', 'N/A')[:50]}'?(?? ?댁슜???놁?留??쒕ぉ???ъ슜?섏뿬 Unit ?앹꽦")
+            
+            # section.title??洹몃?濡??ъ슜 (?? "(1) ?쒖쟻 ?쒗쁽??媛쒕뀗")
+            section_title = section.get("title") or f"{lecture_number}媛?{section_type}"
+            page = section.get("page", 0)
+            
+            # ?대떦 ?섏씠吏???대?吏 李얘린 (?대?吏 ?⑥쐞濡??숈뒿 ?⑥쐞 ?앹꽦)
+            # ?щ윭 ?⑦꽩 ?쒕룄: ?섏씠吏 湲곕컲, 媛뺤쓽 ID 湲곕컲
+            images = []
+            if section_type == "concept" and concepts_dir.exists():
+                # ?⑦꽩1: concept_p{page:02d}_*.png (?? concept_p14_01.png)
+                if page > 0:
+                    pattern1 = f"concept_p{page:02d}_*.png"
+                    all_images = sorted(list(concepts_dir.glob(pattern1)))
+                    print(f"[books]   媛쒕뀗 ?대?吏 寃??(?⑦꽩1: {pattern1}): {len(all_images)}媛?諛쒓껄")
+
+                    # 媛숈? ?섏씠吏??n踰덉㎏ ?뱀뀡?대㈃ n踰덉㎏ ?대?吏留??좏깮
+                    if all_images:
+                        section_idx_in_page = get_section_index_in_page(page, section_type)
+                        if section_idx_in_page < len(all_images):
+                            images = [all_images[section_idx_in_page]]
+                            print(f"[books]   ?섏씠吏 {page}??{section_idx_in_page+1}踰덉㎏ 媛쒕뀗 ?뱀뀡 ???대?吏: {images[0].name}")
+                        else:
+                            print(f"[books]   寃쎄퀬: ?섏씠吏 {page}??{section_idx_in_page+1}踰덉㎏ ?뱀뀡?댁?留??대?吏??{len(all_images)}媛쒕쭔 ?덉쓬")
+
+                # ?⑦꽩2: concept_{lecture_id:02d}_*.png (?? concept_02_*.png)
+                if not images:
+                    pattern2 = f"concept_{lecture_id:02d}_*.png"
+                    images = sorted(list(concepts_dir.glob(pattern2)))
+                    print(f"[books]   媛쒕뀗 ?대?吏 寃??(?⑦꽩2: {pattern2}): {len(images)}媛?諛쒓껄")
+
+                # ?⑦꽩3: concept_*_媛뺤쓽 {lecture_id}.png (?? concept_02_媛뺤쓽 2.png)
+                if not images:
+                    pattern3 = f"concept_*_媛뺤쓽 {lecture_id}.png"
+                    images = sorted(list(concepts_dir.glob(pattern3)))
+                    print(f"[books]   媛쒕뀗 ?대?吏 寃??(?⑦꽩3: {pattern3}): {len(images)}媛?諛쒓껄")
+
+            elif section_type == "content":
+                # 蹂몃Ц ?대?吏 寃??(?붾젆?좊━媛 ?놁뼱??怨꾩냽 吏꾪뻾)
+                if content_dir.exists():
+                    # ?⑦꽩1: content_p{page:02d}_*.png (?? content_p14_01.png)
+                    if page > 0:
+                        pattern1 = f"content_p{page:02d}_*.png"
+                        all_images = sorted(list(content_dir.glob(pattern1)))
+                        print(f"[books]   蹂몃Ц ?대?吏 寃??(?⑦꽩1: {pattern1}): {len(all_images)}媛?諛쒓껄")
+
+                        # 媛숈? ?섏씠吏??n踰덉㎏ ?뱀뀡?대㈃ n踰덉㎏ ?대?吏留??좏깮
+                        if all_images:
+                            section_idx_in_page = get_section_index_in_page(page, section_type)
+                            if section_idx_in_page < len(all_images):
+                                images = [all_images[section_idx_in_page]]
+                                print(f"[books]   ?섏씠吏 {page}??{section_idx_in_page+1}踰덉㎏ 蹂몃Ц ?뱀뀡 ???대?吏: {images[0].name}")
+                            else:
+                                print(f"[books]   寃쎄퀬: ?섏씠吏 {page}??{section_idx_in_page+1}踰덉㎏ ?뱀뀡?댁?留??대?吏??{len(all_images)}媛쒕쭔 ?덉쓬")
+
+                    # ?⑦꽩2: content_{lecture_id:02d}_*.png (?? content_02_*.png)
+                    if not images:
+                        pattern2 = f"content_{lecture_id:02d}_*.png"
+                        images = sorted(list(content_dir.glob(pattern2)))
+                        print(f"[books]   蹂몃Ц ?대?吏 寃??(?⑦꽩2: {pattern2}): {len(images)}媛?諛쒓껄")
+                else:
+                    print(f"[books]   蹂몃Ц ?대?吏 ?붾젆?좊━媛 ?놁쓬: {content_dir} (?대?吏 ?놁씠 Unit ?앹꽦)")
+
+            elif section_type == "problem":
+                # 臾몄젣 ?대?吏 寃??(?붾젆?좊━媛 ?놁뼱??怨꾩냽 吏꾪뻾)
+                if problems_dir.exists():
+                    # ?⑦꽩1: problem_p{page:02d}_*.png (?? problem_p14_01.png)
+                    if page > 0:
+                        pattern1 = f"problem_p{page:02d}_*.png"
+                        all_images = sorted(list(problems_dir.glob(pattern1)))
+                        print(f"[books]   臾몄젣 ?대?吏 寃??(?⑦꽩1: {pattern1}): {len(all_images)}媛?諛쒓껄")
+
+                        # 媛숈? ?섏씠吏??n踰덉㎏ ?뱀뀡?대㈃ n踰덉㎏ ?대?吏留??좏깮
+                        if all_images:
+                            section_idx_in_page = get_section_index_in_page(page, section_type)
+                            if section_idx_in_page < len(all_images):
+                                images = [all_images[section_idx_in_page]]
+                                print(f"[books]   ?섏씠吏 {page}??{section_idx_in_page+1}踰덉㎏ 臾몄젣 ?뱀뀡 ???대?吏: {images[0].name}")
+                            else:
+                                print(f"[books]   寃쎄퀬: ?섏씠吏 {page}??{section_idx_in_page+1}踰덉㎏ ?뱀뀡?댁?留??대?吏??{len(all_images)}媛쒕쭔 ?덉쓬")
+                else:
+                    print(f"[books]   臾몄젣 ?대?吏 ?붾젆?좊━媛 ?놁쓬: {problems_dir} (?대?吏 ?놁씠 Unit ?앹꽦)")
+            
+            # ?대?吏媛 ?덉쑝硫?媛??대?吏留덈떎 ?숈뒿 ?⑥쐞 ?앹꽦, ?놁쑝硫?1媛쒕쭔 ?앹꽦
+            if images:
+                print(f"[books]   ?뱀뀡 '{section_title[:50]}'???대?吏 {len(images)}媛?諛쒓껄")
+
+                # ?띿뒪?몃? ?대?吏 媛쒖닔濡?洹좊벑 遺꾪븷
+                content_lines = []
+                if isinstance(content, str):
+                    content_lines = [line for line in content.split('\n') if line.strip()]
+                elif isinstance(content, list):
+                    content_lines = [str(line) for line in content if str(line).strip()]
+
+                # ?대?吏媛 1媛쒕㈃ ?꾩껜 ?띿뒪?? ?щ윭 媛쒕㈃ 遺꾪븷
+                if len(images) == 1:
+                    content_splits = ['\n'.join(content_lines)]
+                else:
+                    # 洹좊벑 遺꾪븷: 媛??대?吏???좊떦???쇱씤 ??怨꾩궛
+                    lines_per_image = max(1, len(content_lines) // len(images))
+                    content_splits = []
+
+                    for img_idx in range(len(images)):
+                        start_idx = img_idx * lines_per_image
+                        # 留덉?留??대?吏???⑥? ?띿뒪???꾩껜 ?ы븿
+                        if img_idx == len(images) - 1:
+                            end_idx = len(content_lines)
+                        else:
+                            end_idx = start_idx + lines_per_image
+
+                        split_content = '\n'.join(content_lines[start_idx:end_idx])
+                        content_splits.append(split_content)
+                        print(f"[books]     ?대?吏 {img_idx + 1}: ?쇱씤 {start_idx+1}-{end_idx} ({end_idx - start_idx}以?")
+
+                for img_idx, img_path in enumerate(images):
+                    unit_id = f"lu_{uuid.uuid4().hex[:12]}"
+                    # ?대?吏媛 1媛쒕㈃ ?먮낯 ?쒕ぉ 洹몃?濡? ?щ윭 媛쒕㈃ 踰덊샇 異붽?
+                    unit_title = section_title if len(images) == 1 else f"{section_title} - {img_idx + 1}"
+
+                    # ???대?吏???대떦?섎뒗 ?띿뒪??媛?몄삤湲?                    image_content = content_splits[img_idx] if img_idx < len(content_splits) else ""
+
+                    # order = lecture_id * 10000 + actual_unit_index
+                    order = lecture_id * 10000 + actual_unit_index
+
+                    # PDF 李몄“ ?뺣낫???대?吏 ?뺣낫 異붽?
+                    pdf_ref = {
+                        "page": page,
+                        "lecture_id": lecture_id,
+                        "lecture_number": lecture_number,
+                        "lecture_title": lecture_title,
+                        "section_index": idx,
+                        "image_index": img_idx,
+                        "image_filename": img_path.name,
+                        "image_path": section.get('image_path')  # ?뚯떛 ?④퀎?먯꽌 ?щ∼???대?吏 API 寃쎈줈
+                    }
+
+                    learning_unit = LearningUnit(
+                        unit_id=unit_id,
+                        curriculum_id=curriculum_id,
+                        lesson_id=None,
+                        section_type=section_type,
+                        title=unit_title,
+                        content=image_content,  # ??遺꾪븷???띿뒪?몃쭔 ?ы븿
+                        order=order,
+                        break_points=None,
+                        pdf_references=json.dumps([pdf_ref], ensure_ascii=False),
+                    )
+                    db.add(learning_unit)
+                    actual_unit_index += 1
+                    print(f"[books]   ?대?吏 ?⑥쐞 ??? {unit_title[:50]} (?대?吏: {img_path.name}, ?띿뒪?? {len(image_content)}?? order: {order})")
+            else:
+                # ?대?吏媛 ?놁쑝硫?湲곗〈泥섎읆 1媛쒕쭔 ?앹꽦
+                order = lecture_id * 10000 + actual_unit_index
+                pdf_ref = {
+                    "page": page,
+                    "lecture_id": lecture_id,
+                    "lecture_number": lecture_number,
+                    "lecture_title": lecture_title,
+                    "section_index": idx,
+                    "image_filename": section.get('image_filename'),  # ?뚯떛 ?④퀎 ?대?吏 ?뚯씪紐?                    "image_path": section.get('image_path')  # ?뚯떛 ?④퀎?먯꽌 ?щ∼???대?吏 API 寃쎈줈
+                }
+                
+                learning_unit = LearningUnit(
+                    unit_id=unit_id,
+                    curriculum_id=curriculum_id,
+                    lesson_id=None,
+                    section_type=section_type,
+                    title=section_title,
+                    content=content,
+                    order=order,
+                    break_points=None,
+                    pdf_references=json.dumps([pdf_ref], ensure_ascii=False) if page > 0 else json.dumps([pdf_ref], ensure_ascii=False),
+                )
+                db.add(learning_unit)
+                actual_unit_index += 1
+                print(f"[books]   ?뱀뀡 ???(?대?吏 ?놁쓬): {section_title[:50]} (order: {order}, type: {section_type})")
+        
+        # 臾몄젣?ㅼ쓣 ?숈뒿 ?⑥쐞濡?蹂??(媛쒕뀗-蹂몃Ц ?쒖꽌 ?댄썑??泥섎━)
+        problems_raw = lecture_data.get("problems", [])
+
+        # 以묐났 ?쒓굅 (?쒖꽌 ?좎?)
+        problems_seen = set()
+        problems = []
+        for p in problems_raw:
+            if p not in problems_seen:
+                problems.append(p)
+                problems_seen.add(p)
+
+        print(f"[books] 臾몄젣 泥섎━ ?쒖옉: {len(problems)}媛?臾몄젣 (?먮낯: {len(problems_raw)}媛? 以묐났 ?쒓굅?? {len(problems_raw) - len(problems)}媛?")
+
+        # 臾몄젣 ?뚯씪 ?붾젆?좊━ ?뺤씤 (problems ?먮뒗 problems_images)
+        problems_dir = data_dir / "problems"  # JSON ?뚯씪 ?붾젆?좊━
+        problems_images_dir = data_dir / "problems_images"  # ?대?吏 ?붾젆?좊━
+        print(f"[books] 臾몄젣 JSON ?붾젆?좊━: {problems_dir} (議댁옱: {problems_dir.exists()})")
+        print(f"[books] 臾몄젣 ?대?吏 ?붾젆?좊━: {problems_images_dir} (議댁옱: {problems_images_dir.exists()})")
+        
+        # 臾몄젣 ?뚯씪 紐⑸줉 ?뺤씤
+        problem_files_all = []
+        if problems_dir.exists():
+            problem_files_all = list(problems_dir.glob('*.json'))
+            print(f"[books] 臾몄젣 JSON ?뚯씪 紐⑸줉 ({len(problem_files_all)}媛?: {[f.name for f in problem_files_all[:10]]}")
+        elif problems_images_dir.exists():
+            # problems_images ?붾젆?좊━?먯꽌??JSON ?뚯씪 李얘린 ?쒕룄
+            problem_files_all = list(problems_images_dir.glob('*.json'))
+            print(f"[books] 臾몄젣 JSON ?뚯씪 紐⑸줉 (problems_images?먯꽌, {len(problem_files_all)}媛?: {[f.name for f in problem_files_all[:10]]}")
+            problems_dir = problems_images_dir  # ?泥?寃쎈줈 ?ъ슜
+        
+        # 媛뺤쓽???쒖옉 ?섏씠吏 異붿텧 (泥?踰덉㎏ ?뱀뀡???섏씠吏)
+        lecture_start_page = None
+        if sections:
+            for section in sections:
+                section_page = section.get('page', 0)
+                if section_page > 0:
+                    lecture_start_page = section_page
+                    break
+
+        print(f"[books] 媛뺤쓽 ?쒖옉 ?섏씠吏: {lecture_start_page}")
+
+        for prob_idx, problem_num in enumerate(problems):
+            # problem_num??"01", "02" ??臾몄옄???뺥깭
+            # 臾몄젣 ?뚯씪 李얘린 (媛뺤쓽 ?섏씠吏 踰붿쐞 湲곕컲)
+
+            problem_files = []
+            problem_num_padded = problem_num.zfill(2)  # "01", "02" ??
+            # ?뚯씠?꾨씪?몄뿉????ν븯???뺤떇: problem_p{page:02d}_{problem_id}.json
+            # 媛뺤쓽 ?쒖옉 ?섏씠吏瑜?湲곗??쇰줈 짹5 ?섏씠吏 踰붿쐞 ?댁뿉?쒕쭔 寃??
+            if problems_dir.exists() and lecture_start_page:
+                # ?섏씠吏 踰붿쐞: lecture_start_page ~ lecture_start_page + 10
+                for page_offset in range(0, 15):  # 理쒕? 15?섏씠吏 踰붿쐞
+                    page_num = lecture_start_page + page_offset
+                    pattern_file = problems_dir / f"problem_p{page_num:02d}_{problem_num_padded}.json"
+                    if pattern_file.exists():
+                        problem_files.append(pattern_file)
+                        print(f"[books]   臾몄젣 {prob_idx + 1} ({problem_num}): ?섏씠吏 {page_num} 留ㅼ묶")
+                        break
+
+                # ?섏씠吏 湲곕컲?쇰줈 紐?李얠쑝硫??꾩껜 寃??(泥?踰덉㎏留?
+                if not problem_files:
+                    pattern1_files = list(problems_dir.glob(f"problem_p*_{problem_num_padded}.json"))
+                    if pattern1_files:
+                        problem_files = [pattern1_files[0]]  # 泥?踰덉㎏留??ъ슜
+                        print(f"[books]   臾몄젣 {prob_idx + 1} ({problem_num}): ?꾩껜 寃?됱쑝濡?泥?踰덉㎏ ?뚯씪 ?ъ슜 - {pattern1_files[0].name}")
+            
+            if problem_files:
+                problem_file = problem_files[0]  # 泥?踰덉㎏ 留ㅼ묶 ?뚯씪 ?ъ슜
+                try:
+                    with open(problem_file, "r", encoding="utf-8") as f:
+                        problem_data = json.load(f)
+                    
+                    # 臾몄젣 ?댁슜 異붿텧
+                    problem_content = problem_data.get("content", "")
+                    if isinstance(problem_content, list):
+                        problem_content = "\n".join(str(line) for line in problem_content)
+                    
+                    # 臾몄젣 吏臾?異붿텧 (question_text ?곗꽑, ?놁쑝硫?content ?ъ슜)
+                    problem_question = problem_data.get("question_text", "")
+                    if not problem_question:
+                        problem_question = problem_content if isinstance(problem_content, str) else "\n".join(str(line) for line in problem_content)
+                    
+                    # ?좏깮吏 異붿텧
+                    problem_choices = problem_data.get("choices", {})
+                    # choices媛 ?뺤뀛?덈━??寃쎌슦 由ъ뒪?몃줈 蹂??                    choices_list = []
+                    if isinstance(problem_choices, dict):
+                        # "1", "2", "3" ?쒖꽌?濡??뺣젹
+                        for key in sorted(problem_choices.keys(), key=lambda x: int(x) if x.isdigit() else 999):
+                            choices_list.append(problem_choices[key])
+                    elif isinstance(problem_choices, list):
+                        choices_list = problem_choices
+                    
+                    # ?뺣떟 異붿텧 (?꾩떆濡??놁쓬, ?섏쨷??異붽? ?꾩슂)
+                    problem_answer = problem_data.get("answer", None)
+                    
+                    # 臾몄젣 硫뷀??곗씠???앹꽦
+                    problem_metadata = {
+                        "problem_id": problem_data.get("problem_id", problem_num),
+                        "choices": choices_list,
+                        "answer": problem_answer,
+                        "question_text": problem_question,
+                    }
+                    
+                    problem_title = problem_data.get("title", f"臾몄젣 {problem_num}")
+                    problem_page = problem_data.get("page", 0)
+                    
+                    # content?먮뒗 臾몄젣 吏臾멸낵 ?좏깮吏瑜??ы븿???꾩껜 ?띿뒪?????                    # full_text媛 ?덉쑝硫??ъ슜, ?놁쑝硫?question_text + choices 議고빀
+                    problem_full_text = problem_data.get("full_text", "")
+                    if not problem_full_text:
+                        # ?좏깮吏瑜??????뺤떇?쇰줈 蹂?섑븯??異붽?
+                        choice_text = "\n".join([f"{['??, '??, '??, '??, '??][i]} {choice}" for i, choice in enumerate(choices_list)])
+                        problem_full_text = f"{problem_question}\n{choice_text}" if choices_list else problem_question
+                    
+                    # 臾몄젣 ?대?吏 李얘린 (?대?吏 ?⑥쐞濡??숈뒿 ?⑥쐞 ?앹꽦)
+                    problem_images = []
+                    # problems_images_dir?먯꽌 ?대?吏 李얘린
+                    if problem_page > 0 and problems_images_dir.exists():
+                        # problem_number瑜??ъ슜?섏뿬 ?뺥솗???대?吏 李얘린
+                        try:
+                            prob_num_int = int(problem_num)
+                            # ?⑦꽩1: problem_p{page}_{num}.png
+                            pattern1 = f"problem_p{problem_page:02d}_{prob_num_int:02d}.png"
+                            prob_img = problems_images_dir / pattern1
+                            if prob_img.exists():
+                                problem_images = [prob_img]
+                                print(f"[books]     ?대?吏 ?⑦꽩1 留ㅼ묶: {pattern1}")
+                        except ValueError:
+                            pass
+                        
+                        # ?⑦꽩2: problem_p{page}_*.png (?섏씠吏 湲곕컲)
+                        if not problem_images:
+                            pattern2 = f"problem_p{problem_page:02d}_*.png"
+                            all_images = sorted(list(problems_images_dir.glob(pattern2)))
+                            if all_images:
+                                # problem_num怨?留ㅼ묶?섎뒗 ?대?吏 李얘린
+                                prob_num_padded = problem_num.zfill(2)
+                                matched_images = [img for img in all_images if prob_num_padded in img.name]
+                                if matched_images:
+                                    problem_images = matched_images
+                                elif prob_idx < len(all_images):
+                                    # 留ㅼ묶???놁쑝硫??몃뜳?ㅻ줈 ?좏깮
+                                    problem_images = [all_images[prob_idx]]
+                                print(f"[books]     ?대?吏 ?⑦꽩2 留ㅼ묶: {pattern2} -> {len(problem_images)}媛?)
+                        
+                        # ?⑦꽩3: *{problem_num}*.png (臾몄젣 踰덊샇 湲곕컲)
+                        if not problem_images:
+                            prob_num_padded = problem_num.zfill(2)
+                            pattern3 = f"*{prob_num_padded}*.png"
+                            all_images = sorted(list(problems_images_dir.glob(pattern3)))
+                            if all_images:
+                                problem_images = all_images[:1]  # 泥?踰덉㎏留??ъ슜
+                                print(f"[books]     ?대?吏 ?⑦꽩3 留ㅼ묶: {pattern3} -> {len(problem_images)}媛?)
+                    
+                    # ?대?吏媛 ?덉쑝硫?媛??대?吏留덈떎 ?숈뒿 ?⑥쐞 ?앹꽦, ?놁쑝硫?1媛쒕쭔 ?앹꽦
+                    if problem_images:
+                        print(f"[books]   臾몄젣 {prob_idx + 1} ({problem_num}): ?대?吏 {len(problem_images)}媛?諛쒓껄")
+                        for img_idx, img_path in enumerate(problem_images):
+                            unit_id = f"lu_{uuid.uuid4().hex[:12]}"
+                            # ?대?吏媛 1媛쒕㈃ ?먮낯 ?쒕ぉ 洹몃?濡? ?щ윭 媛쒕㈃ 踰덊샇 異붽?
+                            unit_title = problem_title if len(problem_images) == 1 else f"{problem_title} - ?대?吏 {img_idx + 1}"
+                            
+                            order = lecture_id * 10000 + actual_unit_index
+                            actual_unit_index += 1
+                            
+                            pdf_ref = {
+                                "page": problem_page,
+                                "lecture_id": lecture_id,
+                                "lecture_number": lecture_number,
+                                "lecture_title": lecture_title,
+                                "problem_number": problem_num,
+                                "problem_index": prob_idx,
+                                "image_index": img_idx,
+                                "image_filename": img_path.name
+                            }
+                            
+                            learning_unit = LearningUnit(
+                                unit_id=unit_id,
+                                curriculum_id=curriculum_id,
+                                lesson_id=None,
+                                section_type="problem",
+                                title=unit_title,
+                                content=problem_full_text,  # ?꾩껜 臾몄젣 ?띿뒪??(吏臾?+ ?좏깮吏)
+                                order=order,
+                                break_points=None,
+                                pdf_references=json.dumps([pdf_ref], ensure_ascii=False),
+                                subject_metadata=json.dumps(problem_metadata, ensure_ascii=False),  # ?좏깮吏? ?뺣떟 ?뺣낫
+                            )
+                            db.add(learning_unit)
+                            print(f"[books]   臾몄젣 ?대?吏 ?⑥쐞 ??? {unit_title[:50]} (?대?吏: {img_path.name}, order: {order})")
+                    else:
+                        # ?대?吏媛 ?놁쑝硫?湲곗〈泥섎읆 1媛쒕쭔 ?앹꽦
+                        unit_id = f"lu_{uuid.uuid4().hex[:12]}"
+                        order = lecture_id * 10000 + actual_unit_index
+                        actual_unit_index += 1
+                        print(f"[books]   臾몄젣 {prob_idx + 1} ({problem_num}): {problem_file.name} (?대?吏 ?놁쓬, order: {order})")
+                        
+                        pdf_ref = {
+                            "page": problem_page,
+                            "lecture_id": lecture_id,
+                            "lecture_number": lecture_number,
+                            "lecture_title": lecture_title,
+                            "problem_number": problem_num,
+                            "problem_index": prob_idx
+                        }
+                        
+                        learning_unit = LearningUnit(
+                            unit_id=unit_id,
+                            curriculum_id=curriculum_id,
+                            lesson_id=None,
+                            section_type="problem",
+                            title=problem_title,
+                            content=problem_full_text,  # ?꾩껜 臾몄젣 ?띿뒪??(吏臾?+ ?좏깮吏)
+                            order=order,
+                            break_points=None,
+                            pdf_references=json.dumps([pdf_ref], ensure_ascii=False),
+                            subject_metadata=json.dumps(problem_metadata, ensure_ascii=False),  # ?좏깮吏? ?뺣떟 ?뺣낫
+                        )
+                        db.add(learning_unit)
+                except Exception as e:
+                    print(f"[books]   寃쎄퀬: 臾몄젣 ?뚯씪 ?쎄린 ?ㅽ뙣 {problem_file}: {e}")
+            else:
+                # 臾몄젣 ?뚯씪??李얠? 紐삵븳 寃쎌슦
+                print(f"[books]   寃쎄퀬: 臾몄젣 ?뚯씪??李얠쓣 ???놁쓬 (踰덊샇: {problem_num}, ?섏씠吏: {lecture_start_page})")
+                if problems_dir.exists():
+                    all_files = list(problems_dir.glob('*.json'))
+                    if all_files:
+                        print(f"[books]   ?붾젆?좊━ ??JSON ?뚯씪 ({len(all_files)}媛?: {[f.name for f in all_files[:10]]}")
+                    else:
+                        print(f"[books]   ?붾젆?좊━ ??JSON ?뚯씪 ?놁쓬")
+                else:
+                    print(f"[books]   臾몄젣 ?붾젆?좊━媛 議댁옱?섏? ?딆쓬: {problems_dir}")
+                print(f"[books]   湲곕낯 臾몄젣 Unit ?앹꽦 (?뚯씪 ?놁쓬)")
+                
+                unit_id = f"lu_{uuid.uuid4().hex[:12]}"
+                order = lecture_id * 10000 + actual_unit_index
+                actual_unit_index += 1
+                
+                problem_title = f"臾몄젣 {problem_num}"
+                problem_full_text = f"臾몄젣 {problem_num} (?뚯씪??李얠쓣 ???놁쓬)"
+                
+                pdf_ref = {
+                    "page": 0,
+                    "lecture_id": lecture_id,
+                    "lecture_number": lecture_number,
+                    "lecture_title": lecture_title,
+                    "problem_number": problem_num,
+                    "problem_index": prob_idx
+                }
+                
+                problem_metadata = {
+                    "problem_id": problem_num,
+                    "choices": [],
+                    "answer": None,
+                    "question_text": problem_full_text,
+                }
+                
+                learning_unit = LearningUnit(
+                    unit_id=unit_id,
+                    curriculum_id=curriculum_id,
+                    lesson_id=None,
+                    section_type="problem",
+                    title=problem_title,
+                    content=problem_full_text,
+                    order=order,
+                    break_points=None,
+                    pdf_references=json.dumps([pdf_ref], ensure_ascii=False),
+                    subject_metadata=json.dumps(problem_metadata, ensure_ascii=False),
+                )
+                db.add(learning_unit)
+                print(f"[books]   湲곕낯 臾몄젣 Unit ??? {problem_title} (order: {order})")
+    
+    db.commit()
+    total_units = db.query(LearningUnit).filter(LearningUnit.curriculum_id == curriculum_id).count()
+    print(f"[books] 而ㅻ━?섎읆 ?앹꽦 ?꾨즺: {curriculum_id}")
+    print(f"[books]   泥섎━??媛뺤쓽 ?? {len(lectures)}媛?)
+    print(f"[books]   ?숈뒿 ?⑥쐞 珥?媛쒖닔: {total_units}媛?)
+    
+    # 媛?媛뺤쓽蹂??숈뒿 ?⑥쐞 媛쒖닔 ?뺤씤
+    for lecture in lectures:
+        lecture_id = lecture.get("lecture_id", 0)
+        lecture_num = lecture.get("lecture_number", lecture_id)
+        units_for_lecture = db.query(LearningUnit).filter(
+            LearningUnit.curriculum_id == curriculum_id,
+            LearningUnit.order >= lecture_num * 10000,
+            LearningUnit.order < (lecture_num + 1) * 10000
+        ).count()
+        print(f"[books]   {lecture_num}媛? {units_for_lecture}媛??숈뒿 ?⑥쐞")
+
+    # LearningUnit ??Unit 蹂??(?꾨줎?몄뿏???명솚??
+    print(f"[books] ?꾨줎?몄뿏???명솚???꾪빐 LearningUnit ??Lesson + Unit 蹂???쒖옉")
+    conversion_stats = _convert_learning_units_to_units(
+        curriculum_id=curriculum_id,
+        book_id=book_id,
+        db=db
+    )
+    print(f"[books] 蹂???꾨즺: {conversion_stats['lessons_created']}媛?Lesson, {conversion_stats['units_created']}媛?Unit")
+
+    return curriculum_id
+
+
+def _process_pdf_background(book_id: str, pdf_path: Path, subject: str, ai_options: dict = None):
+    """諛깃렇?쇱슫?쒖뿉??PDF ?뚯씠?꾨씪???ㅽ뻾 (UnifiedPipeline 吏곸젒 ?ъ슜)"""
+    import sys
+    import logging
+    from app.infrastructure.pdf.pipeline import UnifiedPipeline
+    from app.infrastructure.database.models import Book, ParseStatus
+    from app.infrastructure.database.session import SessionLocal
+    from app.core.config import settings
+
+    # 利됱떆 異쒕젰???꾪븳 print ?ъ슜 (諛깃렇?쇱슫???묒뾽?먯꽌??logger媛 ?쒕?濡??묐룞?섏? ?딆쓣 ???덉쓬)
+    print(f"[books] ========================================")
+    print(f"[books] [諛깃렇?쇱슫?? PDF ?뚯씠?꾨씪???쒖옉")
+    print(f"[books] ========================================")
+    print(f"[books] book_id: {book_id}")
+    print(f"[books] PDF 寃쎈줈: {pdf_path}")
+    print(f"[books] PDF ??? {type(pdf_path)}")
+    print(f"[books] PDF 議댁옱 ?щ?: {pdf_path.exists() if pdf_path else 'N/A'}")
+    print(f"[books] 怨쇰ぉ: {subject}")
+    sys.stdout.flush()
+
+    # 濡쒓굅 ?ㅼ젙 (利됱떆 異쒕젰)
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    
+    # 肄섏넄 ?몃뱾??異붽? (?대? ?덉쑝硫??ъ궗??
+    if not logger.handlers:
+        console_handler = logging.StreamHandler(sys.stdout)

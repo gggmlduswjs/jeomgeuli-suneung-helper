@@ -9,16 +9,18 @@ import {
   Copy, 
   Edit, 
   Trash2, 
-  ChevronLeft
+  ChevronLeft,
+  Sparkles
 } from 'lucide-react';
 import TemplateEditor from './TemplateEditor';
 
 interface TemplateManagerProps {
   onBack: () => void;
   onSpeak?: (message: string) => void;
+  onCreateTemplate?: () => void;
 }
 
-export default function TemplateManager({ onBack, onSpeak }: TemplateManagerProps) {
+export default function TemplateManager({ onBack, onSpeak, onCreateTemplate }: TemplateManagerProps) {
   const [templates, setTemplates] = useState<ParsingTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState<string | undefined>(undefined);
@@ -84,6 +86,19 @@ export default function TemplateManager({ onBack, onSpeak }: TemplateManagerProp
         <h2 className="text-xl font-bold">템플릿 관리</h2>
         <p className="text-sm text-muted-foreground">파싱 패턴 템플릿 관리</p>
       </div>
+
+      {/* 액션 버튼 */}
+      {onCreateTemplate && (
+        <div className="mb-4">
+          <button
+            onClick={onCreateTemplate}
+            className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 font-medium"
+          >
+            <Sparkles className="w-5 h-5" />
+            템플릿 생성
+          </button>
+        </div>
+      )}
 
       {/* 과목 필터 */}
       <div className="mb-4 flex gap-2">

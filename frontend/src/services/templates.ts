@@ -162,6 +162,7 @@ export interface GenerateTemplateFromTOCRequest {
   toc_text: string;
   curriculum_survey?: CurriculumStructureSurvey;
   parsing_guide_regions?: ParsingGuideRegion[];
+  book_id?: string;  // book_id 추가 (region_image_examples 추출용)
   toc_lecture_line_examples: string[];
   toc_nonlecture_line_examples?: string[];
   expected_lecture_count?: number;

@@ -39,11 +39,10 @@ class TemplateManager:
         self.enable_cache = enable_cache
         self._match_cache: Dict[str, Tuple[ParsingTemplate, float]] = {}  # (subject_text_hash) -> (template, confidence)
         
-        logger.info(f"[TemplateManager] 초기화 - 템플릿 디렉토리: {self.template_dir}")
-        logger.info(f"[TemplateManager] API_DIR: {settings.API_DIR}")
-        logger.info(f"[TemplateManager] 디렉토리 존재 여부: {self.template_dir.exists()}")
+        logger.debug(f"[TemplateManager] 초기화 - 템플릿 디렉토리: {self.template_dir}")
         
         self._load_templates()
+        self._last_reload_time = None  # 마지막 리로드 시간 추적
     
     def _load_templates(self):
         """템플릿 디렉토리에서 모든 템플릿 로드"""
@@ -62,17 +61,14 @@ class TemplateManager:
                 logger.error(f"[TemplateManager] 템플릿 디렉토리 생성 실패: {e}")
             return
         
-        # 디렉토리 내용 확인
         try:
             all_files = list(self.template_dir.iterdir())
-            logger.info(f"[TemplateManager] 디렉토리 내용 ({len(all_files)}개 항목):")
-            for item in all_files:
-                logger.info(f"  - {item.name} ({'파일' if item.is_file() else '디렉토리'})")
+            logger.debug(f"[TemplateManager] 디렉토리 내용 ({len(all_files)}개 항목)")
         except Exception as e:
             logger.warning(f"[TemplateManager] 디렉토리 내용 확인 실패: {e}")
         
         template_files = list(self.template_dir.glob("*.json"))
-        logger.info(f"[TemplateManager] 발견된 템플릿 파일: {len(template_files)}개")
+        logger.debug(f"[TemplateManager] 발견된 템플릿 파일: {len(template_files)}개")
         
         if len(template_files) == 0:
             logger.warning(
@@ -87,11 +83,11 @@ class TemplateManager:
                 # 키: {subject}_{name}
                 key = f"{template.subject}_{template.name}"
                 self.templates[key] = template
-                logger.info(f"[TemplateManager] 템플릿 로드 성공: {key} (파일: {template_file.name})")
+                logger.debug(f"[TemplateManager] 템플릿 로드: {key}")
             except Exception as e:
                 logger.error(f"[TemplateManager] 템플릿 로드 실패 {template_file}: {e}", exc_info=True)
         
-        logger.info(f"[TemplateManager] 총 {len(self.templates)}개 템플릿 로드 완료")
+        logger.debug(f"[TemplateManager] 총 {len(self.templates)}개 템플릿 로드 완료")
     
     def add_template(self, template: ParsingTemplate) -> Path:
         """템플릿 추가 및 저장
@@ -122,12 +118,18 @@ class TemplateManager:
         
         return file_path
     
-    def reload_templates(self):
-        """템플릿 디렉토리에서 모든 템플릿을 다시 로드"""
-        logger.info(f"[TemplateManager] 템플릿 재로드 시작")
-        # 기존 템플릿은 유지하되, 파일 시스템에서 새로 로드
-        self._load_templates()
-        logger.info(f"[TemplateManager] 템플릿 재로드 완료: 총 {len(self.templates)}개 템플릿")
+    def reload_templates(self, force: bool = False):
+        """템플릿 디렉토리에서 모든 템플릿을 다시 로드
+        
+        Args:
+            force: True면 강제 재로드, False면 템플릿이 없을 때만 재로드
+        """
+        if force or not self.templates:
+            logger.debug("[TemplateManager] 템플릿 재로드")
+            self._load_templates()
+            self._last_reload_time = None  # 리로드 시간 업데이트는 필요시 구현
+        else:
+            logger.debug(f"[TemplateManager] 템플릿 {len(self.templates)}개 이미 로드됨 (재로드 생략)")
     
     def get_templates_by_subject(self, subject: str) -> List[ParsingTemplate]:
         """과목별 템플릿 목록 반환
@@ -168,7 +170,7 @@ class TemplateManager:
             cache_key = f"{subject}_{book_id}"
             if cache_key in self._match_cache:
                 cached_template, cached_confidence = self._match_cache[cache_key]
-                logger.info(f"템플릿 매칭 캐시 히트: {cached_template.name} (신뢰도: {cached_confidence:.2f})")
+                logger.debug(f"[TemplateManager] 매칭 캐시 히트: {cached_template.name}")
                 return (cached_template, cached_confidence)
 
         subject_templates = self.get_templates_by_subject(subject)
@@ -190,8 +192,8 @@ class TemplateManager:
                 templates_without_regions.append(template)
 
         if templates_with_regions and pdf_ocr_data:
-            logger.info(
-                f"[템플릿 매칭] 영역 마킹 있음: {len(templates_with_regions)}개, "
+            logger.debug(
+                f"[TemplateManager] 영역 마킹 있음: {len(templates_with_regions)}개, "
                 f"없음: {len(templates_without_regions)}개"
             )
 
@@ -210,9 +212,9 @@ class TemplateManager:
             # 영역 마킹이 있는 템플릿은 임계값을 10% 낮춤
             adjusted_threshold = threshold * 0.9
             if best_match and best_match[1] >= adjusted_threshold:
-                logger.info(
-                    f"[템플릿 매칭] 영역 기반 매칭 성공: {best_match[0].name} "
-                    f"(신뢰도: {best_match[1]:.2f} >= {adjusted_threshold:.2f})"
+                logger.debug(
+                    f"[TemplateManager] 영역 기반 매칭: {best_match[0].name} "
+                    f"(신뢰도: {best_match[1]:.2f})"
                 )
 
                 # 캐시 저장
@@ -231,9 +233,9 @@ class TemplateManager:
                 best_match = (template, confidence)
 
         if best_match and best_match[1] >= threshold:
-            logger.info(
-                f"[템플릿 매칭] 패턴 기반 매칭 성공: {best_match[0].name} "
-                f"(confidence: {best_match[1]:.2f})"
+            logger.debug(
+                f"[TemplateManager] 패턴 매칭 성공: {best_match[0].name} "
+                f"(신뢰도: {best_match[1]:.2f})"
             )
 
             # 캐시 저장
@@ -244,16 +246,16 @@ class TemplateManager:
             return best_match
         else:
             if best_match:
-                logger.info(
-                    f"[템플릿 매칭] 매칭 실패 (임계값 미달): {best_match[0].name} "
-                    f"(confidence: {best_match[1]:.2f} < {threshold})"
+                logger.debug(
+                    f"[TemplateManager] 매칭 미달: {best_match[0].name} "
+                    f"(신뢰도: {best_match[1]:.2f} < {threshold})"
                 )
             return None
     
     def clear_cache(self):
         """매칭 캐시 초기화"""
         self._match_cache.clear()
-        logger.info("템플릿 매칭 캐시 초기화 완료")
+        logger.debug("[TemplateManager] 매칭 캐시 초기화")
     
     def _calculate_confidence(
         self,
@@ -346,7 +348,7 @@ class TemplateManager:
                 base_confidence * 0.05 +
                 region_score * 0.30  # 영역 유사도 30%
             )
-            logger.info(
+            logger.debug(
                 f"[템플릿 매칭] {template.name} 신뢰도 계산 (영역 마킹 포함): "
                 f"강의={lecture_score:.2f}(30%), 문제={problem_score:.2f}(20%), "
                 f"개념={concept_score:.2f}(15%), 기본={base_confidence:.2f}(5%), "
@@ -507,7 +509,7 @@ class TemplateManager:
 
         avg_score = sum(region_scores.values()) / len(region_scores)
 
-        logger.info(
+        logger.debug(
             f"[템플릿 매칭] 영역별 유사도: "
             f"{', '.join(f'{k}={v:.2f}' for k, v in region_scores.items())} "
             f"(평균: {avg_score:.2f})"

@@ -22,23 +22,23 @@ export default function UnitHeader({
   onShowUnitList,
 }: UnitHeaderProps) {
   return (
-    <div className="px-4 py-3 border-b border-border">
+    <div className="px-3 py-2 border-b border-border">
       <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <h2 className="text-lg font-semibold">{lesson?.title || unit?.title}</h2>
-          <p className="text-sm text-muted-foreground">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-sm font-semibold truncate">{lesson?.title || unit?.title}</h2>
+          <p className="text-xs text-muted-foreground">
             {unitTypeLabel} {unitNumber} / {totalUnits}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
             onClick={onShowUnitList}
-            className="px-3 py-1.5 text-sm bg-primary/10 text-primary border border-primary/30 rounded-lg hover:bg-primary/20 transition-colors"
+            className="px-2 py-1 text-xs bg-primary/10 text-primary border border-primary/30 rounded-md hover:bg-primary/20 transition-colors"
             aria-label="학습 단위 목록"
           >
             목록
           </button>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
             {totalUnits > 0 ? Math.round((unitNumber / totalUnits) * 100) : 0}%
           </div>
         </div>

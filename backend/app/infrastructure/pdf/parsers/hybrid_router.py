@@ -63,16 +63,18 @@ class HybridRouter:
         ocr_data: List[OCRPageData],
         config_path: Optional[Path] = None,
         book_id: Optional[str] = None,
-        pdf_path: Optional[Path] = None
+        pdf_path: Optional[Path] = None,
+        template_name: Optional[str] = None
     ) -> Tuple[BaseParser, str, JSONDict]:
         """적합한 파서 선택 및 반환
 
         Args:
             subject: 과목명 ('literature', 'math1', 'english')
-            ocr_data: 페이지별 OCR 결과 리스트
+            ocr_data: 페이지별 OCR 결과 리스트 (샘플만 넣어도 됨, 앞 5페이지)
             config_path: config.json 경로 (폴백용)
             book_id: 책 ID (섹션 이미지 크롭용)
             pdf_path: PDF 파일 경로 (섹션 이미지 크롭용)
+            template_name: 지정 시 매칭 스킵, 해당 템플릿으로 바로 파싱
 
         Returns:
             (파서 인스턴스, 사용된 전략, 메타데이터) 튜플
@@ -80,58 +82,58 @@ class HybridRouter:
         """
         self.metrics['total_requests'] += 1
         start_time = time.time()
-        
+        template_match: Optional[Tuple[ParsingTemplate, float]] = None
+
+        def _return_template(tpl: ParsingTemplate, conf: float, strat: str) -> Tuple[BaseParser, str, JSONDict]:
+            p = self._create_parser_with_template(subject, tpl, config_path, pdf_path, book_id)
+            elapsed = time.time() - start_time
+            self.metrics['template_matches'] += 1
+            self._update_avg_time('template_avg_time', elapsed)
+            logger.info(f"[HybridRouter] 템플릿 사용: {tpl.name} (전략: {strat}, 시간: {elapsed:.2f}초)")
+            return (
+                p,
+                'template',
+                {'template_name': tpl.name, 'confidence': conf, 'processing_time': elapsed, 'strategy': strat}
+            )
+
         try:
-            # 1단계: 템플릿 매칭 시도
-            logger.info(f"[HybridRouter] 템플릿 매칭 시도 (과목: {subject}, book_id: {book_id})")
-            logger.info(f"[HybridRouter] 로드된 템플릿 수: {len(self.template_manager.templates)}")
-            logger.info(f"[HybridRouter] 템플릿 디렉토리: {self.template_manager.template_dir}")
+            logger.debug(
+                f"[HybridRouter] 파서 선택 (과목: {subject}, book_id: {book_id}, "
+                f"template_name: {template_name}, 템플릿 수: {len(self.template_manager.templates)})"
+            )
 
-            # 디버깅: 템플릿이 없으면 다시 로드 시도
             if len(self.template_manager.templates) == 0:
-                logger.warning("[HybridRouter] 템플릿이 로드되지 않음 - 재로드 시도")
+                logger.warning("[HybridRouter] 템플릿 없음 - 재로드 시도")
                 self.template_manager._load_templates()
-                logger.info(f"[HybridRouter] 재로드 후 템플릿 수: {len(self.template_manager.templates)}")
-
-            if self.template_manager.templates:
-                for key, template in self.template_manager.templates.items():
-                    logger.info(f"  - {key}: {template.name} (subject: {template.subject})")
+            if not self.template_manager.templates:
+                logger.error("[HybridRouter] 템플릿이 전혀 로드되지 않음")
+                # fallback으로 직행
             else:
-                logger.error("[HybridRouter] ⚠️ 템플릿이 전혀 로드되지 않음! 템플릿 파일 위치 확인 필요")
-            
-            template_match = self._try_template_matching(subject, ocr_data, book_id)
+                subject_templates = self.template_manager.get_templates_by_subject(subject)
+
+                # template_name 지정 시: 매칭 스킵, 해당 템플릿으로 바로 파싱
+                if template_name:
+                    for t in subject_templates:
+                        if t.name == template_name:
+                            return _return_template(t, 1.0, 'template_named')
+                    logger.warning(f"[HybridRouter] 지정 템플릿 없음: {template_name}, 매칭 시도")
+
+                # 과목당 템플릿 1개: 매칭 스킵
+                if len(subject_templates) == 1:
+                    return _return_template(subject_templates[0], 1.0, 'template_single')
+
+                # 그 외: 템플릿 매칭 시도
+                logger.debug(f"[HybridRouter] 템플릿 매칭 시도 (과목: {subject}, 템플릿 수: {len(subject_templates)})")
+                template_match = self._try_template_matching(subject, ocr_data, book_id)
             
             if template_match:
-                template, confidence = template_match
-                parser = self._create_parser_with_template(subject, template, config_path, pdf_path, book_id)
-                elapsed = time.time() - start_time
-                
-                self.metrics['template_matches'] += 1
-                self._update_avg_time('template_avg_time', elapsed)
-                
-                logger.info(
-                    f"[HybridRouter] 템플릿 매칭 성공: {template.name} "
-                    f"(신뢰도: {confidence:.2f}, 시간: {elapsed:.2f}초)"
-                )
-                
-                return (
-                    parser,
-                    'template',
-                    {
-                        'template_name': template.name,
-                        'confidence': confidence,
-                        'processing_time': elapsed,
-                        'strategy': 'template'
-                    }
-                )
-            
-            # 템플릿 매칭 실패 시에도 해당 과목의 템플릿이 있으면 강제로 사용 (영역 정보 활용)
+                return _return_template(template_match[0], template_match[1], 'template')
+
+            # 매칭 실패 시 해당 과목 템플릿 있으면 최신 것 강제 사용 (영역 정보 활용)
             if not template_match:
-                logger.warning(f"[HybridRouter] 템플릿 매칭 실패 - 대체 방법 시도")
-                # 해당 과목의 템플릿이 있으면 가장 최신 템플릿 사용 (영역 정보 활용을 위해)
+                logger.debug("[HybridRouter] 템플릿 매칭 실패 - 과목별 최신 강제 사용 시도")
                 subject_templates = self.template_manager.get_templates_by_subject(subject)
                 if subject_templates:
-                    # 가장 최신 템플릿 선택 (updated_at 기준, 없으면 created_at)
                     template = max(
                         subject_templates,
                         key=lambda t: (
@@ -139,28 +141,9 @@ class HybridRouter:
                             t.confidence
                         )
                     )
-                    logger.info(
-                        f"[HybridRouter] 과목별 템플릿 {len(subject_templates)}개 발견 - "
-                        f"최신 템플릿 강제 사용: {template.name} (영역 정보 활용)"
-                    )
-                    parser = self._create_parser_with_template(subject, template, config_path, pdf_path, book_id)
-                    elapsed = time.time() - start_time
-                    
-                    self.metrics['template_matches'] += 1
-                    self._update_avg_time('template_avg_time', elapsed)
-                    
-                    return (
-                        parser,
-                        'template',
-                        {
-                            'template_name': template.name,
-                            'confidence': 0.5,  # 강제 사용이므로 낮은 신뢰도
-                            'processing_time': elapsed,
-                            'strategy': 'template_forced'
-                        }
-                    )
-                else:
-                    logger.warning(f"[HybridRouter] 템플릿 매칭 실패 - 해당 과목 템플릿 없음, 폴백 파서 사용")
+                    logger.debug(f"[HybridRouter] 과목별 최신 템플릿 강제 사용: {template.name}")
+                    return _return_template(template, 0.5, 'template_forced')
+                logger.debug("[HybridRouter] 해당 과목 템플릿 없음, 폴백으로 진행")
             
             # 2단계: AI 파싱 시도 (활성화된 경우)
             if self.enable_ai_parsing:
@@ -176,7 +159,7 @@ class HybridRouter:
                             ai_parser = self._ai_parser_cache[cache_key]
                             is_cached = True
                             self.metrics['cache_hits'] += 1
-                            logger.info(f"[HybridRouter] AI 파서 캐시 히트: {book_id}")
+                            logger.debug(f"[HybridRouter] AI 파서 캐시 히트: {book_id}")
                     
                     if not ai_parser:
                         ai_parser = self._try_ai_parsing(subject, ocr_data, config_path, book_id, pdf_path)
@@ -318,7 +301,7 @@ class HybridRouter:
                 logger.warning("[HybridRouter] OpenAI API 키가 설정되지 않아 AI 파싱을 건너뜁니다")
                 return None
 
-            logger.info(f"[HybridRouter] AI 파싱 시도 (과목: {subject}, 통합 파서 사용)")
+            logger.debug(f"[HybridRouter] AI 파싱 시도 (과목: {subject})")
             # 통합 파서 사용 (AI 파싱 활성화)
             return UnifiedTemplateParser(
                 subject=subject,

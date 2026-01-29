@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import uuid
 import json
+import logging
 from pathlib import Path
 
 from app.infrastructure.database.session import get_db
@@ -31,6 +32,7 @@ from app.core.config import settings
 from app.utils.id_generator import generate_lesson_id
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/lessons", response_model=LessonResponse, status_code=201)
@@ -327,7 +329,7 @@ async def get_lesson_summary(lesson_id: str, db: Session = Depends(get_db)):
         # 기타 에러는 일반 메시지
         import traceback
         error_detail = traceback.format_exc()
-        print(f"[Lesson Summary] 에러 상세: {error_detail}")
+        logger.error(f"[Lesson Summary] 에러 상세: {error_detail}")
         raise HTTPException(
             status_code=500, 
             detail=f"AI 요약 생성 실패: {str(e)}"

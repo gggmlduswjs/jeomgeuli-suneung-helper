@@ -1,0 +1,33 @@
+{
+  "subject": "english",
+  "lecture_title_patterns": [
+    "Unit\\s+\\d+",
+    "^\\d+\\.\\s+Unit\\s+\\d+",
+    "^\\d+단원",
+    "^\\d+\\s+단원",
+    "장문\\s*독해",
+    "단문\\s*독해",
+    "작품\\s*텍스트",
+    "Part\\s*\\d+",
+    "Chapter\\s*\\d+",
+    "Lesson\\s*\\d+",
+    "^\\d+강",
+    "실전\\s*모의고사",
+    "미니\\s*테스트",
+    "종합\\s*평가"
+  ],
+  "passage_title_patterns": [
+    "지문\\s*\\d+",
+    "Passage\\s+\\d+",
+    "Text\\s+\\d+",
+    "Reading\\s+\\d+"
+  ],
+  "section_title_patterns": [
+    "^\\d+\\.",
+    "^[A-Z]\\.",
+    "^[가-힣]\\."
+  ],
+  "problem_number_pattern": "^\\d+\\.",
+  "paragraph_y_threshold": 25,
+  "start_content_page": 5
+}

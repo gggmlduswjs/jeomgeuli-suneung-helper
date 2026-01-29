@@ -11,6 +11,7 @@ import type { Book } from '../types/book';
 import type { Lesson } from '../types/lesson';
 import { useKeyboardShortcuts } from '../contexts/KeyboardContext';
 import { useAutoGuidance } from '../hooks/useAutoGuidance';
+import { useLearnStore } from '../store/learnStore';
 import AppShellMobile from '../components/ui/AppShellMobile';
 import ToastA11y from '../components/system/ToastA11y';
 
@@ -21,8 +22,24 @@ interface SessionStats {
   timeSpent: string;
 }
 
+// 시간 포맷팅 유틸리티
+const formatTime = (milliseconds: number): string => {
+  const seconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  
+  if (hours > 0) {
+    return `${hours}시간 ${minutes % 60}분`;
+  } else if (minutes > 0) {
+    return `${minutes}분 ${seconds % 60}초`;
+  } else {
+    return `${seconds}초`;
+  }
+};
+
 export default function LearningSummary() {
   const navigate = useNavigate();
+  const { endSession, getSessionStats } = useLearnStore();
 
   const [loading, setLoading] = useState(true);
   const [currentProgress, setCurrentProgress] = useState<Progress | null>(null);
@@ -60,17 +77,15 @@ export default function LearningSummary() {
         setBook(bookData);
       }
 
-      // FIXME: 실제 세션 통계 계산 필요
-      // 요구사항:
-      // 1. 세션 시작/종료 시간 추적용 sessionStore 생성
-      // 2. 답변 제출 시 정답/오답 누적 저장
-      // 3. answersAPI에서 세션 통계 조회 API 추가
-      // 현재는 플레이스홀더 값 사용
+      // 세션 통계 로드
+      const stats = getSessionStats();
+      const sessionSummary = endSession(); // 세션 종료 및 통계 가져오기
+      
       setSessionStats({
-        questionsCompleted: 0, // TODO: 실제 완료한 문제 수 조회 필요
-        correctAnswers: 0, // answersAPI에서 조회 필요
-        accuracy: 0, // 계산 필요
-        timeSpent: '0분', // sessionStore에서 조회 필요
+        questionsCompleted: sessionSummary.questionsAnswered,
+        correctAnswers: sessionSummary.correctAnswers,
+        accuracy: Math.round(sessionSummary.accuracy),
+        timeSpent: formatTime(sessionSummary.timeSpent),
       });
     } catch (err) {
       console.error('[LearningSummary] Failed to load summary:', err);

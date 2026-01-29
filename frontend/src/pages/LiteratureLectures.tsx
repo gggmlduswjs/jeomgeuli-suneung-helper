@@ -9,6 +9,7 @@ import SpeechBar from '../components/input/SpeechBar';
 import ToastA11y from '../components/system/ToastA11y';
 import { usePageBase } from '../hooks/usePageBase';
 import { literatureAPI, type LiteratureLectureSummary } from '../services/literature';
+import { booksAPI } from '../services/api/client';
 import { createModuleLogger } from '../utils/logger';
 import { useLiteratureProgressStore } from '../store/literatureProgressStore';
 
@@ -82,13 +83,15 @@ export default function LiteratureLectures() {
     }
   };
 
-  // 강의 선택 핸들러
-  const handleLectureSelect = (lecture: LiteratureLectureSummary) => {
+  // 강의 선택 핸들러 - 문학 강의 상세 페이지로 이동
+  const handleLectureSelect = async (lecture: LiteratureLectureSummary) => {
     showToastMessage(`${lecture.title}을(를) 선택했습니다.`);
     speak(`${lecture.title}을(를) 선택했습니다.`);
     stopTTS();
-    navigate(`/literature/lectures/${lecture.lecture_id}`);
     stopSTT();
+    
+    // 구조 파싱 데이터를 사용하는 문학 강의 상세 페이지로 이동
+    navigate(`/literature/lectures/${lecture.lecture_id}`);
   };
 
   // 강의 카드 읽기

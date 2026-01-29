@@ -27,6 +27,7 @@ import UnitListSidebar from '../components/unit/UnitListSidebar';
 import { getUnitTypeLabel, getUnitNumber, getTotalUnits } from '../utils/unitHelpers';
 import { createModuleLogger } from '../utils/logger';
 import { DEFAULT_USER_ID, AI_EXPLANATION_AUTO_LOAD_DELAY, MAX_ANSWER_CHOICES, ROUTES, TOAST_DURATION } from '../constants';
+import { useLearnStore } from '../store/learnStore';
 import type { Unit as UnitType } from '../types/unit';
 
 const logger = createModuleLogger('UnitSwipe');
@@ -68,6 +69,10 @@ export default function UnitSwipePage() {
   // ref 업데이트
   loadAIExplanationRef.current = loadAIExplanation;
 
+  // 세션 관리
+  const { startSession, recordAnswer, getSessionStats } = useLearnStore();
+  const sessionStartedRef = useRef(false);
+
   // 현재 Unit ID로 인덱스 계산
   useEffect(() => {
     if (unit && allUnits.length > 0) {
@@ -78,33 +83,31 @@ export default function UnitSwipePage() {
     }
   }, [unit, allUnits]);
 
-  // Unit 로드 및 AI 설명 자동 로드
+  // Unit 로드 (PDF Study 리다이렉트 제거 - 구조 파싱 데이터 사용)
   useEffect(() => {
     if (!unitId) return;
 
-    // 답안 상태 초기화
-    setUserAnswer(null);
-    setAnswerResult(null);
-    resetAI();
-
-    // Unit 로드
-    loadUnit(unitId).then(() => {
-      // AI 설명 자동 로드 (짧은 딜레이)
-      explanationLoadTimeoutRef.current = setTimeout(() => {
-        if (loadAIExplanationRef.current) {
-          loadAIExplanationRef.current(unitId);
-        }
-      }, AI_EXPLANATION_AUTO_LOAD_DELAY);
-    });
-
-    // Cleanup
-    return () => {
-      if (explanationLoadTimeoutRef.current) {
-        clearTimeout(explanationLoadTimeoutRef.current);
-        explanationLoadTimeoutRef.current = null;
+    const loadUnitData = async () => {
+      try {
+        // Unit 데이터 로드
+        await loadUnit(unitId);
+      } catch (err) {
+        logger.error('Unit 로드 실패:', err);
+        showToastMessage('학습 자료를 불러올 수 없습니다.');
       }
     };
-  }, [unitId, loadUnit, resetAI]);
+
+    loadUnitData();
+  }, [unitId, loadUnit, showToastMessage]);
+
+  // 첫 번째 QUESTION 유닛 로드 시 세션 시작
+  useEffect(() => {
+    if (unit && unit.type === 'QUESTION' && !sessionStartedRef.current) {
+      startSession();
+      sessionStartedRef.current = true;
+      logger.log('학습 세션 시작');
+    }
+  }, [unit, startSession]);
 
   // 인덱스 변경 시 Unit 변경
   const handleIndexChange = useCallback((newIndex: number) => {
@@ -139,6 +142,9 @@ export default function UnitSwipePage() {
         correct_answer: unit.question!.answer || 0,
         explanation: isCorrect ? '정답입니다!' : '오답입니다.',
       });
+
+      // 세션 통계 기록
+      recordAnswer(unit.unit_id, isCorrect);
 
       // 오답 시 AI 설명 자동 로드
       if (!isCorrect && loadAIExplanationRef.current) {

@@ -18,6 +18,7 @@ export default function AIQuestionInput({
   onAnswer
 }: AIQuestionInputProps) {
   const [question, setQuestion] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
   const { askQuestion, isAnswering } = useAILearningAssistant(unitId, lessonId);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,32 +33,46 @@ export default function AIQuestionInput({
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4">
-      <h4 className="font-semibold mb-2">AI에게 질문하기</h4>
+    <div className="bg-card border border-border rounded-lg">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full p-2 flex items-center justify-between hover:bg-muted/50 transition-colors"
+      >
+        <h4 className="font-semibold text-xs">AI에게 질문하기</h4>
+        <span className="text-xs text-muted-foreground">
+          {isExpanded ? '▼' : '▶'}
+        </span>
+      </button>
       
-      <form onSubmit={handleSubmit} className="space-y-2">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="질문을 입력하세요..."
-            className="flex-1 px-3 py-2 border border-border rounded-lg"
-            disabled={isAnswering}
-          />
-          <MicButton
-            onResult={(text) => setQuestion(text)}
-          />
+      {isExpanded && (
+        <div className="px-2 pb-2 space-y-2 border-t">
+          <form onSubmit={handleSubmit} className="space-y-2">
+            <div className="flex gap-1.5">
+              <input
+                type="text"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="질문을 입력하세요..."
+                className="flex-1 px-2 py-1.5 text-xs border border-border rounded-md"
+                disabled={isAnswering}
+              />
+              <MicButton
+                onResult={(text) => setQuestion(text)}
+              />
+            </div>
+            
+            <div className="flex gap-1.5">
+              <button
+                type="submit"
+                disabled={!question.trim() || isAnswering}
+                className="flex-1 btn-primary text-xs py-1.5 px-2"
+              >
+                {isAnswering ? '답변 생성 중...' : '질문하기'}
+              </button>
+            </div>
+          </form>
         </div>
-        
-        <button
-          type="submit"
-          disabled={!question.trim() || isAnswering}
-          className="btn-primary w-full"
-        >
-          {isAnswering ? '답변 생성 중...' : '질문하기'}
-        </button>
-      </form>
+      )}
     </div>
   );
 }

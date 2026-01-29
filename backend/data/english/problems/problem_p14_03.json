@@ -1,0 +1,16 @@
+{
+  "problem_id": "03",
+  "page": 14,
+  "source": "25005-0004",
+  "question": "다음 글의 목적으로 가장 적절한 것은?",
+  "question_text": "다음 글의 목적으로 가장 적절한 것은?",
+  "choices": {
+    "1": "스페셜 올림픽 참가 선수단의 출정식에 초대하려고",
+    "2": "스페셜 올림픽 참가 선수들의 노력과 성과를 알리려고",
+    "3": "스페셜 올림픽의 역사와 경기 종목에 관한 정보를 제공하려고",
+    "4": "스페셜 올림픽에 관한 관심과 선수들에 대한 격려를 부탁하려고",
+    "5": "스페셜 올림픽 참가 선수들을 지도할 자원봉사 코치를 모집하려고"
+  },
+  "correct_answer": "5",
+  "passage": "Dear Community Members,\n\nWe at Auburn Parks and Recreation are proud to support Special Olympics athletes in a diverse range of sports including basketball, bowling, flag football, golf, softball, swimming, tennis, track and field, and volleyball. Our practices run year-round, thanks to the dedication of local Special Olympics volunteer coaches. We are currently seeking committed individuals to coach our vibrant and inspiring athletes. Whether you have previous coaching experience or are new to the role, your contribution can make a significant impact. If you have the time and interest to support these athletes, please contact the Lee County Special Olympics Director! Your involvement will not only enrich the lives of our athletes but also strengthen our community. Let's come together to support these exceptional individuals.\n\nSincerely,\nMark Mills"
+}

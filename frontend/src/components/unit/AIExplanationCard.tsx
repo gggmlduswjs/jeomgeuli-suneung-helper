@@ -1,7 +1,8 @@
 /**
  * AI 설명 카드 컴포넌트
  */
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { markdownToPlainText } from '../../utils/text/markdownToPlainText';
 
 interface AIExplanationCardProps {
   sectionType: string;
@@ -18,6 +19,7 @@ export default function AIExplanationCard({
   onSpeak,
   onLoadExplanation,
 }: AIExplanationCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   // AI 설명이 생성되면 콘솔에 출력
   useEffect(() => {
     if (aiExplanation) {
@@ -41,8 +43,8 @@ export default function AIExplanationCard({
 
   if (loadingAI) {
     return (
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-blue-700">
+      <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-blue-700 text-xs">
           🤖 AI가 {isConcept ? '개념을 정리하고' : '내용을 분석하고'} 있습니다...
         </p>
       </div>
@@ -51,31 +53,39 @@ export default function AIExplanationCard({
 
   if (aiExplanation) {
     return (
-      <div className={`p-4 border-2 rounded-lg shadow-md ${conceptStyles.bg}`}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">✨</span>
-            <h3 className={`font-bold ${conceptStyles.titleColor}`}>
+      <div className={`border rounded-lg shadow-sm ${conceptStyles.bg}`}>
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full p-2 flex items-center justify-between hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm">✨</span>
+            <h3 className={`font-semibold text-xs ${conceptStyles.titleColor}`}>
               AI {isConcept ? '강의' : '내용'} 설명
             </h3>
           </div>
-          <span className="text-xs text-gray-500">설명 중 입니다..</span>
-        </div>
-        {/* AI 설명 텍스트는 콘솔에만 출력, UI에는 표시하지 않음 */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => onSpeak(aiExplanation)}
-            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${conceptStyles.buttonBg}`}
-          >
-            🔊 다시 듣기
-          </button>
-          <button
-            onClick={onLoadExplanation}
-            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${conceptStyles.buttonBg}`}
-          >
-            🔄 다시 생성
-          </button>
-        </div>
+          <span className="text-xs text-gray-500">
+            {isExpanded ? '▼' : '▶'}
+          </span>
+        </button>
+        {isExpanded && (
+          <div className="px-2 pb-2 space-y-1.5 border-t">
+            <div className="flex gap-1.5">
+              <button
+                onClick={() => onSpeak(markdownToPlainText(aiExplanation))}
+                className={`flex-1 px-2 py-1.5 text-xs rounded-md font-medium transition-colors ${conceptStyles.buttonBg}`}
+              >
+                🔊 다시 듣기
+              </button>
+              <button
+                onClick={onLoadExplanation}
+                className={`flex-1 px-2 py-1.5 text-xs rounded-md font-medium transition-colors ${conceptStyles.buttonBg}`}
+              >
+                🔄 다시 생성
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -84,7 +94,7 @@ export default function AIExplanationCard({
   return (
     <button
       onClick={onLoadExplanation}
-      className={`w-full p-4 border-2 rounded-lg font-semibold transition-colors ${conceptStyles.buttonBg}`}
+      className={`w-full p-2 text-xs border rounded-lg font-medium transition-colors ${conceptStyles.buttonBg}`}
     >
       🤖 AI {isConcept ? '개념' : '내용'} 설명 생성하기
     </button>

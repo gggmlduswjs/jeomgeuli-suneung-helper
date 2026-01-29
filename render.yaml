@@ -1,10 +1,8 @@
 services:
-  # Backend API Service (Python FastAPI)
+  # Backend API Service (Python FastAPI) - Free tier
   - type: web
     name: jeomgeuli-backend
     env: python
-    region: singapore
-    plan: starter
     buildCommand: pip install -r backend/requirements.txt
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/v1/health
@@ -27,12 +25,8 @@ services:
         sync: false  # 선택사항: Roboflow API 사용 시
       - key: ROBOFLOW_PROJECT_ID
         sync: false  # 선택사항: Roboflow API 사용 시
-    disk:
-      name: backend-data
-      mountPath: /opt/render/project/src/backend/data
-      sizeGB: 10
 
-  # Frontend Static Site
+  # Frontend Static Site (Free)
   - type: web
     name: jeomgeuli-frontend
     env: static

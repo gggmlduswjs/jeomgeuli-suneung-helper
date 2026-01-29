@@ -3,7 +3,7 @@ Concept Explanation Generator (Level 3.1)
 
 LLM 기반 개념 설명 자동 생성
 - 수준별 설명 생성 (초등/중등/고등)
-- LangChain으로 프롬프트 체인 구성
+- LangChain ChatPromptTemplate으로 Few-shot 프롬프트 구성
 - Few-shot Learning으로 일관된 형식 유지
 
 AI 역량 증명:
@@ -17,9 +17,8 @@ from dataclasses import dataclass
 from enum import Enum
 
 try:
-    from langchain.chat_models import ChatOpenAI
-    from langchain.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
-    from langchain.chains import LLMChain
+    from langchain_openai import ChatOpenAI
+    from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     LANGCHAIN_AVAILABLE = False
@@ -106,9 +105,9 @@ class ConceptExplanationGenerator:
 
         # LLM 초기화
         self.llm = ChatOpenAI(
-            model=model_name,
+            model_name=model_name,
             temperature=temperature,
-            openai_api_key=api_key
+            api_key=api_key
         )
 
         # 프롬프트 템플릿
@@ -138,7 +137,7 @@ class ConceptExplanationGenerator:
             ]
         )
 
-        # 전체 프롬프트
+        # 전체 프롬프트 (Chain-of-Thought 적용)
         final_prompt = ChatPromptTemplate.from_messages([
             ("system", """당신은 교육 전문가입니다. 주어진 개념을 학습자 수준에 맞게 설명하세요.
 
@@ -148,8 +147,16 @@ class ConceptExplanationGenerator:
 - high (고등): 전문 용어, 깊이 있는 분석, 학술적 예시
 - university (대학): 학술적 접근, 이론적 배경, 연구 사례
 
+**설명 방식 (Chain-of-Thought):**
+개념을 설명할 때는 다음 단계를 따라 생각하세요:
+1. 개념 정의: 무엇인지 명확히 정의
+2. 핵심 요소 분석: 개념을 이루는 주요 요소나 특징 파악
+3. 작동 원리/구조 설명: 어떻게 작동하는지 또는 어떤 구조인지 설명
+4. 실제 적용: 구체적인 예시나 활용 사례 제시
+5. 핵심 요약: 가장 중요한 포인트 정리
+
 반드시 다음 형식으로 답변하세요:
-설명: [개념에 대한 설명]
+설명: [단계별로 생각한 과정을 포함한 개념 설명]
 
 예시:
 - [예시 1]
@@ -195,7 +202,7 @@ class ConceptExplanationGenerator:
             )
 
             # LLM 호출
-            response = self.llm(messages)
+            response = self.llm.invoke(messages)
 
             # 파싱
             explanation_text, examples, key_points = self._parse_response(response.content)

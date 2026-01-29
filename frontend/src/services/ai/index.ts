@@ -25,9 +25,9 @@ export const aiAPI = {
     lessonId?: string
   ) {
     return api.post<{
-      question: string;
       answer: string;
-    }>('/ai/answer', {
+      confidence: number;
+    }>('/ai/ask', {
       question,
       unit_id: unitId,
       lesson_id: lessonId,
@@ -62,5 +62,50 @@ export const aiAPI = {
       position: number;
       response: string;
     }>(`/ai/teach/${lessonId}/next`, { position });
+  },
+
+  /**
+   * RAG 기반 유사 콘텐츠 추천
+   */
+  async getRecommendations(request: {
+    query: string;
+    unit_id?: string;
+    lesson_id?: string;
+    content_type?: 'concept' | 'problem' | 'passage' | 'all';
+    top_k?: number;
+    min_score?: number;
+  }) {
+    return api.post<{
+      query: string;
+      recommendations: Array<{
+        text: string;
+        metadata: {
+          type: string;
+          concept_id?: string;
+          problem_id?: string;
+          passage_id?: string;
+          unit_id?: string;
+          lesson_id?: string;
+          title?: string;
+          [key: string]: any;
+        };
+        score: number;
+      }>;
+      scores: number[];
+      content_type: string;
+    }>('/ai/recommend', request);
+  },
+
+  /**
+   * RAG 시스템 초기화
+   */
+  async initializeRAG(lessonId?: string) {
+    return api.post<{
+      status: string;
+      message: string;
+      concepts?: number;
+      problems?: number;
+      passages?: number;
+    }>('/ai/recommend/initialize', lessonId ? { lesson_id: lessonId } : {});
   },
 };

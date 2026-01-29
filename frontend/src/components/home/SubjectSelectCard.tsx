@@ -43,12 +43,9 @@ export default function SubjectSelectCard({ onSubjectSelect }: SubjectSelectCard
     if (onSubjectSelect) {
       onSubjectSelect(subject);
     } else {
-      // 국어 선택 시 문학 강의 목록으로 이동
-      if (subject === 'korean') {
-        navigate('/literature/lectures');
-      } else {
-        navigate(`/textbook?subject=${subject}`);
-      }
+      if (subject === 'korean') navigate('/literature/lectures');
+      else if (subject === 'english') navigate('/english/lectures');
+      else navigate('/math1/lectures');
     }
   };
 

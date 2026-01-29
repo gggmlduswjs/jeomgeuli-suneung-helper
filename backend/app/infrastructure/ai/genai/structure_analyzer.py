@@ -13,13 +13,13 @@ except ImportError:
     raise ImportError("pydantic이 설치되지 않았습니다. pip install pydantic")
 
 try:
-    from langchain.chat_models import ChatOpenAI
-    from langchain.prompts import ChatPromptTemplate
-    from langchain.output_parsers import PydanticOutputParser
+    from langchain_openai import ChatOpenAI
+    from langchain_core.prompts import ChatPromptTemplate
+    from langchain_core.output_parsers import PydanticOutputParser
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     LANGCHAIN_AVAILABLE = False
-    print("[StructureAnalyzer] langchain not available. Install with: pip install langchain openai")
+    print("[StructureAnalyzer] langchain not available. Install with: pip install langchain-openai langchain-core")
 
 
 logger = logging.getLogger(__name__)
@@ -73,9 +73,9 @@ class StructureAnalyzer:
         
         # LLM 초기화
         self.llm = ChatOpenAI(
-            model=model_name,
+            model_name=model_name,
             temperature=temperature,
-            openai_api_key=api_key
+            api_key=api_key
         )
         
         # Output Parser
@@ -137,7 +137,7 @@ class StructureAnalyzer:
             )
             
             # LLM 호출
-            response = self.llm(prompt)
+            response = self.llm.invoke(prompt)
             
             # 결과 파싱
             structure = self.parser.parse(response.content)

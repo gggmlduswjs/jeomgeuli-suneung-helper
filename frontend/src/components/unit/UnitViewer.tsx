@@ -8,6 +8,8 @@ import type { Unit } from '../../types/unit';
 import { BrailleCells } from '../braille/BrailleCells';
 import ConceptViewer from './ConceptViewer';
 import WorkViewer from './WorkViewer';
+import MathCalculator from '../math/MathCalculator';
+import RAGRecommendationCard from '../ai/RAGRecommendationCard';
 import { localToBrailleCells } from '../../lib/braille/converter';
 import type { DotArray } from '../../types';
 
@@ -38,9 +40,28 @@ export default function UnitViewer({ unit, onSpeak }: UnitViewerProps) {
     }
   }, [unit.braille_text, unit.content_text]);
 
+  // 수학 계산기 표시 여부 (수학 개념일 때)
+  const [showCalculator, setShowCalculator] = useState(false);
+  const isMathConcept = unit.type === 'CONCEPT_CORE' || unit.type === 'CONCEPT_FORM' || unit.type === 'CONCEPT_CONTENT';
+
   // 개념 설명 표시
-  if (unit.type === 'CONCEPT_CORE' || unit.type === 'CONCEPT_FORM' || unit.type === 'CONCEPT_CONTENT') {
-    return <ConceptViewer unit={unit} onSpeak={onSpeak} />;
+  if (isMathConcept) {
+    return (
+      <>
+        <ConceptViewer unit={unit} onSpeak={onSpeak} />
+        {/* 수학 계산기 토글 버튼 - 모바일 최적화 */}
+        <div className="flex justify-end mt-2">
+          <button
+            onClick={() => setShowCalculator(!showCalculator)}
+            className="px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-md shadow-sm hover:bg-primary/90"
+            aria-label="수식 계산기 열기"
+          >
+            {showCalculator ? '계산기 닫기' : '계산기 열기'}
+          </button>
+        </div>
+        {showCalculator && <MathCalculator onClose={() => setShowCalculator(false)} />}
+      </>
+    );
   }
 
   // 작품 표시
@@ -87,25 +108,56 @@ export default function UnitViewer({ unit, onSpeak }: UnitViewerProps) {
 
   // 문제 표시
   if (unit.type === 'QUESTION' && unit.question) {
+    // 이미지 경로 가져오기 (content_image_paths 우선, 없으면 image_path)
+    const imagePaths = unit.content_image_paths || (unit.image_path ? [unit.image_path] : []);
+    
+    // 문제 텍스트 (추천 쿼리용)
+    const questionText = unit.question.stem || unit.content_text || '';
+    
     return (
-      <div className="space-y-4">
-        <div className="bg-gradient-to-br from-warning/10 to-warning/5 border border-warning/30 rounded-2xl p-5 shadow-soft">
-          <h3 className="text-xl font-bold mb-2 text-fg">{unit.title}</h3>
-        </div>
-        
+      <div className="space-y-1.5">
         {/* 문제 이미지 표시 */}
-        {unit.image_path && (
-          <div className="border border-border/50 rounded-2xl p-4 shadow-soft overflow-hidden"
-               style={{ background: 'linear-gradient(135deg, rgb(249, 250, 251) 0%, rgb(255, 255, 255) 100%)' }}>
-            <img 
-              src={unit.image_path} 
-              alt={unit.title}
-              className="w-full h-auto rounded-lg"
-              onError={(e) => {
-                // 이미지 로드 실패 시 숨김
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
+        {imagePaths.length > 0 && (
+          <div className="space-y-1.5">
+            {imagePaths.map((imagePath, index) => {
+              // 이미지 경로 정규화 (상대 경로 처리)
+              const normalizedPath = imagePath.startsWith('/') 
+                ? imagePath 
+                : imagePath.startsWith('http') 
+                  ? imagePath 
+                  : `/api/data/${imagePath}`;
+              
+              return (
+                <div
+                  key={index}
+                  className="relative border border-border/50 rounded-md overflow-hidden shadow-sm bg-muted/30"
+                >
+                  <img
+                    src={normalizedPath}
+                    alt={`${unit.title} 이미지 ${index + 1}`}
+                    className="w-full h-auto"
+                    loading="eager"
+                    decoding="async"
+                    onLoad={(e) => {
+                      (e.target as HTMLImageElement).style.opacity = '1';
+                      const placeholder = (e.target as HTMLImageElement).nextElementSibling as HTMLElement;
+                      if (placeholder) placeholder.style.display = 'none';
+                    }}
+                    onError={(e) => {
+                      console.error('[UnitViewer] 문제 이미지 로드 실패:', normalizedPath);
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      const placeholder = (e.target as HTMLImageElement).nextElementSibling as HTMLElement;
+                      if (placeholder) placeholder.style.display = 'flex';
+                    }}
+                    style={{ opacity: 0, transition: 'opacity 0.3s' }}
+                  />
+                  {/* 로딩 플레이스홀더 */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
+                    <p className="text-muted-foreground text-xs">이미지 로딩 중...</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
         
@@ -113,17 +165,17 @@ export default function UnitViewer({ unit, onSpeak }: UnitViewerProps) {
         <div className="prose max-w-none">
           {/* 선택지 표시 (답안 선택용으로 필요) */}
           {unit.question.choices && unit.question.choices.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               {unit.question.choices.map((choice, index) => (
                 <div
                   key={index}
-                  className="p-4 border border-border/50 rounded-xl hover:bg-accent/10
-                             hover:border-accent/30 transition-all duration-300 hover:shadow-soft
-                             cursor-pointer hover:scale-[1.01]"
+                  className="p-2 border border-border/50 rounded-md hover:bg-accent/10
+                             hover:border-accent/30 transition-all duration-200
+                             cursor-pointer"
                   style={{ background: 'linear-gradient(135deg, rgb(249, 250, 251) 0%, rgb(255, 255, 255) 100%)' }}
                 >
-                  <span className="font-semibold text-primary mr-2">{index + 1}.</span>
-                  {choice}
+                  <span className="font-semibold text-primary mr-1.5 text-sm">{index + 1}.</span>
+                  <span className="text-sm">{choice}</span>
                 </div>
               ))}
             </div>
@@ -131,6 +183,24 @@ export default function UnitViewer({ unit, onSpeak }: UnitViewerProps) {
         </div>
         {brailleCells.length > 0 && isConnected && (
           <BrailleCells data={brailleCells as any} />
+        )}
+
+        {/* RAG 기반 유사 문제 추천 */}
+        {questionText && (
+          <RAGRecommendationCard
+            query={questionText.substring(0, 200)}
+            unitId={unit.unit_id}
+            lessonId={unit.lesson_id}
+            contentType="problem"
+            onSelect={(rec) => {
+              // 추천된 문제로 이동하는 로직
+              if (rec.metadata.unit_id && onSpeak) {
+                onSpeak(`유사한 문제로 이동합니다. ${rec.text.substring(0, 50)}`);
+                // TODO: 네비게이션 구현
+                // navigate(`/unit/${rec.metadata.unit_id}`);
+              }
+            }}
+          />
         )}
       </div>
     );

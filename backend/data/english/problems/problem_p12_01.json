@@ -1,0 +1,16 @@
+{
+  "problem_id": "01",
+  "page": 12,
+  "source": "25005-0002",
+  "question": "다음 글의 목적으로 가장 적절한 것은?",
+  "question_text": "다음 글의 목적으로 가장 적절한 것은?",
+  "choices": {
+    "1": "공예품 전시회에 출품을 독려하려고",
+    "2": "노인 복지관 물품 기부를 부탁하려고",
+    "3": "공예품 전시회 부스 대여 신청을 안내하려고",
+    "4": "지역 특산 공예품 가격의 인상을 공지하려고",
+    "5": "공예품 전시회 부스 설치에 관한 조언을 구하려고"
+  },
+  "correct_answer": "3",
+  "passage": "To Craftspeople and Artists of Smalltown:\n\nThe Smalltown Senior Center will host its annual Crafts Fair at the center on December 13 from 10 A.M. to 4 P.M. This event is held in high regard by the community. All of the best artists and craftspeople of Smalltown are represented each year. As in years past, we will be providing booth space for rental. A five-foot table costs $50, and a U-shaped six-by-six-by-six booth costs $125. To reserve your space, please call Helen Dwyer at (555) 579-1343. We expect to sell out all available spaces soon, so do not miss your chance to participate. All the proceeds from booth rentals go to support our activities at the center. We look forward to hearing from you.\n\nSincerely,\nEmma Miller, Chairperson\nSmalltown Senior Center Crafts Fair"
+}

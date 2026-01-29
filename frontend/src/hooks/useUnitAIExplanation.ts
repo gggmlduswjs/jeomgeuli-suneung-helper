@@ -4,6 +4,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { literatureAPI } from '../services/literature';
 import type { Unit } from '../types/api';
+import { markdownToPlainText } from '../utils/text/markdownToPlainText';
 
 interface UseUnitAIExplanationOptions {
   unit: Unit | null;
@@ -179,14 +180,15 @@ export function useUnitAIExplanation({
         ) {
           hasSpokenRef.current = true;
           
-          // AI 설명만 읽기
+          // AI 설명만 읽기 (마크다운 특수기호 제거)
           setTimeout(() => {
             if (onSpeakRef.current) {
-              onSpeakRef.current(explanation);
+              const plainText = markdownToPlainText(explanation);
+              onSpeakRef.current(plainText);
               // TTS 완료 콜백은 onSpeak이 단순 함수이므로 직접 호출
               if (onTTSCompleteRef.current) {
                 // TTS 재생 시간을 추정하여 콜백 호출 (대략 계산)
-                const estimatedDuration = explanation.length * 100; // 문자당 100ms 가정
+                const estimatedDuration = plainText.length * 100; // 문자당 100ms 가정
                 setTimeout(() => {
                   if (import.meta.env.DEV) console.log('[useUnitAIExplanation] AI 설명 TTS 완료 추정 - 다음 섹션으로 이동');
                   onTTSCompleteRef.current?.();
