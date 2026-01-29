@@ -64,9 +64,22 @@ out/
 dev-dist/
 .nuxt/
 
-# IDE
+# IDE / AI assistant
 .vscode/
 .idea/
+.claude/
+
+# Documentation (kept locally only)
+docs/
+PORTFOLIO.md
+PORTFOLIO_PRESENTATION.md
+PROBLEM_SOLUTION_ARCHITECTURE.md
+PROJECT_REPORT.md
+PROJECT_REPORT_UPDATED.md
+PROJECT_SUMMARY_REPORT.md
+RENDER_DEPLOY.md
+RENDER_MANUAL_DEPLOY.md
+TEMPLATE_GENERATION_GUIDE.md
 *.swp
 *.swo
 *~
