@@ -82,6 +82,7 @@ RENDER_MANUAL_DEPLOY.md
 TEMPLATE_GENERATION_GUIDE.md
 ROOT_FILES.md
 교재_시리즈_재구성_보고서.md
+render.yaml
 *.swp
 *.swo
 *~
