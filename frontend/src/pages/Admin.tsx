@@ -13,6 +13,7 @@ import ToastA11y from '../components/system/ToastA11y';
 import BookUploadWithTemplate from '../components/textbook/BookUploadWithTemplate';
 import TemplateManager from '../components/admin/TemplateManager';
 import TOCTemplateWizard from '../components/admin/TOCTemplateWizard';
+import type { ParsingTemplate } from '../services/templates';
 import { 
   Upload, 
   BookOpen, 
@@ -40,8 +41,9 @@ export default function Admin() {
   const [reparsingBookId, setReparsingBookId] = useState<string | null>(null);
   const [parseProgress, setParseProgress] = useState<Record<string, { progress: number; current_page?: number; total_pages?: number }>>({});
   const parseStatusIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [showTOCWizard, setShowTOCWizard] = useState(false);
+  const [activeTab, setActiveTab] = useState<'books' | 'templates'>('books');
+  const [templateView, setTemplateView] = useState<'list' | 'create' | 'edit'>('list');
+  const [editingTemplate, setEditingTemplate] = useState<ParsingTemplate | null>(null);
 
   // 통계 계산
   const stats = useBookStats(books);
@@ -404,9 +406,10 @@ export default function Admin() {
     );
   }
 
-  if (showUpload) {
+  // 교재 업로드 화면
+  if (activeTab === 'books' && showUpload) {
     return (
-      <AppShellMobile 
+      <AppShellMobile
         title="교재 업로드"
         className="relative h-screen flex flex-col"
       >
@@ -427,35 +430,18 @@ export default function Admin() {
     );
   }
 
-  if (showTemplates) {
+  // 템플릿 생성 화면
+  if (activeTab === 'templates' && templateView === 'create') {
     return (
       <AppShellMobile 
-        title="템플릿 관리"
-        className="relative h-screen flex flex-col"
-      >
-        <div className="p-4 flex-1 overflow-hidden">
-          <TemplateManager
-            onBack={() => setShowTemplates(false)}
-            onSpeak={(msg) => showToastMsg(msg)}
-          />
-        </div>
-      </AppShellMobile>
-    );
-  }
-
-  if (showTOCWizard) {
-    return (
-      <AppShellMobile 
-        title="목차로 템플릿 생성"
+        title="템플릿 생성"
         className="relative h-screen flex flex-col"
       >
         <div className="p-4 flex-1 overflow-hidden">
           <TOCTemplateWizard
-            onBack={() => setShowTOCWizard(false)}
+            onBack={() => setTemplateView('list')}
             onSaved={() => {
-              // 생성 후 바로 템플릿 관리로 이동
-              setShowTOCWizard(false);
-              setShowTemplates(true);
+              setTemplateView('list');
             }}
             onSpeak={(msg) => showToastMsg(msg)}
           />
@@ -522,35 +508,70 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* 액션 버튼들 */}
-        <div className="grid grid-cols-2 gap-2 mb-6">
+        {/* 탭 네비게이션 */}
+        <div className="flex gap-2 mb-6 border-b border-border">
           <button
-            onClick={() => setShowUpload(true)}
-            className="flex-1 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 font-medium"
+            onClick={() => {
+              setActiveTab('books');
+              setShowUpload(false);
+            }}
+            className={`flex-1 px-4 py-3 text-center font-medium transition-colors border-b-2 ${
+              activeTab === 'books'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
           >
-            <Upload className="w-5 h-5" />
-            새 교재 업로드
+            <BookOpen className="w-4 h-4 inline-block mr-2" />
+            교재 관리
           </button>
           <button
-            onClick={() => setShowTemplates(!showTemplates)}
-            className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center justify-center gap-2 font-medium"
+            onClick={() => {
+              setActiveTab('templates');
+              setTemplateView('list');
+            }}
+            className={`flex-1 px-4 py-3 text-center font-medium transition-colors border-b-2 ${
+              activeTab === 'templates'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
           >
-            <FileText className="w-5 h-5" />
+            <FileText className="w-4 h-4 inline-block mr-2" />
             템플릿 관리
-          </button>
-          <button
-            onClick={() => setShowTOCWizard(true)}
-            className="col-span-2 px-4 py-3 bg-primary/10 text-primary border border-primary/30 rounded-lg hover:bg-primary/20 transition-colors flex items-center justify-center gap-2 font-medium"
-          >
-            <Sparkles className="w-5 h-5" />
-            목차로 템플릿 생성
           </button>
         </div>
 
-        {/* 교재 목록 */}
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold mb-3">교재 목록</h2>
-        </div>
+        {/* 탭 내용 */}
+        {activeTab === 'books' && (
+          <>
+            {/* 교재 관리 액션 버튼 */}
+            <div className="mb-6">
+              <button
+                onClick={() => setShowUpload(true)}
+                className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 font-medium"
+              >
+                <Upload className="w-5 h-5" />
+                교재 업로드
+              </button>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'templates' && templateView === 'list' && (
+          <div className="flex-1 overflow-hidden">
+            <TemplateManager
+              onBack={() => setActiveTab('books')}
+              onSpeak={(msg) => showToastMsg(msg)}
+              onCreateTemplate={() => setTemplateView('create')}
+            />
+          </div>
+        )}
+
+        {/* 교재 목록 - books 탭에서만 표시 */}
+        {activeTab === 'books' && (
+          <>
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold mb-3">교재 목록</h2>
+            </div>
 
         {books.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center py-12">
@@ -650,6 +671,8 @@ export default function Admin() {
               );
             })}
           </div>
+        )}
+          </>
         )}
       </div>
 

@@ -27,6 +27,7 @@ import UnitListSidebar from '../components/unit/UnitListSidebar';
 import { getUnitTypeLabel, getUnitNumber, getTotalUnits } from '../utils/unitHelpers';
 import { createModuleLogger } from '../utils/logger';
 import { DEFAULT_USER_ID, AI_EXPLANATION_AUTO_LOAD_DELAY, MAX_ANSWER_CHOICES, ROUTES, TOAST_DURATION } from '../constants';
+import { useLearnStore } from '../store/learnStore';
 
 const logger = createModuleLogger('Unit');
 
@@ -66,6 +67,10 @@ export default function UnitPage() {
   // ref 업데이트
   loadAIExplanationRef.current = loadAIExplanation;
 
+  // 세션 관리
+  const { startSession, recordAnswer, getSessionStats } = useLearnStore();
+  const sessionStartedRef = useRef(false);
+
   // Unit 로드 및 AI 설명 자동 로드
   useEffect(() => {
     if (!unitId) return;
@@ -94,6 +99,14 @@ export default function UnitPage() {
     };
   }, [unitId, loadUnit, resetAI]);
 
+  // 첫 번째 QUESTION 유닛 로드 시 세션 시작
+  useEffect(() => {
+    if (unit && unit.type === 'QUESTION' && !sessionStartedRef.current) {
+      startSession();
+      sessionStartedRef.current = true;
+    }
+  }, [unit, startSession]);
+
   const handleAnswer = useCallback(async (answer: number) => {
     if (!unit || unit.type !== 'QUESTION' || !unit.question) return;
 
@@ -117,6 +130,9 @@ export default function UnitPage() {
         correct_answer: unit.question!.answer || 0,
         explanation: isCorrect ? '정답입니다!' : '오답입니다.',
       });
+      
+      // 세션 통계 기록
+      recordAnswer(unit.unit_id, isCorrect);
       
       // 오답 시 AI 설명 자동 로드
       if (!isCorrect && loadAIExplanationRef.current) {
@@ -230,7 +246,7 @@ export default function UnitPage() {
           onShowUnitList={() => setShowUnitList(true)}
         />
 
-        <div className="mb-4 px-4 pt-2">
+        <div className="mb-2 px-3 pt-1">
           <SpeechBar isListening={isListening} transcript={transcript} />
         </div>
 
@@ -246,7 +262,7 @@ export default function UnitPage() {
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex-1 overflow-y-auto px-3 py-2">
         {loading && (
           <div className="text-center py-8">
             <p className="text-muted">로딩 중...</p>
@@ -254,13 +270,13 @@ export default function UnitPage() {
         )}
 
         {error && (
-          <div className="bg-error/10 border border-error rounded-lg p-4 mb-4">
-            <p className="text-error">{error}</p>
+          <div className="bg-error/10 border border-error rounded-lg p-3 mb-2">
+            <p className="text-error text-sm">{error}</p>
           </div>
         )}
 
         {!loading && !error && unit && (
-          <div className="space-y-4">
+          <div className="space-y-2">
             <UnitViewer unit={unit} onSpeak={speak} />
             
             {/* AI 설명 표시 - 항상 표시 */}
@@ -287,7 +303,7 @@ export default function UnitPage() {
             
             {/* AI 질문 입력 (개념/작품인 경우) */}
             {unit && (unit.type === 'CONCEPT_CORE' || unit.type === 'PASSAGE') && (
-              <div className="mt-4">
+              <div className="mt-2">
                 <AIQuestionInput
                   unitId={unit.unit_id}
                   lessonId={unit.lesson_id}
@@ -320,15 +336,15 @@ export default function UnitPage() {
         </div>
 
         {/* Footer - Keyboard shortcuts */}
-        <div className="px-4 py-3 border-t border-border bg-background">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <div className="space-x-2">
+        <div className="px-3 py-2 border-t border-border bg-background">
+          <div className="flex flex-wrap items-center justify-between gap-1 text-xs text-muted-foreground">
+            <div className="flex flex-wrap gap-1.5">
               <span>[Enter] {answerResult ? '다음' : (unit?.type === 'QUESTION' ? '제출' : '다음')}</span>
               <span>[←→] 이동</span>
               <span>[Tab] AI설명</span>
             </div>
-            <div className="space-x-2">
-              <span>[M] 목록 토글</span>
+            <div className="flex flex-wrap gap-1.5">
+              <span>[M] 목록</span>
               <span>[Q] 종료</span>
               <span>[B] 뒤로</span>
             </div>

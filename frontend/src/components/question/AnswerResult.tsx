@@ -36,33 +36,33 @@ export default function AnswerResult({ result, userAnswer, onSpeak }: AnswerResu
   }
 
   return (
-    <div className={`rounded-lg p-4 border-2 ${
+    <div className={`rounded-md p-2.5 border-2 ${
       result.is_correct
         ? 'bg-success/10 border-success'
         : 'bg-error/10 border-error'
     }`}>
-      <div className="flex items-center gap-2 mb-2">
-        <span className={`text-2xl ${result.is_correct ? 'text-success' : 'text-error'}`}>
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <span className={`text-lg ${result.is_correct ? 'text-success' : 'text-error'}`}>
           {result.is_correct ? '✓' : '✗'}
         </span>
-        <h3 className={`text-lg font-semibold ${
+        <h3 className={`text-sm font-semibold ${
           result.is_correct ? 'text-success' : 'text-error'
         }`}>
           {result.is_correct ? '정답입니다!' : '오답입니다'}
         </h3>
       </div>
 
-      <div className="space-y-2">
-        <p>
+      <div className="space-y-1">
+        <p className="text-xs">
           <span className="font-medium">내 답안:</span> {userAnswer}번
         </p>
-        <p>
+        <p className="text-xs">
           <span className="font-medium">정답:</span> {result.correct_answer}번
         </p>
         {result.explanation && (
-          <div className="mt-3 pt-3 border-t border-border">
-            <p className="font-medium mb-1">해설:</p>
-            <p className="text-sm text-muted whitespace-pre-wrap">
+          <div className="mt-2 pt-2 border-t border-border">
+            <p className="font-medium mb-0.5 text-xs">해설:</p>
+            <p className="text-xs text-muted whitespace-pre-wrap">
               {result.explanation}
             </p>
           </div>

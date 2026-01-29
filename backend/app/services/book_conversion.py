@@ -4,8 +4,11 @@ LearningUnit → Unit 변환, Subject 매핑 등
 """
 import json
 import uuid
+import logging
 from typing import Dict
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 from app.infrastructure.database.models import (
     Subject, UnitType, LearningUnit, Lesson, Unit, Curriculum, Book
@@ -71,7 +74,7 @@ def convert_learning_units_to_units(
     Returns:
         변환 통계 딕셔너리 {"lessons_created": int, "units_created": int}
     """
-    print(f"[book_conversion] LearningUnit → Unit 변환 시작: curriculum_id={curriculum_id}")
+    logger.info(f"[book_conversion] LearningUnit → Unit 변환 시작: curriculum_id={curriculum_id}")
 
     # 1. 커리큘럼의 모든 LearningUnit 조회
     learning_units = db.query(LearningUnit).filter(
@@ -79,7 +82,7 @@ def convert_learning_units_to_units(
     ).order_by(LearningUnit.order).all()
 
     if not learning_units:
-        print(f"[book_conversion] 변환할 LearningUnit이 없습니다.")
+        logger.warning(f"[book_conversion] 변환할 LearningUnit이 없습니다.")
         return {"lessons_created": 0, "units_created": 0}
 
     # 2. 레슨별로 그룹화 (order = lecture_id * 10000 + unit_index)
@@ -92,7 +95,7 @@ def convert_learning_units_to_units(
 
         lessons_dict[lesson_number].append(lu)
 
-    print(f"[book_conversion] {len(learning_units)}개 LearningUnit을 {len(lessons_dict)}개 레슨으로 그룹화")
+    logger.info(f"[book_conversion] {len(learning_units)}개 LearningUnit을 {len(lessons_dict)}개 레슨으로 그룹화")
 
     # 3. 레슨별로 Lesson과 Unit 생성
     lessons_created = 0
@@ -126,8 +129,8 @@ def convert_learning_units_to_units(
             if book:
                 curriculum = db.query(Curriculum).filter(Curriculum.curriculum_id == curriculum_id).first()
                 if curriculum and book.subject != curriculum.subject:
-                    print(f"[book_conversion] ⚠️ 경고: Book.subject({book.subject})와 Curriculum.subject({curriculum.subject})이 일치하지 않음!")
-                    print(f"[book_conversion] Book.subject를 {curriculum.subject}으로 업데이트합니다.")
+                    logger.warning(f"[book_conversion] ⚠️ 경고: Book.subject({book.subject})와 Curriculum.subject({curriculum.subject})이 일치하지 않음!")
+                    logger.info(f"[book_conversion] Book.subject를 {curriculum.subject}으로 업데이트합니다.")
                     book.subject = curriculum.subject
                     db.commit()
             
@@ -135,15 +138,15 @@ def convert_learning_units_to_units(
             existing_lesson.title = lesson_title
             lesson = existing_lesson
             lesson_id = existing_lesson.lesson_id
-            print(f"[book_conversion]   Lesson 업데이트: {lesson_id} - {lesson_title}")
+            logger.info(f"[book_conversion]   Lesson 업데이트: {lesson_id} - {lesson_title}")
             
             # 기존 Lesson의 모든 Unit 삭제 (데이터 일관성 보장)
             existing_units = db.query(Unit).filter(Unit.lesson_id == lesson_id).all()
             if existing_units:
-                print(f"[book_conversion]   기존 Unit {len(existing_units)}개 삭제 중...")
+                logger.info(f"[book_conversion]   기존 Unit {len(existing_units)}개 삭제 중...")
                 for unit in existing_units:
                     db.delete(unit)
-                print(f"[book_conversion]   기존 Unit 삭제 완료")
+                logger.info(f"[book_conversion]   기존 Unit 삭제 완료")
         else:
             # 새 Lesson 생성
             lesson_id = f"l_{uuid.uuid4().hex[:12]}"
@@ -155,7 +158,7 @@ def convert_learning_units_to_units(
             )
             db.add(lesson)
             lessons_created += 1
-            print(f"[book_conversion]   Lesson 생성: {lesson_id} - {lesson_title}")
+            logger.info(f"[book_conversion]   Lesson 생성: {lesson_id} - {lesson_title}")
 
         # 각 LearningUnit을 Unit으로 변환
         for lu in lesson_units:
@@ -176,7 +179,7 @@ def convert_learning_units_to_units(
                                 # 우선순위 1: 파싱 단계에서 크롭한 이미지 경로 (image_path)
                                 if ref.get('image_path'):
                                     image_paths.append(ref['image_path'])
-                                    print(f"[book_conversion] 파싱 단계 이미지 사용: {ref['image_path']}")
+                                    logger.debug(f"[book_conversion] 파싱 단계 이미지 사용: {ref['image_path']}")
                                 # 우선순위 2: 기존 이미지 파일명 (image_filename)
                                 elif ref.get('image_filename'):
                                     page = ref.get('page', 0)
@@ -214,7 +217,7 @@ def convert_learning_units_to_units(
                         # 우선순위 1: 파싱 단계에서 크롭한 이미지 경로
                         if pdf_refs.get('image_path'):
                             image_paths.append(pdf_refs['image_path'])
-                            print(f"[book_conversion] 파싱 단계 이미지 사용: {pdf_refs['image_path']}")
+                            logger.debug(f"[book_conversion] 파싱 단계 이미지 사용: {pdf_refs['image_path']}")
                         # 우선순위 2: 기존 이미지 파일명
                         elif pdf_refs.get('image_filename'):
                             curriculum = db.query(Curriculum).filter(
@@ -245,7 +248,7 @@ def convert_learning_units_to_units(
                                 # full_work_content가 없지만 content가 충분히 길면 전체 작품으로 간주
                                 full_work_content = lu.content
                 except Exception as e:
-                    print(f"[book_conversion] 이미지 경로/전체 작품 내용 추출 실패: {e}")
+                    logger.error(f"[book_conversion] 이미지 경로/전체 작품 내용 추출 실패: {e}")
                     import traceback
                     traceback.print_exc()
 
@@ -271,22 +274,22 @@ def convert_learning_units_to_units(
             if unit_type == UnitType.PASSAGE:
                 if full_work_content:
                     braille_text_value = full_work_content
-                    print(f"[book_conversion]   작품 Unit에 전체 작품 내용 저장 (pdf_references에서): {len(full_work_content)}자")
+                    logger.debug(f"[book_conversion]   작품 Unit에 전체 작품 내용 저장 (pdf_references에서): {len(full_work_content)}자")
                 elif lu.content and len(lu.content) > 100:  # content가 충분히 길면 전체 작품으로 간주
                     # content가 전체 작품 내용인 경우 (이미지가 없을 때)
                     braille_text_value = lu.content
-                    print(f"[book_conversion]   작품 Unit에 전체 작품 내용 저장 (content에서): {len(lu.content)}자")
+                    logger.debug(f"[book_conversion]   작품 Unit에 전체 작품 내용 저장 (content에서): {len(lu.content)}자")
                 elif lu.braille_text and len(lu.braille_text) > 100:
                     # braille_text에 이미 전체 내용이 있는 경우
                     braille_text_value = lu.braille_text
-                    print(f"[book_conversion]   작품 Unit에 전체 작품 내용 저장 (braille_text에서): {len(lu.braille_text)}자")
+                    logger.debug(f"[book_conversion]   작품 Unit에 전체 작품 내용 저장 (braille_text에서): {len(lu.braille_text)}자")
                 elif lu.content:
                     # 작품 내용이 짧아도 content를 사용
                     braille_text_value = lu.content
-                    print(f"[book_conversion]   작품 Unit에 내용 저장: {len(lu.content)}자")
+                    logger.debug(f"[book_conversion]   작품 Unit에 내용 저장: {len(lu.content)}자")
                 else:
                     # content도 없으면 기존 braille_text 유지
-                    print(f"[book_conversion]   작품 Unit 내용 없음 (기존 braille_text 유지)")
+                    logger.warning(f"[book_conversion]   작품 Unit 내용 없음 (기존 braille_text 유지)")
 
             unit = Unit(
                 unit_id=lu.unit_id,  # 같은 ID 사용
@@ -330,22 +333,22 @@ def convert_learning_units_to_units(
     final_lesson_count = db.query(Lesson).filter(Lesson.book_id == book_id).count()
     final_unit_count = db.query(Unit).join(Lesson).filter(Lesson.book_id == book_id).count()
     
-    print(f"[book_conversion] 변환 완료: {lessons_created}개 Lesson 생성, {units_created}개 Unit 생성")
-    print(f"[book_conversion] 최종 검증: {final_lesson_count}개 Lesson, {final_unit_count}개 Unit (DB)")
+    logger.info(f"[book_conversion] 변환 완료: {lessons_created}개 Lesson 생성, {units_created}개 Unit 생성")
+    logger.info(f"[book_conversion] 최종 검증: {final_lesson_count}개 Lesson, {final_unit_count}개 Unit (DB)")
     
     # 경고: 변환된 Unit 수와 실제 DB의 Unit 수가 다를 수 있음 (기존 Unit 삭제 후 재생성)
     if units_created != final_unit_count:
-        print(f"[book_conversion] ⚠️ 주의: 생성된 Unit 수({units_created})와 DB의 Unit 수({final_unit_count})가 다릅니다.")
-        print(f"[book_conversion] 이는 기존 Unit을 삭제하고 재생성했기 때문일 수 있습니다.")
+        logger.warning(f"[book_conversion] ⚠️ 주의: 생성된 Unit 수({units_created})와 DB의 Unit 수({final_unit_count})가 다릅니다.")
+        logger.info(f"[book_conversion] 이는 기존 Unit을 삭제하고 재생성했기 때문일 수 있습니다.")
     
     # Lesson별 Unit 개수 확인
     lessons = db.query(Lesson).filter(Lesson.book_id == book_id).order_by(Lesson.index).all()
     for lesson in lessons:
         lesson_unit_count = db.query(Unit).filter(Unit.lesson_id == lesson.lesson_id).count()
         if lesson_unit_count == 0:
-            print(f"[book_conversion] ⚠️ 경고: Lesson {lesson.index} ({lesson.title})에 Unit이 없습니다.")
+            logger.warning(f"[book_conversion] ⚠️ 경고: Lesson {lesson.index} ({lesson.title})에 Unit이 없습니다.")
         else:
-            print(f"[book_conversion]   Lesson {lesson.index} ({lesson.title}): {lesson_unit_count}개 Unit")
+            logger.debug(f"[book_conversion]   Lesson {lesson.index} ({lesson.title}): {lesson_unit_count}개 Unit")
 
     return {
         "lessons_created": lessons_created,

@@ -166,6 +166,12 @@ export default function VoiceRecognitionDebug() {
     return null;
   }
 
+  // 스크린샷용 임시 숨김 (제거 가능)
+  const hideForScreenshot = true;
+  if (hideForScreenshot) {
+    return null;
+  }
+
   const formatTime = (timestamp: number) => {
     if (!timestamp) return '-';
     const date = new Date(timestamp);

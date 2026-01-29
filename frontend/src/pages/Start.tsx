@@ -13,15 +13,24 @@ import { useKeyboardShortcuts } from '../contexts/KeyboardContext';
 import { useAutoGuidance } from '../hooks/useAutoGuidance';
 import AppShellMobile from '../components/ui/AppShellMobile';
 import ToastA11y from '../components/system/ToastA11y';
+import { useLastLectureStore } from '../store/lastLectureStore';
 
-interface ResumeInfo {
-  book: Book;
-  lesson: Lesson;
-  unit: Unit;
-  questionNumber: number;
-  totalQuestions: number;
-  progressPercentage: number;
-}
+type ResumeInfo =
+  | {
+      type: 'curriculum';
+      book: Book;
+      lesson: Lesson;
+      unit: Unit;
+      questionNumber: number;
+      totalQuestions: number;
+      progressPercentage: number;
+    }
+  | {
+      type: 'lecture';
+      subject: 'literature' | 'english' | 'math1';
+      lectureId: number;
+      lectureTitle: string;
+    };
 
 export default function Start() {
   const navigate = useNavigate();
@@ -43,6 +52,16 @@ export default function Start() {
 
       if (!progress?.unit_id) {
         if (import.meta.env.DEV) console.log('[Start] No progress found');
+        // curriculum 진도가 없으면 최근 강의 확인
+        const last = useLastLectureStore.getState().lastLecture;
+        if (last) {
+          setResumeInfo({
+            type: 'lecture',
+            subject: last.subject,
+            lectureId: last.lectureId,
+            lectureTitle: last.lectureTitle,
+          });
+        }
         setLoading(false);
         return;
       }
@@ -57,7 +76,6 @@ export default function Start() {
 
         if (!progress.lesson_id) {
           if (import.meta.env.DEV) console.log('[Start] No lesson_id in progress, cannot recover');
-          // Progress 완전 초기화
           await progressAPI.save({
             user_id: 'u_demo',
             book_id: undefined,
@@ -65,6 +83,15 @@ export default function Start() {
             unit_id: undefined,
             syncpoint_id: undefined,
           });
+          const last = useLastLectureStore.getState().lastLecture;
+          if (last) {
+            setResumeInfo({
+              type: 'lecture',
+              subject: last.subject,
+              lectureId: last.lectureId,
+              lectureTitle: last.lectureTitle,
+            });
+          }
           setLoading(false);
           return;
         }
@@ -76,7 +103,6 @@ export default function Start() {
 
           if (questions.length === 0) {
             if (import.meta.env.DEV) console.log('[Start] No questions found in lesson');
-            // Progress 완전 초기화
             await progressAPI.save({
               user_id: 'u_demo',
               book_id: undefined,
@@ -84,6 +110,15 @@ export default function Start() {
               unit_id: undefined,
               syncpoint_id: undefined,
             });
+            const last = useLastLectureStore.getState().lastLecture;
+            if (last) {
+              setResumeInfo({
+                type: 'lecture',
+                subject: last.subject,
+                lectureId: last.lectureId,
+                lectureTitle: last.lectureTitle,
+              });
+            }
             setLoading(false);
             return;
           }
@@ -102,7 +137,6 @@ export default function Start() {
 
           if (import.meta.env.DEV) console.log(`[Start] Recovered: using first question ${unit.unit_id} from lesson`);
         } catch (lessonErr: unknown) {
-          // Lesson도 없으면 progress 완전 초기화
           console.warn(`[Start] Lesson ${progress.lesson_id} not found, clearing progress`);
           await progressAPI.save({
             user_id: 'u_demo',
@@ -111,6 +145,15 @@ export default function Start() {
             unit_id: undefined,
             syncpoint_id: undefined,
           });
+          const last = useLastLectureStore.getState().lastLecture;
+          if (last) {
+            setResumeInfo({
+              type: 'lecture',
+              subject: last.subject,
+              lectureId: last.lectureId,
+              lectureTitle: last.lectureTitle,
+            });
+          }
           setLoading(false);
           return;
         }
@@ -136,6 +179,7 @@ export default function Start() {
         : 0;
 
       setResumeInfo({
+        type: 'curriculum',
         book,
         lesson,
         unit,
@@ -145,25 +189,37 @@ export default function Start() {
       });
     } catch (err) {
       console.error('[Start] Failed to load resume info:', err);
-      // 에러 발생 시 resume 정보 없이 계속 진행 (새로 시작만 가능)
+      const last = useLastLectureStore.getState().lastLecture;
+      if (last) {
+        setResumeInfo({
+          type: 'lecture',
+          subject: last.subject,
+          lectureId: last.lectureId,
+          lectureTitle: last.lectureTitle,
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Auto-announce on load
+  const resumeLabel =
+    resumeInfo?.type === 'curriculum'
+      ? `${resumeInfo.book.title} ${resumeInfo.lesson.title} ${resumeInfo.questionNumber}번 문제`
+      : resumeInfo?.type === 'lecture'
+        ? `${resumeInfo.lectureTitle}`
+        : '';
+
   const autoAnnounceMessage = resumeInfo
-    ? `점글이 수능 학습 도우미입니다. 마지막으로 ${resumeInfo.book.title} ${resumeInfo.lesson.title} ${resumeInfo.questionNumber}번 문제에서 멈췄습니다. 1번을 눌러 이어하기, 2번을 눌러 문학 교재, 3번을 눌러 다른 교재를 선택하세요.`
-    : '점글이 수능 학습 도우미입니다. 2번을 눌러 문학 교재, 3번을 눌러 다른 교재를 선택하세요.';
+    ? `점글이 수능 학습 도우미입니다. 마지막으로 ${resumeLabel}에서 멈췄습니다. 1번 이어하기, 2번 다른 교재입니다.`
+    : '점글이 수능 학습 도우미입니다. 2번 다른 교재입니다.';
 
   useAutoGuidance(autoAnnounceMessage, [loading, resumeInfo]);
 
-  // Keyboard shortcuts
   useKeyboardShortcuts(
     {
       '1': () => handleResume(),
-      '2': () => navigate('/literature/lectures'),
-      '3': () => handleNewStart(),
+      '2': () => handleNewStart(),
       'h': () => handleHelp(),
       'q': () => handleQuit(),
     },
@@ -175,9 +231,17 @@ export default function Start() {
       showToastMsg('진행 중인 학습이 없습니다. 새로 시작하세요.');
       return;
     }
-
-    // Navigate to the current unit
-    navigate(`/unit/${resumeInfo.unit.unit_id}`);
+    if (resumeInfo.type === 'curriculum') {
+      navigate(`/unit/${resumeInfo.unit.unit_id}`);
+      return;
+    }
+    const path =
+      resumeInfo.subject === 'literature'
+        ? `/literature/lectures/${resumeInfo.lectureId}`
+        : resumeInfo.subject === 'english'
+          ? `/english/lectures/${resumeInfo.lectureId}`
+          : `/math1/lectures/${resumeInfo.lectureId}`;
+    navigate(path);
   };
 
   const handleNewStart = () => {
@@ -186,8 +250,8 @@ export default function Start() {
 
   const handleHelp = () => {
     const helpMessage = resumeInfo
-      ? '1번: 학습 재개. 2번: 문학 교재. 3번: 다른 교재. H키: 도움말. Q키: 종료.'
-      : '2번: 문학 교재. 3번: 다른 교재. H키: 도움말. Q키: 종료.';
+      ? '1: 재개. 2: 다른 교재. H: 도움말. Q: 종료.'
+      : '2: 다른 교재. H: 도움말. Q: 종료.';
     showToastMsg(helpMessage);
   };
 
@@ -234,20 +298,33 @@ export default function Start() {
                          hover:scale-[1.02] active:scale-[0.98] text-left
                          border border-primary-light/20"
               style={{ background: 'linear-gradient(135deg, rgb(49, 130, 246) 0%, rgb(96, 165, 250) 100%)' }}
-              aria-label={`1번: 학습 재개 - ${resumeInfo.book.title} ${resumeInfo.lesson.title} ${resumeInfo.questionNumber}번 문제`}
+              aria-label={`1번: 학습 재개 - ${resumeInfo.type === 'curriculum' ? `${resumeInfo.book.title} ${resumeInfo.lesson.title} ${resumeInfo.questionNumber}번 문제` : resumeInfo.lectureTitle}`}
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-lg font-bold">[1] 학습 재개</span>
-                <span className="text-sm bg-white/20 px-3 py-1 rounded-full font-semibold">
-                  {resumeInfo.progressPercentage}%
-                </span>
+                {resumeInfo.type === 'curriculum' && (
+                  <span className="text-sm bg-white/20 px-3 py-1 rounded-full font-semibold">
+                    {resumeInfo.progressPercentage}%
+                  </span>
+                )}
               </div>
               <div className="text-sm space-y-1.5 opacity-95">
-                <p className="font-medium">{resumeInfo.book.title}</p>
-                <p>{resumeInfo.lesson.title}</p>
-                <p className="font-semibold mt-2">
-                  {resumeInfo.questionNumber}번 문제 / 총 {resumeInfo.totalQuestions}문제
-                </p>
+                {resumeInfo.type === 'curriculum' ? (
+                  <>
+                    <p className="font-medium">{resumeInfo.book.title}</p>
+                    <p>{resumeInfo.lesson.title}</p>
+                    <p className="font-semibold mt-2">
+                      {resumeInfo.questionNumber}번 문제 / 총 {resumeInfo.totalQuestions}문제
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium">
+                      {resumeInfo.subject === 'literature' ? '문학' : resumeInfo.subject === 'english' ? '영어' : '수학'}
+                    </p>
+                    <p className="font-semibold mt-2">{resumeInfo.lectureTitle}</p>
+                  </>
+                )}
               </div>
             </button>
           ) : (
@@ -259,21 +336,8 @@ export default function Start() {
             </div>
           )}
 
-          {/* Quick Start Options */}
+          {/* 다른 교재 */}
           <div className="space-y-3">
-            <button
-              onClick={() => navigate('/literature/lectures')}
-              className="w-full p-6 border border-border/50 rounded-2xl
-                         shadow-soft hover:shadow-soft-lg hover:border-primary/30
-                         transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] text-left
-                         hover:bg-card-hover"
-              style={{ background: 'linear-gradient(135deg, rgb(249, 250, 251) 0%, rgb(255, 255, 255) 100%)' }}
-              aria-label="2번: 문학 교재"
-            >
-              <div className="text-lg font-bold mb-2 text-fg">[2] 문학 📚</div>
-              <p className="text-sm text-muted">문학 교재 학습 시작</p>
-            </button>
-
             <button
               onClick={handleNewStart}
               className="w-full p-6 border border-border/50 rounded-2xl
@@ -281,9 +345,9 @@ export default function Start() {
                          transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] text-left
                          hover:bg-card-hover"
               style={{ background: 'linear-gradient(135deg, rgb(249, 250, 251) 0%, rgb(255, 255, 255) 100%)' }}
-              aria-label="3번: 다른 교재 - 교재 선택으로 이동"
+              aria-label={resumeInfo ? "2번: 다른 교재 - 교재 선택으로 이동" : "다른 교재 - 교재 선택으로 이동"}
             >
-              <div className="text-lg font-bold mb-2 text-fg">[3] 다른 교재</div>
+              <div className="text-lg font-bold mb-2 text-fg">{resumeInfo ? '[2] 다른 교재' : '다른 교재'}</div>
               <p className="text-sm text-muted">업로드된 교재 목록 보기</p>
             </button>
           </div>
@@ -334,8 +398,8 @@ export default function Start() {
             style={{ background: 'rgba(249, 250, 251, 0.5)' }}
           >
             {resumeInfo
-              ? '키보드로 조작: 1 (재개), 2 (문학), 3 (다른교재), H (도움말), Q (종료)'
-              : '키보드로 조작: 2 (문학), 3 (다른교재), H (도움말), Q (종료)'}
+              ? '1: 재개, 2: 다른교재, H: 도움말, Q: 종료'
+              : '2: 다른교재, H: 도움말, Q: 종료'}
           </p>
         </div>
       </div>

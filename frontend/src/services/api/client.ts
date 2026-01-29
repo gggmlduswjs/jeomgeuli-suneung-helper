@@ -248,9 +248,11 @@ export class BookService extends ResourceService<Book> {
     title: string,
     subject: Subject,
     year?: number,
-    aiOptions?: AIProcessingOptions
+    aiOptions?: AIProcessingOptions,
+    templateName?: string,
+    simpleMode?: boolean
   ): Promise<Book> {
-    return this.uploadPDF(file, title, subject, year, aiOptions);
+    return this.uploadPDF(file, title, subject, year, aiOptions, templateName, simpleMode);
   }
 
   /**
@@ -261,7 +263,9 @@ export class BookService extends ResourceService<Book> {
     title: string,
     subject: Subject,
     year?: number,
-    aiOptions?: AIProcessingOptions
+    aiOptions?: AIProcessingOptions,
+    templateName?: string,
+    simpleMode?: boolean
   ): Promise<Book> {
     const formData = new FormData();
     formData.append('file', file);
@@ -269,6 +273,12 @@ export class BookService extends ResourceService<Book> {
     formData.append('subject', subject);
     if (year) {
       formData.append('year', year.toString());
+    }
+    if (simpleMode !== undefined) {
+      formData.append('simple_mode', simpleMode.toString());
+    }
+    if (templateName) {
+      formData.append('template_name', templateName);
     }
 
     // AI 옵션 추가

@@ -1,0 +1,32 @@
+{
+  "subject": "math1",
+  "lecture_title_patterns": [
+    "^\\d+단원\\s+[가-힣]+",
+    "^\\d+\\s+단원\\s+[가-힣]+",
+    "^\\d+\\.\\s+[가-힣]+",
+    "^\\d+\\s+[가-힣]{2,}"
+  ],
+  "concept_title_patterns": [
+    "^\\d+\\.\\s+[가-힣]+",
+    "^\\([가-힣]\\)\\s+[가-힣]+",
+    "^[가-힣]\\.\\s+[가-힣]+"
+  ],
+  "example_title_patterns": [
+    "^예제\\s*\\d+",
+    "^예\\s*\\d+",
+    "^Example\\s*\\d+"
+  ],
+  "exercise_title_patterns": [
+    "^유제\\s*\\d+",
+    "^연습\\s*\\d+",
+    "^Exercise\\s*\\d+"
+  ],
+  "section_title_patterns": [
+    "^\\d+\\.\\s+[가-힣]+",
+    "^\\([가-힣]\\)\\s+[가-힣]+",
+    "^[가-힣]\\.\\s+[가-힣]+"
+  ],
+  "problem_number_pattern": "^\\d+\\.",
+  "paragraph_y_threshold": 25,
+  "start_content_page": 5
+}

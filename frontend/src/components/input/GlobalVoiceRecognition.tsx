@@ -107,8 +107,7 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
     } finally {
       sttLockRef.current = false;
       coolUntilRef.current = Date.now() + 300; // 600ms → 300ms로 단축
-      // TODO: VoiceEventBus에 emitMicMode 메서드 추가 필요
-      // try { VoiceEventBus.emitMicMode(false); } catch {}
+      // VoiceEventBus에 emitMicMode 메서드 추가 예정
     }
   }, [stopSTT, isListening]);
 
@@ -356,22 +355,31 @@ export default function GlobalVoiceRecognition({ onTranscript }: GlobalVoiceReco
 
     // 버튼/입력 필드/링크 필터링 (더 엄격하게)
     const target = e.target as HTMLElement;
+    
+    // 명시적으로 비활성화된 요소만 제외 (긴 터치 기능 활성화)
+    if (target.getAttribute('data-no-long-press') === 'true') {
+      return; // 명시적으로 비활성화된 요소만 제외
+    }
+    
+    // 입력 필드와 버튼은 제외 (하지만 일반 영역에서는 긴 터치 허용)
     if (
-      target.tagName === 'BUTTON' ||
       target.tagName === 'INPUT' ||
       target.tagName === 'TEXTAREA' ||
-      target.tagName === 'A' ||
       target.tagName === 'SELECT' ||
-      target.closest('button') ||
       target.closest('input') ||
       target.closest('textarea') ||
-      target.closest('a') ||
-      target.closest('[role="button"]') ||
-      target.closest('[onclick]') ||
-      // 스크롤 가능한 영역은 제외하지 않음 (길게 누르면 마이크 켜짐)
-      target.getAttribute('data-no-long-press') === 'true' // 특정 요소는 명시적으로 제외
+      target.closest('select')
     ) {
-      return; // 버튼/입력 필드/링크에서는 마이크 시작하지 않음
+      return; // 입력 필드에서는 마이크 시작하지 않음
+    }
+    
+    // 버튼/링크는 클릭 이벤트와 충돌 방지를 위해 제외하되, 
+    // 일반 콘텐츠 영역에서는 긴 터치 허용
+    if (
+      (target.tagName === 'BUTTON' || target.tagName === 'A') &&
+      !target.closest('[data-allow-long-press]') // data-allow-long-press가 있으면 허용
+    ) {
+      return; // 버튼/링크에서는 마이크 시작하지 않음 (단, data-allow-long-press가 있으면 허용)
     }
 
     // 이미 활성 포인터가 있으면 무시

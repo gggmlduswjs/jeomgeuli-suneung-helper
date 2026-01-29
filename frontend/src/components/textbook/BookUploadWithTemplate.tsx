@@ -73,6 +73,7 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
   const [_parsing, setParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatedTemplate, setGeneratedTemplate] = useState<{ name: string; warnings?: string[] } | null>(null);
+  const [uploadedBook, setUploadedBook] = useState<Book | null>(null);
 
   // 과목 변경 시 템플릿 로드
   useEffect(() => {
@@ -175,9 +176,9 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
         enable_llm_recommendations: false,
         openai_api_key: '',
         education_level: 'high',
-      });
+      }, selectedTemplate.name);  // ← 템플릿 이름 전달!
 
-      onSpeak?.(`${book.title} 업로드 및 파싱이 시작되었습니다.`);
+      onSpeak?.(`${book.title} 업로드 및 파싱이 시작되었습니다. 템플릿: ${selectedTemplate.name}`);
       onUploadComplete(book);
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : '업로드 중 오류가 발생했습니다.';
@@ -350,19 +351,30 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
     setError(null);
 
     try {
-      const book = await booksAPI.upload(file, title, subject, year, {
-        enable_ml_deduplication: true,
-        enable_ml_classification: true,
-        enable_layout_analysis: false,
-        enable_math_recognition: false,
-        enable_llm_metadata: false,
-        enable_llm_explanations: false,
-        enable_llm_recommendations: false,
-        openai_api_key: '',
-        education_level: 'high',
-      });
+      let book: Book;
 
-      onSpeak?.(`${book.title} 업로드 및 파싱이 시작되었습니다.`);
+      if (uploadedBook && generatedTemplate?.name) {
+        // ✅ 이미 업로드된 book이 있으면 재파싱
+        onSpeak?.(`템플릿 ${generatedTemplate.name}으로 재파싱을 시작합니다.`);
+        await booksAPI.reparse(uploadedBook.book_id, generatedTemplate.name);
+        book = uploadedBook;
+      } else {
+        // ✅ 새로 업로드
+        book = await booksAPI.upload(file, title, subject, year, {
+          enable_ml_deduplication: true,
+          enable_ml_classification: true,
+          enable_layout_analysis: false,
+          enable_math_recognition: false,
+          enable_llm_metadata: false,
+          enable_llm_explanations: false,
+          enable_llm_recommendations: false,
+          openai_api_key: '',
+          education_level: 'high',
+        }, generatedTemplate?.name);
+      }
+
+      const templateInfo = generatedTemplate?.name ? ` 템플릿: ${generatedTemplate.name}` : '';
+      onSpeak?.(`${book.title} 파싱이 시작되었습니다.${templateInfo}`);
       onUploadComplete(book);
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : '파싱 시작 중 오류가 발생했습니다.';
@@ -384,7 +396,7 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
       .split('\n')
       .map(s => s.trim())
       .filter(Boolean);
-    
+
     if (lectureExamples.length < 1) {
       setError('TOC 강의 라인 예시를 최소 1줄 이상 입력해주세요.');
       onSpeak?.('TOC 강의 라인 예시를 최소 1줄 이상 입력해주세요.');
@@ -396,6 +408,30 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
     setError(null);
 
     try {
+      // ✅ 1단계: 먼저 Book 업로드 (region_image_examples 추출을 위해 필요)
+      let bookId: string | undefined = undefined;
+      if (!uploadedBook) {
+        onSpeak?.('교재를 먼저 업로드하는 중입니다...');
+        const book = await booksAPI.upload(file, title, subject, year, {
+          enable_ml_deduplication: false,
+          enable_ml_classification: false,
+          enable_layout_analysis: false,
+          enable_math_recognition: false,
+          enable_llm_metadata: false,
+          enable_llm_explanations: false,
+          enable_llm_recommendations: false,
+          openai_api_key: '',
+          education_level: 'high',
+        }, undefined);  // 템플릿 없이 업로드
+
+        setUploadedBook(book);
+        bookId = book.book_id;
+        onSpeak?.(`교재 업로드 완료. 이제 템플릿을 생성합니다.`);
+      } else {
+        bookId = uploadedBook.book_id;
+      }
+
+      // ✅ 2단계: 템플릿 생성 (book_id 자동 전달)
       const templateName = `ebs_수능특강_${SUBJECT_MAP[subject]}_${year}`;
 
       // 추출된 텍스트 예시가 있으면 defaults에 포함
@@ -409,7 +445,7 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
         defaultsWithTextExamples.region_text_examples = extractedTextExamples;
       }
 
-      // 템플릿 생성
+      // 템플릿 생성 (book_id 포함!)
       const res = await templatesAPI.generateFromToc({
         subject: SUBJECT_MAP[subject],
         name: templateName,
@@ -420,6 +456,7 @@ export default function BookUploadWithTemplate({ onUploadComplete, onSpeak, onCa
         toc_text: tocText,
         curriculum_survey: curriculumSurvey,
         parsing_guide_regions: parsingGuideRegions.length > 0 ? parsingGuideRegions : [],
+        book_id: bookId,  // ✅ book_id 자동 전달!
         toc_lecture_line_examples: lectureExamples,
         toc_nonlecture_line_examples: tocNonLectureExamples
           .split('\n')

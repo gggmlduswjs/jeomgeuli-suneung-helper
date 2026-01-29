@@ -1,0 +1,1494 @@
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.pipeline] [UnifiedPipeline] 로거 레벨을 INFO로 설정
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 초기화 - 템플릿 디렉토리: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\templates
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] API_DIR: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 디렉토리 존재 여부: True
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 디렉토리 내용 (2개 항목):
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.parsers.template_manager]   - images (디렉토리)
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.parsers.template_manager]   - literature_ebs_수능특강_literature_2026.json (파일)
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 발견된 템플릿 파일: 1개
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 템플릿 로드 성공: literature_ebs_수능특강_literature_2026 (파일: literature_ebs_수능특강_literature_2026.json)
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 총 1개 템플릿 로드 완료
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.pipeline] UnifiedPipeline 초기화 완료: literature, OCR=auto, Save=True, BookID=book_korean_2026_수능특강_문학_457762
+[2026-01-25 22:43:04] [INFO] [app.routers.books] [books] 파이프라인 설정: DPI=200, 병렬=True (워커 2개), OCR=True
+[2026-01-25 22:43:04] [INFO] [app.routers.books] [books] PDF 파일 확인: C:\Users\user\Desktop\jeomgeuli-suneung-helper\data\uploads\book_korean_2026_수능특강_문학_457762.pdf
+[2026-01-25 22:43:04] [INFO] [app.routers.books] [books] PDF 파일 존재 여부: True
+[2026-01-25 22:43:04] [INFO] [app.routers.books] [books] PDF 파일 크기: 21929659 bytes
+[2026-01-25 22:43:04] [INFO] [app.routers.books] [books] 파이프라인 실행 시작...
+[2026-01-25 22:43:04] [INFO] [app.services.progress_tracker] [ProgressTracker] 진행률: 20% - 텍스트 추출 시작
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.pipeline] UnifiedPipeline 시작: C:\Users\user\Desktop\jeomgeuli-suneung-helper\data\uploads\book_korean_2026_수능특강_문학_457762.pdf
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.pipeline] 1. 텍스트 추출 시작 (추출기: PdfplumberExtractor)
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.page_range_calculator] [PageRangeCalculator] 템플릿 기반 페이지 범위 계산: 1~320 (강의: 9~320, TOC: 1~7)
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.pipeline]    📋 템플릿 기반 페이지 범위 적용: 1~320
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.pipeline]    Auto 모드: 샘플 검사 (페이지 1-5)
+[2026-01-25 22:43:04] [INFO] [app.infrastructure.pdf.extractors.base]    pdfplumber: 5개 페이지 처리 중... (페이지 1-5)
+[2026-01-25 22:43:05] [INFO] [app.infrastructure.pdf.pipeline]    텍스트 레이어 양호 → pdfplumber 사용
+[2026-01-25 22:43:05] [INFO] [app.infrastructure.pdf.pipeline]    pdfplumber 모드: 추출 중 (페이지 1~320)
+[2026-01-25 22:43:06] [INFO] [app.infrastructure.pdf.extractors.base]    pdfplumber: 320개 페이지 처리 중... (페이지 1-320)
+[2026-01-25 22:43:11] [INFO] [app.routers.books] [simple_parse_book] 데이터베이스에 Lesson 및 Unit 생성 시작: book_korean_2026_수능특강_문학_457762
+[2026-01-25 22:43:11] [INFO] [app.routers.books] [simple_parse_book] 기존 Lesson 0개 삭제 완료
+[2026-01-25 22:43:11] [WARNING] [app.routers.books] [simple_parse_book] 강의 1의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:11] [WARNING] [app.routers.books] [simple_parse_book] 강의 2의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:11] [WARNING] [app.routers.books] [simple_parse_book] 강의 3의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:11] [WARNING] [app.routers.books] [simple_parse_book] 강의 4의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [WARNING] [app.routers.books] [simple_parse_book] 강의 5의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [WARNING] [app.routers.books] [simple_parse_book] 강의 6의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [WARNING] [app.routers.books] [simple_parse_book] 강의 7의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [WARNING] [app.routers.books] [simple_parse_book] 강의 8의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [WARNING] [app.routers.books] [simple_parse_book] 강의 9의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_10, 페이지: 44-45
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 10: 2개 Unit 생성
+[2026-01-25 22:43:12] [WARNING] [app.routers.books] [simple_parse_book] 강의 11의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [WARNING] [app.routers.books] [simple_parse_book] 강의 12의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [WARNING] [app.routers.books] [simple_parse_book] 강의 13의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_14, 페이지: 53-55
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 14: 3개 Unit 생성
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_15, 페이지: 56-59
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 15: 4개 Unit 생성
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_16, 페이지: 60-63
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 16: 4개 Unit 생성
+[2026-01-25 22:43:12] [WARNING] [app.routers.books] [simple_parse_book] 강의 17의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [WARNING] [app.routers.books] [simple_parse_book] 강의 18의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_19, 페이지: 70-73
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 19: 4개 Unit 생성
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_20, 페이지: 74-76
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 20: 3개 Unit 생성
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_21, 페이지: 77-79
+[2026-01-25 22:43:12] [INFO] [app.routers.books] [simple_parse_book] Lesson 21: 3개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_22, 페이지: 80-82
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 22: 3개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_23, 페이지: 83-85
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 23: 3개 Unit 생성
+[2026-01-25 22:43:13] [WARNING] [app.routers.books] [simple_parse_book] 강의 24의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:13] [WARNING] [app.routers.books] [simple_parse_book] 강의 25의 페이지 정보 없음, 건너뜁니다.
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_26, 페이지: 92-94
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 26: 3개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_27, 페이지: 95-97
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 27: 3개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_28, 페이지: 98-99
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 28: 2개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_29, 페이지: 100-102
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 29: 3개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_30, 페이지: 103-105
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 30: 3개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_31, 페이지: 106-108
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 31: 3개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_32, 페이지: 109-112
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 32: 4개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_33, 페이지: 113-116
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 33: 4개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_34, 페이지: 117-120
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 34: 4개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_35, 페이지: 121-124
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 35: 4개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_36, 페이지: 125-128
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 36: 4개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_37, 페이지: 129-132
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 37: 4개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_38, 페이지: 133-136
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 38: 4개 Unit 생성
+[2026-01-25 22:43:13] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_39, 페이지: 137-140
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 39: 4개 Unit 생성
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_40, 페이지: 141-145
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 40: 5개 Unit 생성
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_41, 페이지: 146-150
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 41: 5개 Unit 생성
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_42, 페이지: 151-154
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 42: 4개 Unit 생성
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_43, 페이지: 155-158
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 43: 4개 Unit 생성
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_44, 페이지: 159-162
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 44: 4개 Unit 생성
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 생성: lesson_korean_45, 페이지: 163-166
+[2026-01-25 22:43:14] [INFO] [app.routers.books] [simple_parse_book] Lesson 45: 4개 Unit 생성
+[2026-01-25 22:43:14] [ERROR] [app.routers.books] [simple_parse_book] 간단 파싱 실패: (sqlite3.IntegrityError) UNIQUE constraint failed: lessons.lesson_id
+[SQL: INSERT INTO lessons (lesson_id, book_id, "index", title, lecture_script_text, estimated_time, key_points, has_question, has_analysis, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('lesson_korean_45', 'book_korean_2026_수능특강_문학_457762', 45, '45강 | 사수 (전광용)', None, None, None, 0, 0, '2026-01-25 13:43:14.353805')]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.pipeline]    추출 완료: 320개 페이지
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.pipeline]    추출 완료: 320개 페이지
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.pipeline] 2. 파서 선택 중...
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 템플릿 재로드 시작
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 디렉토리 내용 (2개 항목):
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager]   - images (디렉토리)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager]   - literature_ebs_수능특강_literature_2026.json (파일)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 발견된 템플릿 파일: 1개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 템플릿 로드 성공: literature_ebs_수능특강_literature_2026 (파일: literature_ebs_수능특강_literature_2026.json)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 총 1개 템플릿 로드 완료
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 템플릿 재로드 완료: 총 1개 템플릿
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.pipeline]    템플릿 1개 로드됨
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.hybrid_router] [HybridRouter] 템플릿 매칭 시도 (과목: literature, 로드된 템플릿: 1개)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [템플릿 매칭] 영역 마킹 있음: 1개, 없음: 0개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [템플릿 매칭] 영역별 유사도: concept=0.00, passage=0.00, problem=0.00 (평균: 0.00)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [템플릿 매칭] ebs_수능특강_literature_2026 신뢰도 계산 (영역 마킹 포함): 강의=0.00(30%), 문제=0.00(20%), 개념=0.00(15%), 기본=0.85(5%), 영역=0.00(30%) → 총=0.04
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [템플릿 매칭] 매칭 실패 (임계값 미달): ebs_수능특강_literature_2026 (confidence: 0.04 < 0.65)
+[2026-01-25 22:43:57] [WARNING] [app.infrastructure.pdf.parsers.hybrid_router] [HybridRouter] 템플릿 매칭 실패
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.hybrid_router] [HybridRouter] 최신 템플릿 강제 사용: ebs_수능특강_literature_2026
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 초기화 - 템플릿 디렉토리: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\templates
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] API_DIR: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 디렉토리 존재 여부: True
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 디렉토리 내용 (2개 항목):
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager]   - images (디렉토리)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager]   - literature_ebs_수능특강_literature_2026.json (파일)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 발견된 템플릿 파일: 1개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 템플릿 로드 성공: literature_ebs_수능특강_literature_2026 (파일: literature_ebs_수능특강_literature_2026.json)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.template_manager] [TemplateManager] 총 1개 템플릿 로드 완료
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 템플릿 사용: ebs_수능특강_literature_2026 (신뢰도: 0.85)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.pipeline]    전략: template, 템플릿: ebs_수능특강_literature_2026 (신뢰도: 0.50)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.pipeline] 3. 파싱 중 (파서: UnifiedTemplateParser)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 템플릿 TOC 강의 목록 사용: 79개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 79개 강의 로드 완료
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 문제 추출 region_hints 사용: y_min=0.099, y_max=0.790
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 8: region 필터 180개, 문제 0개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 9: region 필터 81개, 문제 0개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 10: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 11: region 필터 193개, 문제 0개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 12: region 필터 103개, 문제 0개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 13: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 14: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 15: region 필터 276개, 문제 0개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 16: region 필터 159개, 문제 0개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 17: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 18: region 필터 202개, 문제 0개
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 21: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 22: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 23: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 26: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 27: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 28: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 30: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 34: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 39: 문제 3개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 42: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 45: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 47: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 48: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 50: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 52: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 54: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 55: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 58: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 59: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 62: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 63: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 66: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 68: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 69: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 72: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 73: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 75: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 76: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 79: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 82: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 84: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 85: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 87: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 88: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 90: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 91: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 92: 문제 3개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 94: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 97: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 99: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 101: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 102: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 105: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 108: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 111: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 112: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 115: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 116: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 120: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 123: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 124: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 127: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 128: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 131: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 132: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 135: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 136: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 139: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 140: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 143: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 144: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 145: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 148: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 149: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 150: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 153: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 154: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 157: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 158: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 161: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 162: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 166: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 170: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 174: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 178: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 182: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 183: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 186: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 187: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 190: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 191: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 194: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 195: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 198: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 199: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 202: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 203: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 206: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 209: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 210: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 213: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 217: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 218: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 221: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 222: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 226: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 230: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 234: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 235: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 236: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 240: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 241: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 242: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 246: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 247: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 248: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 252: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 253: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 254: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 258: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 259: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 260: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 261: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 265: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 266: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 270: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 271: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 275: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 276: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 280: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 281: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 282: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 286: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 287: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 288: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 290: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 291: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 292: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 293: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 298: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 299: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 303: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 304: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 305: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 309: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 311: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 315: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 316: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 319: 문제 1개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 페이지 320: 문제 2개 발견
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 파싱 완료: 79개 강의, 182개 문제 (템플릿: ebs_수능특강_literature_2026)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.pipeline]    완료: 79개 강의, 182개 문제
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.pipeline] 4. 강의 콘텐츠 추출 중...
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (312 pages)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 4개 섹션
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 4개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 4개 섹션
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:43:57] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 4개 이미지 저장
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:43:58] [WARNING] [app.infrastructure.pdf.lecture_contents_extractor] 강의 2의 페이지 정보가 유효하지 않음 (lecture_page=None), 기본값 사용: 8
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (7 pages)
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[293, 167, 1075, 615])
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[287, 610, 1085, 1104])
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 6개 섹션
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 6개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 6개 섹션
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_00.png 저장 (concept, 페이지 8)
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_01.png 저장 (concept, 페이지 8)
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:43:58] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 6개 이미지 저장
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 14개 텍스트 저장
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 51개 텍스트 저장
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:59] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (5 pages)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:59] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (5 pages)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:59] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:59] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:59] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (5 pages)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:59] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:59] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (2 pages)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:59] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (275 pages)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:59] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:43:59] [WARNING] [app.infrastructure.pdf.lecture_contents_extractor] 강의 12의 페이지 정보가 유효하지 않음 (lecture_page=None), 기본값 사용: 8
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (313 pages)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[293, 167, 1075, 615])
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[287, 610, 1085, 1104])
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 6개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 6개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 6개 섹션
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_00.png 저장 (concept, 페이지 8)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_01.png 저장 (concept, 페이지 8)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:43:59] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 6개 이미지 저장
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 14개 텍스트 저장
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 51개 텍스트 저장
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:44:00] [WARNING] [app.infrastructure.pdf.lecture_contents_extractor] 강의 13의 페이지 정보가 유효하지 않음 (lecture_page=None), 기본값 사용: 8
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (45 pages)
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[293, 167, 1075, 615])
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[287, 610, 1085, 1104])
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 6개 섹션
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 6개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 6개 섹션
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_00.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_01.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:44:00] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 6개 이미지 저장
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 14개 텍스트 저장
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 51개 텍스트 저장
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:01] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:01] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:01] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (257 pages)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:01] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:01] [WARNING] [app.infrastructure.pdf.lecture_contents_extractor] 강의 18의 페이지 정보가 유효하지 않음 (lecture_page=None), 기본값 사용: 8
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (62 pages)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[293, 167, 1075, 615])
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[287, 610, 1085, 1104])
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 6개 섹션
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 6개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 6개 섹션
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_00.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_01.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:44:01] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 6개 이미지 저장
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 14개 텍스트 저장
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 51개 텍스트 저장
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (2 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (5 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (5 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (8 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (5 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (3 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (5 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (5 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (5 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (6 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (6 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (6 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (66 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:02] [WARNING] [app.infrastructure.pdf.lecture_contents_extractor] 강의 66의 페이지 정보가 유효하지 않음 (lecture_page=None), 기본값 사용: 8
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (259 pages)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[293, 167, 1075, 615])
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[287, 610, 1085, 1104])
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 6개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 6개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 6개 섹션
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_00.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:02] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_01.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 6개 이미지 저장
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 14개 텍스트 저장
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 51개 텍스트 저장
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (54 pages)
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:03] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:03] [WARNING] [app.infrastructure.pdf.lecture_contents_extractor] 강의 68의 페이지 정보가 유효하지 않음 (lecture_page=None), 기본값 사용: 8
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (269 pages)
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[293, 167, 1075, 615])
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[287, 610, 1085, 1104])
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 6개 섹션
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 6개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:03] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 6개 섹션
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_00.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_01.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 6개 이미지 저장
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 14개 텍스트 저장
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 51개 텍스트 저장
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (44 pages)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:04] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:04] [WARNING] [app.infrastructure.pdf.lecture_contents_extractor] 강의 70의 페이지 정보가 유효하지 않음 (lecture_page=None), 기본값 사용: 8
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (313 pages)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[293, 167, 1075, 615])
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[287, 610, 1085, 1104])
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 6개 섹션
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 6개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:04] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 6개 섹션
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_00.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_01.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 6개 이미지 저장
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 14개 텍스트 저장
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 51개 텍스트 저장
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:44:05] [WARNING] [app.infrastructure.pdf.lecture_contents_extractor] 강의 71의 페이지 정보가 유효하지 않음 (lecture_page=None), 기본값 사용: 8
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (288 pages)
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[293, 167, 1075, 615])
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[287, 610, 1085, 1104])
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 6개 섹션
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 6개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:05] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 6개 섹션
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_00.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_01.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 6개 이미지 저장
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 14개 텍스트 저장
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 51개 텍스트 저장
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:06] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (6 pages)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:06] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (4 pages)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:06] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (2 pages)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:06] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (9 pages)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 0개 섹션
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 0개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:06] [WARNING] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 실패 - 템플릿: ebs_수능특강_literature_2026
+[2026-01-25 22:44:06] [WARNING] [app.infrastructure.pdf.lecture_contents_extractor] 강의 78의 페이지 정보가 유효하지 않음 (lecture_page=None), 기본값 사용: 8
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (313 pages)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[293, 167, 1075, 615])
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[287, 610, 1085, 1104])
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 6개 섹션
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 6개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:06] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 6개 섹션
+[2026-01-25 22:44:07] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_00.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:07] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_01.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:07] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:44:07] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:44:07] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:07] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:07] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 6개 이미지 저장
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 14개 텍스트 저장
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 51개 텍스트 저장
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:44:08] [WARNING] [app.infrastructure.pdf.lecture_contents_extractor] 강의 80의 페이지 정보가 유효하지 않음 (lecture_page=None), 기본값 사용: 8
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] Region-based (강의 단위) section extraction 사용
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.region_classifier] [RegionClassifier] Initialized with region_hints: ['concept', 'passage', 'problem']
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier] [TextBlockClassifier] Initialized with 3 unit types, 36 total examples
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - concept: 20 examples
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - passage: 7 examples
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.text_block_classifier]   - problem: 9 examples
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_hints 발견! 페이지 기반 추출 사용 (313 pages)
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 사용 (실제 마킹 bbox)
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[293, 167, 1075, 615])
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Concept Content (page=8, type=concept, bbox=[287, 610, 1085, 1104])
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [01~03] (page=9, type=passage, bbox=[218, 175, 1069, 752])
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=9, type=problem, bbox=[155, 779, 959, 1106])
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: [25001-0002] (page=10, type=problem, bbox=[111, 138, 1055, 474])
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] 마킹 영역 Section: Problem Content (page=10, type=problem, bbox=[122, 688, 1034, 1068])
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.extraction_strategies] [Strategy] region_image_examples 기반 추출 완료: 6개 섹션
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 추출 완료: 6개 (방법: region_image_examples, 신뢰도: 0.95)
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 시작: 6개 섹션
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_00.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] concept_p008_01.png 저장 (concept, 페이지 8)
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] passage_p009_00.png 저장 (passage, 페이지 9)
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p009_01.png 저장 (problem, 페이지 9)
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_00.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.base] [이미지 크롭] problem_p010_01.png 저장 (problem, 페이지 10)
+[2026-01-25 22:44:08] [INFO] [app.infrastructure.pdf.parsers.unified_parser] [UnifiedParser] 섹션 이미지 크롭 완료: 6개 이미지 저장
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 14개 텍스트 저장
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] concept 섹션 (페이지 8): 51개 텍스트 저장
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] passage 섹션 (페이지 9): 19개 텍스트 저장
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 9): 17개 텍스트 저장
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 6개 텍스트 저장
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.lecture_contents_extractor] [Content Extract] problem 섹션 (페이지 10): 13개 텍스트 저장
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.pipeline]    완료: 79개
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.pipeline] 5. 개념 이미지 저장 중...
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.pipeline]    완료: 20개
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.pipeline] 6. 본문 이미지 저장 중...
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.pipeline]    완료: 11개
+[2026-01-25 22:44:09] [INFO] [app.infrastructure.pdf.pipeline] 7. 문제 이미지 저장 중...
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.pipeline]    완료: 182개
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.pipeline]    캐시: 히트=0, 미스=146, 히트율=0.0%
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.pipeline] 8. 결과 저장 중...
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 기존 데이터 삭제 시작: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 디렉토리 삭제: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 문제 디렉토리 삭제: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\problems
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 기존 데이터 삭제 완료
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 목록 저장: 79개
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 1 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_01.json (4개 섹션, 182개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 2 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_02.json (6개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 3 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_03.json (0개 섹션, 1개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 4 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_04.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 5 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_05.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 6 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_06.json (0개 섹션, 1개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 7 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_07.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 8 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_08.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 9 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_09.json (0개 섹션, 1개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 10 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_10.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 11 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_11.json (0개 섹션, 164개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 12 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_12.json (6개 섹션, 182개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 13 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_13.json (6개 섹션, 22개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 14 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_14.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 15 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_15.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 16 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_16.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 17 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_17.json (0개 섹션, 153개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 18 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_18.json (6개 섹션, 33개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 19 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_19.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 20 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_20.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 21 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_21.json (0개 섹션, 1개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 22 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_22.json (0개 섹션, 1개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 23 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_23.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 24 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_24.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 25 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_25.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 26 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_26.json (0개 섹션, 4개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 27 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_27.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 28 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_28.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 29 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_29.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 30 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_30.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 31 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_31.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 32 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_32.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 33 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_33.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 34 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_34.json (0개 섹션, 1개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 35 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_35.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 36 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_36.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 37 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_37.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 38 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_38.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 39 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_39.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 40 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_40.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 41 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_41.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 42 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_42.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 43 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_43.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 44 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_44.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 45 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_45.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 46 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_46.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 47 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_47.json (0개 섹션, 1개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 48 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_48.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 49 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_49.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 50 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_50.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 51 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_51.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 52 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_52.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 53 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_53.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 54 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_54.json (0개 섹션, 1개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 55 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_55.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 56 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_56.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 57 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_57.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 58 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_58.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 59 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_59.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 60 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_60.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 61 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_61.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 62 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_62.json (0개 섹션, 4개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 63 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_63.json (0개 섹션, 4개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 64 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_64.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 65 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_65.json (0개 섹션, 43개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 66 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_66.json (6개 섹션, 147개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 67 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_67.json (0개 섹션, 35개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 68 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_68.json (6개 섹션, 153개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 69 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_69.json (0개 섹션, 29개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 70 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_70.json (6개 섹션, 182개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 71 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_71.json (6개 섹션, 166개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 72 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_72.json (0개 섹션, 3개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 73 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_73.json (0개 섹션, 4개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 74 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_74.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 75 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_75.json (0개 섹션, 2개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 76 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_76.json (0개 섹션, 5개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 78 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_78.json (6개 섹션, 182개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 79 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_79.json (0개 섹션, 0개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 강의 80 저장: C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\lectures\lecture_80.json (6개 섹션, 182개 문제)
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 79개 강의 저장 완료
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.pipeline] 9. OCR 데이터 저장 중...
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] OCR 데이터 저장 완료: 320개 페이지 -> C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\ocr_data
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.pipeline] 10. 원본 PDF 복사 중...
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.result_saver] 원본 PDF 복사 완료: C:\Users\user\Desktop\jeomgeuli-suneung-helper\data\uploads\book_korean_2026_수능특강_문학_457762.pdf -> C:\Users\user\Desktop\jeomgeuli-suneung-helper\backend\data\literature\book_korean_2026_수능특강_문학_457762\original.pdf
+[2026-01-25 22:44:42] [INFO] [app.infrastructure.pdf.pipeline]    완료
+[2026-01-25 22:44:43] [INFO] [app.services.progress_tracker] [ProgressTracker] 진행률: 70% - 파이프라인 처리 완료
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] 파이프라인 실행 완료
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] 파이프라인 결과: 강의 79개, 문제 182개
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] PDF 경로: C:\Users\user\Desktop\jeomgeuli-suneung-helper\data\uploads\book_korean_2026_수능특강_문학_457762.pdf
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] 과목: literature
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] 기존 데이터 삭제 완료: Curriculum 0개 (과목: Subject.KOREAN), Lesson 0개
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] ✅ JSON 파일 확인: 79개 발견
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] JSON → DB 동기화 시작...
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] Curriculum 생성: cur_92979c069be3, 과목: Subject.KOREAN, 강의: 79개
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] ✅ 커리큘럼 자동 생성 완료: cur_92979c069be3
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] ✅ 프론트엔드 연동 완료: 79개 Lesson, 419개 Unit 생성됨
+[2026-01-25 22:44:43] [INFO] [app.services.progress_tracker] [ProgressTracker] 진행률: 100% - 파싱 완료
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] ========================================
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] PDF 파이프라인 완료: book_korean_2026_수능특강_문학_457762
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books]   - 강의: 79개
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books]   - 문제: 182개
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books]   - 커리큘럼: cur_92979c069be3
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books]   - Lesson: 79개 (프론트엔드 연동)
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books]   - 진행률: 100%
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] ========================================
+25 22:44:43] [INFO] [app.routers.books] [books] ✅ 프론트엔드 연동 완료: 79개 Lesson, 419개 Unit 생성됨
+[2026-01-25 22:44:43] [INFO] [app.services.progress_tracker] [ProgressTracker] 진행률: 100% - 파싱 완료
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] ========================================
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] PDF 파이프라인 완료: book_korean_2026_수능특강_문학_457762
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books]   - 강의: 79개
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books]   - 문제: 182개
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books]   - 커리큘럼: cur_92979c069be3
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books]   - Lesson: 79개 (프론트엔드 연동)
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books]   - 진행률: 100%
+[2026-01-25 22:44:43] [INFO] [app.routers.books] [books] ========================================

@@ -1,0 +1,16 @@
+{
+  "problem_id": "04",
+  "page": 15,
+  "source": "25005-0005",
+  "question": "다음 글의 목적으로 가장 적절한 것은?",
+  "question_text": "다음 글의 목적으로 가장 적절한 것은?",
+  "choices": {
+    "1": "제품 사용 체험 행사를 소개하려고",
+    "2": "잘못 배송된 제품에 대해 사과하려고",
+    "3": "주문한 제품의 반품 방법을 알려 주려고",
+    "4": "설문 조사 참여자에게 사은품을 안내하려고",
+    "5": "구매한 제품의 사용 후기 작성을 요청하려고"
+  },
+  "correct_answer": "5",
+  "passage": "Dear Ms. Brooks,\n\nThank you for purchasing your Smart Coffee Maker from HomeEase Co. We hope you are enjoying your new product!\n\nWe would be grateful if you could take a few moments to share your thoughts and experiences with your Smart Coffee Maker. Your feedback is incredibly valuable to us, as it helps us understand what we are doing well and identify any areas for improvement. Additionally, your review will assist other customers in making informed decisions about our products.\n\nTo leave a review, please visit our official website and navigate to the product page for the Smart Coffee Maker. We truly appreciate your time and look forward to hearing from you.\n\nWarm regards,\nEmily Jones\nCustomer Experience Manager\nHomeEase Co."
+}

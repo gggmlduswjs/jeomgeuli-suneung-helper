@@ -1,6 +1,10 @@
 export default function DevHealth() {
   if (!Boolean(import.meta.env?.DEV)) return null;
 
+  // 스크린샷용 임시 숨김 (제거 가능)
+  const hideForScreenshot = true;
+  if (hideForScreenshot) return null;
+
   return (
     <div
       aria-hidden="true"

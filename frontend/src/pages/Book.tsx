@@ -47,73 +47,22 @@ export default function Book() {
     : null;
 
 
-  // 교재 ID가 있으면 상세 조회, subject만 있으면 교재 목록, 둘 다 없으면 업로드 모드
+  // 교재 ID가 있으면 강의 목록 페이지로 리다이렉트
   useEffect(() => {
     if (bookId) {
+      // 강의 목록 페이지로 이동 (목차 텍스트 입력으로 만들어진 강의 목록)
+      navigate(`/lectures/${bookId}`, { replace: true });
+      return;
+    }
+    
+    // 교재 ID가 없으면 기존 로직 유지 (교재 목록 표시)
+    if (subjectParam) {
       // 이전 데이터 완전히 클리어
       setLessons([]);
       setLiteratureLectures([]);
       setError(null);
       setBook(null); // 이전 교재 정보도 클리어
       
-      loadBook(bookId);
-      loadLessons(bookId);
-      
-      // 파싱 중이면 상태 폴링 (5초마다 - 중복 요청 방지)
-      let lastStatus: string | null = null;
-      const interval = setInterval(async () => {
-        try {
-          const status = await booksAPI.getParseStatus(bookId);
-          setParseProgress(status.progress);
-          
-          // 상태가 변경되었을 때만 로그 출력
-          if (lastStatus !== status.status && import.meta.env.DEV) {
-            if (import.meta.env.DEV) console.log('[Book] Parse status:', status);
-            lastStatus = status.status;
-          }
-          
-          if (status.status === 'DONE' || status.status === 'FAILED') {
-            clearInterval(interval);
-            await loadBook(bookId); // 교재 정보 새로고침 (상태 업데이트)
-            if (status.status === 'DONE') {
-              // 강 목록 새로고침 및 검증
-              await loadLessons(bookId);
-              
-              // DONE이지만 lessons가 비어있는 경우 자동으로 JSON 동기화 시도
-              const currentLessons = await lessonsAPI.listByBook(bookId);
-              if (currentLessons.length === 0) {
-                if (import.meta.env.DEV) console.log('[Book] 파싱 완료되었지만 강의가 없음. 자동 JSON 동기화 시도...');
-                try {
-                  const syncResult = await booksAPI.syncFromJson(bookId);
-                  if (syncResult.ok) {
-                    if (import.meta.env.DEV) console.log('[Book] ✅ 자동 JSON 동기화 성공:', syncResult.message);
-                    await loadLessons(bookId); // 동기화 후 다시 로드
-                    await loadBook(bookId); // 교재 정보도 새로고침
-                    showToastMessage('JSON 파일이 자동으로 동기화되었습니다.');
-                  } else {
-                    console.warn('[Book] ⚠️ 자동 JSON 동기화 실패:', syncResult.message);
-                  }
-                } catch (syncErr) {
-                  console.error('[Book] 자동 JSON 동기화 중 오류:', syncErr);
-                  // 자동 동기화 실패는 조용히 처리 (사용자가 수동으로 시도할 수 있음)
-                }
-              }
-              // DONE이지만 lessons가 비어있는 경우는 파싱 실패가 아니라 데이터 준비 중일 수 있음
-              // 에러 메시지는 표시하지 않고, UI에서 적절한 안내만 표시
-            } else if (status.status === 'FAILED') {
-              // 진짜 파싱 실패 시에만 에러 메시지 표시
-              const errorMsg = 'PDF 파싱이 실패했습니다. 파일을 확인하거나 재파싱을 시도해보세요.';
-              setError(errorMsg);
-              speak(errorMsg);
-            }
-          }
-        } catch (err) {
-          console.error('[Book] 파싱 상태 조회 실패:', err);
-        }
-      }, 5000); // 5초로 증가
-      
-      return () => clearInterval(interval);
-    } else if (subjectParam) {
       // 국어(KOREAN) 선택 시 문학 강의 목록 표시
       if (subjectParam === Subject.KOREAN) {
         loadLiteratureLectures();
@@ -124,7 +73,7 @@ export default function Book() {
     } else {
       setShowUpload(true);
     }
-  }, [bookId, subjectParam]);
+  }, [bookId, subjectParam, searchParams, navigate]);
 
   const loadBook = async (id: string) => {
     setLoading(true);
@@ -216,42 +165,34 @@ export default function Book() {
   };
 
   const handleBookSelect = async (selectedBook: Book) => {
-    try {
-      // book의 subject를 사용하여 커리큘럼 찾기 (과목 필터링)
-      const curricula = await curriculumAPI.list({ subject: String(selectedBook.subject) });
-      if (curricula.length > 0) {
-        // 첫 번째 커리큘럼으로 이동
-        navigate(`/curriculum/${curricula[0].curriculum_id}`);
-      } else {
-        // 커리큘럼이 없으면 교재 상세 페이지로 이동
-        navigate(`/book/${selectedBook.book_id}`);
-      }
-    } catch (err) {
-      console.error('[Book] 커리큘럼 조회 실패:', err);
-      // 에러 발생 시 교재 상세 페이지로 이동
-      navigate(`/book/${selectedBook.book_id}`);
+    // 문학 강의 목록으로 이동 (구조 파싱 데이터 사용)
+    if (selectedBook.subject === 'KOREAN') {
+      navigate('/literature/lectures');
+    } else {
+      navigate(`/lectures/${selectedBook.book_id}`);
     }
   };
 
   const handleUploadComplete = async (uploadedBook: Book) => {
     setShowUpload(false);
-    navigate(`/book/${uploadedBook.book_id}`);
-    await loadBook(uploadedBook.book_id);
+    // 문학 강의 목록으로 이동 (구조 파싱 데이터 사용)
+    if (uploadedBook.subject === 'KOREAN') {
+      navigate('/literature/lectures');
+    } else {
+      navigate(`/lectures/${uploadedBook.book_id}`);
+    }
   };
 
   const handleLessonSelect = async (lesson: Lesson) => {
     try {
-      // 강의의 첫 번째 unit으로 바로 이동
-      const units = await unitsAPI.listByLesson(lesson.lesson_id);
-      if (units.length > 0) {
-        // 첫 번째 unit으로 이동
-        navigate(`/unit/${units[0].unit_id}`);
-        showToastMessage(`${lesson.title} 학습을 시작합니다.`);
-        speak(`${lesson.title} 학습을 시작합니다.`);
+      // 문학 강의 목록으로 이동 (구조 파싱 데이터 사용)
+      if (lesson.subject === 'KOREAN') {
+        navigate('/literature/lectures');
       } else {
-        showToastMessage('학습 단위가 없습니다.');
-        speak('학습 단위가 없습니다.');
+        navigate(`/lectures/${lesson.book_id}`);
       }
+      showToastMessage(`${lesson.title} 학습을 시작합니다.`);
+      speak(`${lesson.title} 학습을 시작합니다.`);
     } catch (err) {
       console.error('[Book] 강의 선택 실패:', err);
       showToastMessage('강의를 불러오는 중 오류가 발생했습니다.');

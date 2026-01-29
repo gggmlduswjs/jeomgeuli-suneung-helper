@@ -4,6 +4,7 @@
 """
 import json
 import logging
+import shutil
 from pathlib import Path
 from typing import List
 
@@ -34,10 +35,12 @@ class ResultSaver:
         
         self.lectures_dir = self.data_dir / "lectures"
         self.problems_dir = self.data_dir / "problems"
-        
+        self.ocr_data_dir = self.data_dir / "ocr_data"
+
         # 디렉토리 생성
         self.lectures_dir.mkdir(parents=True, exist_ok=True)
         self.problems_dir.mkdir(parents=True, exist_ok=True)
+        self.ocr_data_dir.mkdir(parents=True, exist_ok=True)
     
     def clear(self):
         """
@@ -65,12 +68,12 @@ class ResultSaver:
             shutil.rmtree(content_dir)
             logger.info(f"본문 디렉토리 삭제: {content_dir}")
         
-        # 이미지 디렉토리도 삭제 (있는 경우)
-        for img_dir_name in ["concepts_images", "content_images", "problems_images"]:
-            img_dir = self.data_dir / img_dir_name
-            if img_dir.exists():
-                shutil.rmtree(img_dir)
-                logger.info(f"이미지 디렉토리 삭제: {img_dir}")
+        # 이미지 디렉토리는 삭제하지 않음 (unified_parser가 이미 생성함)
+        # for img_dir_name in ["concepts_images", "content_images", "problems_images"]:
+        #     img_dir = self.data_dir / img_dir_name
+        #     if img_dir.exists():
+        #         shutil.rmtree(img_dir)
+        #         logger.info(f"이미지 디렉토리 삭제: {img_dir}")
         
         logger.info("기존 데이터 삭제 완료")
     
@@ -138,21 +141,32 @@ class ResultSaver:
                     "title": section.get('title', ''),
                     "type": section.get('type', 'concept'),
                     "page": section.get('page', 0),
+                    "bbox": section.get('bbox', []),  # bbox 추가 (이미지 크롭용)
                     "content": section.get('content', [])  # 이미 매칭된 content 사용
                 })
             
-            # 강의에 속한 문제 찾기 (페이지 범위 기반)
+            # 강의에 속한 문제 찾기 (페이지 범위 기반, 중복 제거)
             lecture_problems = []
+            seen_problems = set()  # (page, problem_id) 튜플로 중복 체크
             start_page = content.get('start_page', 0)
             end_page = content.get('end_page', 0)
-            
+
+            logger.debug(f"[ResultSaver] 강의 {lecture_id}: 페이지 범위 {start_page}~{end_page}")
+
             if start_page > 0 and end_page > 0:
                 for problem in problems:
                     problem_page = problem.get('page', 0)
                     if start_page <= problem_page <= end_page:
                         problem_id = problem.get('problem_id', '')
                         if problem_id:
-                            lecture_problems.append(problem_id)
+                            # 페이지+문제ID로 중복 체크
+                            problem_key = (problem_page, problem_id)
+                            if problem_key not in seen_problems:
+                                lecture_problems.append(problem)  # 전체 problem 객체 추가
+                                seen_problems.add(problem_key)
+                                logger.debug(f"[ResultSaver]   문제 추가: {problem_id} (page {problem_page})")
+                    elif problem_page > 0:  # 디버깅: 범위 밖의 문제 로그
+                        logger.debug(f"[ResultSaver]   문제 제외: {problem.get('problem_id', '')} (page {problem_page}, 범위 밖)")
             
             # JSON 구조 생성
             lecture_data = {
@@ -169,5 +183,53 @@ class ResultSaver:
             
             logger.info(f"강의 {lecture_id} 저장: {lecture_file} ({len(formatted_sections)}개 섹션, {len(lecture_problems)}개 문제)")
             saved_count += 1
-        
+
         logger.info(f"{saved_count}개 강의 저장 완료")
+
+    def save_ocr_data(self, ocr_data: List[JSONDict]):
+        """
+        OCR 데이터를 페이지별 JSON 파일로 저장
+
+        Args:
+            ocr_data: OCR 추출 결과 (페이지별 리스트)
+        """
+        if not ocr_data:
+            logger.warning("OCR 데이터가 비어있어 저장하지 않습니다.")
+            return
+
+        saved_count = 0
+        for page_data in ocr_data:
+            page_num = page_data.get('page_num', 0)
+            if page_num <= 0:
+                logger.warning(f"유효하지 않은 페이지 번호: {page_num}, 건너뜁니다.")
+                continue
+
+            # 파일명: page_001.json, page_002.json, ...
+            ocr_file = self.ocr_data_dir / f"page_{page_num:03d}.json"
+
+            with open(ocr_file, 'w', encoding='utf-8') as f:
+                json.dump(page_data, f, ensure_ascii=False, indent=2)
+
+            saved_count += 1
+
+        logger.info(f"OCR 데이터 저장 완료: {saved_count}개 페이지 -> {self.ocr_data_dir}")
+
+    def copy_original_pdf(self, pdf_path: Path):
+        """
+        원본 PDF 파일을 교재 디렉토리에 복사
+
+        Args:
+            pdf_path: 원본 PDF 파일 경로
+        """
+        if not pdf_path or not Path(pdf_path).exists():
+            logger.warning(f"원본 PDF 파일을 찾을 수 없습니다: {pdf_path}")
+            return
+
+        dest_path = self.data_dir / "original.pdf"
+
+        try:
+            shutil.copy2(pdf_path, dest_path)
+            logger.info(f"원본 PDF 복사 완료: {pdf_path} -> {dest_path}")
+        except Exception as e:
+            logger.error(f"원본 PDF 복사 실패: {e}")
+            raise

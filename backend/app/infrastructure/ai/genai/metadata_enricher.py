@@ -3,7 +3,7 @@ LLM-based Metadata Enrichment (Level 3.5)
 
 LLM을 활용한 자동 메타데이터 생성
 - Zero-shot/Few-shot Learning으로 태그, 키워드, 난이도 추출
-- LangChain으로 프롬프트 체인 구성
+- LangChain ChatPromptTemplate으로 프롬프트 구성
 - Structured Output Parser로 JSON 파싱
 
 AI 역량 증명:
@@ -17,15 +17,15 @@ from dataclasses import dataclass
 import json
 
 try:
-    from langchain.chat_models import ChatOpenAI
-    from langchain.prompts import ChatPromptTemplate, PromptTemplate
-    from langchain.output_parsers import PydanticOutputParser
-    from langchain.schema import HumanMessage, SystemMessage
+    from langchain_openai import ChatOpenAI
+    from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+    from langchain_core.output_parsers import PydanticOutputParser
+    from langchain_core.messages import HumanMessage, SystemMessage
     from pydantic import BaseModel, Field
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     LANGCHAIN_AVAILABLE = False
-    print("[MetadataEnricher] langchain not available. Install with: pip install langchain openai")
+    print("[MetadataEnricher] langchain not available. Install with: pip install langchain-openai langchain-core")
 
 
 class ContentMetadata(BaseModel):
@@ -54,7 +54,7 @@ class LLMMetadataEnricher:
     특징:
     - Zero-shot Learning으로 메타데이터 추출
     - Structured Output Parser로 JSON 생성
-    - LangChain 프롬프트 체인
+    - LangChain ChatPromptTemplate
     - 캐싱 지원 (동일 텍스트 재처리 방지)
 
     사용 예시:
@@ -89,9 +89,9 @@ class LLMMetadataEnricher:
 
         # LLM 초기화
         self.llm = ChatOpenAI(
-            model=model_name,
+            model_name=model_name,
             temperature=temperature,
-            openai_api_key=api_key
+            api_key=api_key
         )
 
         # Output Parser
@@ -173,12 +173,12 @@ class LLMMetadataEnricher:
             )
 
             # LLM 호출
-            response = self.llm(messages)
+            response = self.llm.invoke(messages)
 
             # 파싱
             try:
                 metadata_obj = self.parser.parse(response.content)
-                metadata = metadata_obj.dict()
+                metadata = metadata_obj.model_dump()
             except Exception as e:
                 print(f"[LLMMetadataEnricher] Failed to parse output: {e}")
                 # Fallback: JSON 파싱 시도

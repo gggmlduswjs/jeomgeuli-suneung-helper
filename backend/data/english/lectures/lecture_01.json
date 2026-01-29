@@ -1,0 +1,122 @@
+{
+  "subject": "english",
+  "lecture_id": 1,
+  "title": "01 글의 목적 파악",
+  "page": 10,
+  "sections": [
+    {
+      "title": "Solving Strategies · 해결 전략",
+      "type": "concept",
+      "content_id": "p11_01",
+      "image_path": "/api/data/english/concepts_images/concept_p10_01.png",
+      "content": [
+        "STEP 1 글의 주요 어휘를 파악하고, 글쓴이와 글의 독자가 어떤 관계인지 추론하여 글의 주제를 파악한다.",
+        "",
+        "[주요 어휘] Rosydale City Marathon, the weather forecast, downpour, slippery and dangerous, cancel the race",
+        "[글쓴이] Martha Kingsley, Race Manager",
+        "[글의 독자] Rosydale City Marathon Racers",
+        "↓",
+        "[글의 주제] 마라톤 경기 취소 사실 공지",
+        "",
+        "STEP 2 글의 세부 내용을 파악한다.",
+        "• the 10th Rosydale City Marathon that was scheduled for this coming Saturday at 10 a.m. ⇒ 이번 토요일 오전 10시로 예정되었던 제10회 Rosydale City Marathon 경기",
+        "• there is going to be a downpour throughout the race day. ⇒ 마라톤 경기 당일 내내 폭우가 쏟아질 것임",
+        "• the heavy rain will make the roads too slippery and dangerous for the racers to run safely. ⇒ 폭우로 인해 경기 참가자들이 안전하게 달리기에는 도로가 너무 미끄럽고 위험해질 것임",
+        "• we have decided to cancel the race. ⇒ 경기를 취소하기로 결정함",
+        "",
+        "STEP 3 글의 주제와 세부 내용을 종합하여 글의 목적을 파악한다.",
+        "이번 토요일에 Rosydale City Marathon 경기를 개최할 예정이었지만, 경기 당일 내내 폭우가 예보되어 마라톤 경기 참가자들의 안전을 위해 마라톤 경기를 취소하게 되었음을 공지하는 내용이다.",
+        "→ 따라서 글의 목적으로 가장 적절한 것은 '마라톤 경기 취소 사실을 공지하려고'이다."
+      ],
+      "page": 11
+    },
+    {
+      "title": "Gateway · 2005학년도 수능 18번 [25005-0001]",
+      "type": "content",
+      "content_id": "p10_01",
+      "image_path": "/api/data/english/content_images/content_p11_03.png",
+      "content": [
+        "다음 글의 목적으로 가장 적절한 것은?",
+        "",
+        "Dear Rosydale City Marathon Racers,",
+        "Thank you for signing up for the 10th Rosydale City Marathon that was scheduled for this coming Saturday at 10 a.m. However, according to the weather forecast, there is going to be a downpour throughout the race day. We are concerned that the heavy rain will make the roads too slippery and dangerous for the racers to run safely. Therefore, we have decided to cancel the race. We hope for your understanding and will hold another race in the near future.",
+        "Sincerely,",
+        "Martha Kingsley, Race Manager",
+        "",
+        "① 마라톤 경기 취소 사실을 공지하려고",
+        "② 마라톤 경기 사전 행사 참여를 독려하려고",
+        "③ 마라톤 경기 참가비 환불 절차를 설명하려고",
+        "④ 마라톤 경기 참여 시 규칙 준수를 당부하려고",
+        "⑤ 마라톤 경기 진행에 따른 도로 통제를 안내하려고",
+        "",
+        "[Words & Phrases in Use]",
+        "sign up for ~에 등록하다 | slippery 미끄러운 | weather forecast 일기 예보 | cancel 취소하다 | downpour 폭우"
+      ],
+      "page": 10
+    }
+  ],
+  "problems": [
+    "problem_p12_01",
+    "problem_p13_02",
+    "problem_p14_03",
+    "problem_p15_04"
+  ],
+  "problem_meta": [
+    {
+      "problem_id": "01",
+      "source": "25005-0002",
+      "question": "다음 글의 목적으로 가장 적절한 것은?",
+      "passage_summary": "Smalltown Senior Center Crafts Fair – 부스 대여 안내 (Helen Dwyer 연락)",
+      "choices": {
+        "1": "공예품 전시회에 출품을 독려하려고",
+        "2": "노인 복지관 물품 기부를 부탁하려고",
+        "3": "공예품 전시회 부스 대여 신청을 안내하려고",
+        "4": "지역 특산 공예품 가격의 인상을 공지하려고",
+        "5": "공예품 전시회 부스 설치에 관한 조언을 구하려고"
+      },
+      "correct_answer": "3"
+    },
+    {
+      "problem_id": "02",
+      "source": "25005-0003",
+      "question": "다음 글의 목적으로 가장 적절한 것은?",
+      "passage_summary": "Emily Johnson → Mr. Smith: 소파 불량, 수거·환불 요구",
+      "choices": {
+        "1": "소파 다리의 교체를 요청하려고",
+        "2": "구매한 소파의 배송 지연을 항의하려고",
+        "3": "부서진 소파의 수거 및 환불을 요구하려고",
+        "4": "구매한 제품의 교환이 가능한지 문의하려고",
+        "5": "소비자 보호원에 불만을 제기했음을 알리려고"
+      },
+      "correct_answer": "3"
+    },
+    {
+      "problem_id": "03",
+      "source": "25005-0004",
+      "question": "다음 글의 목적으로 가장 적절한 것은?",
+      "passage_summary": "Auburn Parks and Recreation (Mark Mills) – 스페셜 올림픽 자원봉사 코치 모집",
+      "choices": {
+        "1": "스페셜 올림픽 참가 선수단의 출정식에 초대하려고",
+        "2": "스페셜 올림픽 참가 선수들의 노력과 성과를 알리려고",
+        "3": "스페셜 올림픽의 역사와 경기 종목에 관한 정보를 제공하려고",
+        "4": "스페셜 올림픽에 관한 관심과 선수들에 대한 격려를 부탁하려고",
+        "5": "스페셜 올림픽 참가 선수들을 지도할 자원봉사 코치를 모집하려고"
+      },
+      "correct_answer": "5"
+    },
+    {
+      "problem_id": "04",
+      "source": "25005-0005",
+      "question": "다음 글의 목적으로 가장 적절한 것은?",
+      "passage_summary": "Emily Jones (HomeEase Co.) → Ms. Brooks: Smart Coffee Maker 구매 후 사용 후기 작성 요청",
+      "choices": {
+        "1": "제품 사용 체험 행사를 소개하려고",
+        "2": "잘못 배송된 제품에 대해 사과하려고",
+        "3": "주문한 제품의 반품 방법을 알려 주려고",
+        "4": "설문 조사 참여자에게 사은품을 안내하려고",
+        "5": "구매한 제품의 사용 후기 작성을 요청하려고"
+      },
+      "correct_answer": "5"
+    }
+  ]
+}

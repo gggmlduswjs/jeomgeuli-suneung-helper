@@ -18,17 +18,14 @@ else:
     print(f"[Main] OPENAI_API_KEY 로드 안됨")
 
 from fastapi import FastAPI, HTTPException
+from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi import Request
 from app.core.config import settings
 from app.infrastructure.database.session import init_db
-from app.routers import books, lessons, units, curriculum, ai, literature, braille, templates
-from app.api.v1.health import routes as health
-from app.api.v1.subjects import routes as subjects
-from app.api.v1.answers import routes as answers
-from app.api.v1.progress import routes as progress
+from app.routers import books, lessons, units, curriculum, ai, literature, english, math1, braille, templates, health, subjects, answers, progress
 
 # 데이터베이스 초기화 (오류 발생 시에도 앱은 시작)
 try:
@@ -63,6 +60,8 @@ app.include_router(answers.router, prefix="/api/v1", tags=["answers"])
 app.include_router(curriculum.router, prefix="/api/v1", tags=["curriculum"])
 app.include_router(ai.router, prefix="/api/v1", tags=["ai"])
 app.include_router(literature.router, prefix="/api/v1", tags=["literature"])
+app.include_router(english.router, prefix="/api/v1", tags=["english"])
+app.include_router(math1.router, prefix="/api/v1", tags=["math1"])
 app.include_router(templates.router, prefix="/api/v1", tags=["templates"])
 app.include_router(braille.router, prefix="/api", tags=["braille"])  # /api/braille/convert 경로 지원
 # literature_ai.py의 기능은 ai.py로 통합됨 (호환성을 위해 /literature/ai/* 경로 유지)
@@ -89,13 +88,30 @@ else:
 from fastapi.responses import FileResponse
 from fastapi import Request
 
-data_dir = settings.API_DIR / "data"
-if data_dir.exists():
+# 우선순위: backend/data/ 먼저 확인, 없으면 프로젝트 루트 data/
+backend_data_dir = settings.API_DIR / "data"
+data_dir = settings.DATA_DIR
+
+def find_data_file(file_path: str) -> Optional[Path]:
+    """데이터 파일 찾기 (backend/data 우선)"""
+    # backend/data/ 먼저 확인
+    backend_file = backend_data_dir / file_path
+    if backend_file.exists() and backend_file.is_file():
+        return backend_file
+    
+    # 프로젝트 루트 data/ 확인
+    root_file = data_dir / file_path
+    if root_file.exists() and root_file.is_file():
+        return root_file
+    
+    return None
+
+if backend_data_dir.exists() or data_dir.exists():
     @app.get("/api/data/{file_path:path}")
     async def serve_data_file(file_path: str, request: Request):
-        """JSON 파일 서빙 (캐시 방지)"""
-        file_full_path = data_dir / file_path
-        if file_full_path.exists() and file_full_path.is_file():
+        """JSON 파일 및 PDF 서빙 (캐시 방지)"""
+        file_full_path = find_data_file(file_path)
+        if file_full_path:
             return FileResponse(
                 str(file_full_path),
                 headers={
@@ -105,8 +121,10 @@ if data_dir.exists():
                 }
             )
         raise HTTPException(status_code=404, detail="파일을 찾을 수 없습니다.")
-    
-    print(f"[Main] 데이터 파일 서빙 활성화: {data_dir} (캐시 비활성화)")
+
+    print(f"[Main] 데이터 파일 서빙 활성화:")
+    print(f"  - backend/data: {backend_data_dir} (존재: {backend_data_dir.exists()})")
+    print(f"  - 프로젝트 루트 data: {data_dir} (존재: {data_dir.exists()})")
 
 
 @app.get("/")

@@ -38,6 +38,7 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
   const [selectedPageForMarking, setSelectedPageForMarking] = useState<number>(1);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [bookId, setBookId] = useState<string>('');  // book_id 입력
   const [extractingText, setExtractingText] = useState(false);
   const [extractedTextExamples, setExtractedTextExamples] = useState<{ [key: string]: string[] } | null>(null);
   const [samplePagesForExtraction, setSamplePagesForExtraction] = useState<string>('15,30,50');
@@ -333,6 +334,7 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
         toc_text: tocText,
         curriculum_survey: curriculumSurvey,
         parsing_guide_regions: parsingGuideRegions.length > 0 ? parsingGuideRegions : undefined,
+        book_id: bookId.trim() || undefined,  // book_id 전달 (region_image_examples 추출용)
         toc_lecture_line_examples: lectureExamples,
         toc_nonlecture_line_examples: nonLectureExamples,
         expected_lecture_count: parseInt(finalExpectedCount, 10),
@@ -502,8 +504,21 @@ export default function TOCTemplateWizard({ onBack, onSaved, onSpeak }: TOCTempl
 
         {/* 3. PDF 업로드 */}
         <div className="border border-border rounded-lg p-4 bg-card">
-          <h3 className="text-base font-semibold mb-3">3. PDF 업로드 (필수)</h3>
+          <h3 className="text-base font-semibold mb-3">3. PDF 업로드 & Book ID (필수)</h3>
           <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Book ID</label>
+              <input
+                type="text"
+                value={bookId}
+                onChange={(e) => setBookId(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm font-mono"
+                placeholder="book_korean_2026_수능특강_문학_b0da0d"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                💡 업로드한 책의 book_id를 입력하세요. 영역 마킹 정보가 템플릿에 저장됩니다.
+              </p>
+            </div>
             <div>
               <label className="block text-sm font-medium mb-1">PDF 파일</label>
               <input

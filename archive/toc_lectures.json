@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "lectures": [
+    {
+      "lecture_id": 1,
+      "title": "시의 표현과 형식",
+      "start_page": null,
+      "end_page": null
+    },
+    {
+      "lecture_id": 3,
+      "title": "소설의 서술상 특징",
+      "start_page": null,
+      "end_page": null
+    },
+    {
+      "lecture_id": 6,
+      "title": "교술 문학의 특성과 구성 요소",
+      "start_page": null,
+      "end_page": null
+    },
+    {
+      "lecture_id": 7,
+      "title": "캐는 노래 (작자 미상) 작품의 작가 독자 맥락 사랑손님과 어머니 (주요섭) 사랑을 찬찬 얽동여 (작자 미상)",
+      "start_page": 32,
+      "end_page": 40
+    },
+    {
+      "lecture_id": 9,
+      "title": "작품의 사회·문화적, 역사적 맥락 당신을 보았습니다 (한용운)",
+      "start_page": 41,
+      "end_page": null
+    },
+    {
+      "lecture_id": 2,
+      "title": "시의 내용 과정곡 (정서) 소악부 <제6장> (민사평) 02",
+      "start_page": null,
+      "end_page": null
+    }
+  ],
+  "total_lectures": 6,
+  "lectures_with_pages": 2
+}

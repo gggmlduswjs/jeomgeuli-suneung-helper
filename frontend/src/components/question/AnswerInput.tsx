@@ -67,10 +67,10 @@ export default function AnswerInput({ onAnswer, onSpeak, maxChoice }: AnswerInpu
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">답안 입력</h3>
+    <div className="space-y-2">
+      <h3 className="text-sm font-semibold">답안 입력</h3>
       
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <input
           type="number"
           min="1"
@@ -78,22 +78,22 @@ export default function AnswerInput({ onAnswer, onSpeak, maxChoice }: AnswerInpu
           value={textAnswer}
           onChange={(e) => setTextAnswer(e.target.value)}
           placeholder={`1-${maxChoice}번`}
-          className="flex-1 px-4 py-2 border border-border rounded-lg"
+          className="flex-1 px-2 py-1.5 text-sm border border-border rounded-md"
           aria-label="답안 번호 입력"
         />
         <button
           onClick={handleTextSubmit}
-          className="btn-primary px-6"
+          className="btn-primary px-3 py-1.5 text-xs"
           aria-label="답안 제출"
         >
           제출
         </button>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <button
           onClick={handleVoiceInput}
-          className={`flex-1 ${isListening ? 'btn-error' : 'btn-accent'}`}
+          className={`flex-1 text-xs py-1.5 ${isListening ? 'btn-error' : 'btn-accent'}`}
           aria-label={isListening ? '음성 입력 중지' : '음성 입력 시작'}
         >
           {isListening ? '음성 입력 중지' : '음성으로 답하기'}
@@ -101,8 +101,8 @@ export default function AnswerInput({ onAnswer, onSpeak, maxChoice }: AnswerInpu
       </div>
 
       {isListening && transcript && (
-        <div className="bg-accent/10 border border-accent rounded-lg p-2">
-          <p className="text-sm text-muted">인식 중: {transcript}</p>
+        <div className="bg-accent/10 border border-accent rounded-md p-1.5">
+          <p className="text-xs text-muted">인식 중: {transcript}</p>
         </div>
       )}
     </div>

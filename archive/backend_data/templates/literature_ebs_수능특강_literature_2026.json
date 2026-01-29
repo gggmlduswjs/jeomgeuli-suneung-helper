@@ -1,0 +1,1039 @@
+{
+  "name": "ebs_수능특강_literature_2026",
+  "subject": "literature",
+  "version": "2026",
+  "description": "2026 수능특강_ 문학 템플릿",
+  "patterns": {
+    "lecture_title_patterns": [
+      "^\\d+강\\s*\\|\\s*[가-힣]+",
+      "^\\d+강\\s*[|:]\\s*[가-힣]+"
+    ],
+    "toc_lecture_patterns": [
+      "^\\d+강\\s*\\|\\s*[가-힣]+",
+      "^\\d+강\\s*[|:]\\s*[가-힣]+",
+      "^\\d+강\\s+[가-힣]+"
+    ],
+    "concept_title_patterns": [
+      "^(시의 표현과 형식|시의 내용|소설의 서술상 특징|소설의 내용 구성 요소|극의 특성과 극 문학의 구성 요소|교술 문학의 특성과 구성 요소|작품의 작가 및 독자 맥락|작품의 문학사적, 상호 텍스트적 맥락|작품의 사회·문화적, 역사적 맥락|고전 시가|현대시|고전 산문|현대 소설|극 · 수필|갈래 복합|실전학습\\s*\\d+\\s*회)"
+    ],
+    "content_header_patterns": [],
+    "section_title_patterns": [],
+    "problem_number_pattern": "^\\d{1,2}[\\.\\)]?\\s*$|^\\[\\d{1,2}\\]"
+  },
+  "config": {
+    "toc_end_page": 7,
+    "start_content_page": 8,
+    "paragraph_y_threshold": 12,
+    "unit_order": [
+      "concept",
+      "passage",
+      "problem"
+    ],
+    "is_lecture_based": true,
+    "lecture_units": [
+      "concept",
+      "passage",
+      "problem"
+    ],
+    "lecture_page_ranges": {
+      "1": {
+        "start": 9,
+        "end": 14
+      },
+      "3": {
+        "start": 15,
+        "end": 18
+      },
+      "4": {
+        "start": 19,
+        "end": 23
+      },
+      "5": {
+        "start": 24,
+        "end": 28
+      },
+      "6": {
+        "start": 29,
+        "end": 31
+      },
+      "7": {
+        "start": 32,
+        "end": 35
+      },
+      "8": {
+        "start": 36,
+        "end": 40
+      },
+      "9": {
+        "start": 41,
+        "end": 43
+      },
+      "10": {
+        "start": 44,
+        "end": 45
+      },
+      "11": {
+        "start": 46,
+        "end": 52
+      },
+      "14": {
+        "start": 53,
+        "end": 55
+      },
+      "15": {
+        "start": 56,
+        "end": 59
+      },
+      "16": {
+        "start": 60,
+        "end": 63
+      },
+      "17": {
+        "start": 64,
+        "end": 69
+      },
+      "19": {
+        "start": 70,
+        "end": 73
+      },
+      "20": {
+        "start": 74,
+        "end": 76
+      },
+      "21": {
+        "start": 77,
+        "end": 79
+      },
+      "22": {
+        "start": 80,
+        "end": 82
+      },
+      "23": {
+        "start": 83,
+        "end": 85
+      },
+      "24": {
+        "start": 86,
+        "end": 88
+      },
+      "25": {
+        "start": 89,
+        "end": 91
+      },
+      "26": {
+        "start": 92,
+        "end": 94
+      },
+      "27": {
+        "start": 95,
+        "end": 97
+      },
+      "28": {
+        "start": 98,
+        "end": 99
+      },
+      "29": {
+        "start": 100,
+        "end": 102
+      },
+      "30": {
+        "start": 103,
+        "end": 105
+      },
+      "31": {
+        "start": 106,
+        "end": 108
+      },
+      "32": {
+        "start": 109,
+        "end": 112
+      },
+      "33": {
+        "start": 113,
+        "end": 116
+      },
+      "34": {
+        "start": 117,
+        "end": 120
+      },
+      "35": {
+        "start": 121,
+        "end": 124
+      },
+      "36": {
+        "start": 125,
+        "end": 128
+      },
+      "37": {
+        "start": 129,
+        "end": 132
+      },
+      "38": {
+        "start": 133,
+        "end": 136
+      },
+      "39": {
+        "start": 137,
+        "end": 140
+      },
+      "40": {
+        "start": 141,
+        "end": 145
+      },
+      "41": {
+        "start": 146,
+        "end": 150
+      },
+      "42": {
+        "start": 151,
+        "end": 154
+      },
+      "43": {
+        "start": 155,
+        "end": 158
+      },
+      "44": {
+        "start": 159,
+        "end": 162
+      },
+      "45": {
+        "start": 163,
+        "end": 170
+      },
+      "46": {
+        "start": 171,
+        "end": 174
+      },
+      "47": {
+        "start": 175,
+        "end": 178
+      },
+      "48": {
+        "start": 179,
+        "end": 183
+      },
+      "49": {
+        "start": 184,
+        "end": 187
+      },
+      "50": {
+        "start": 188,
+        "end": 191
+      },
+      "51": {
+        "start": 192,
+        "end": 195
+      },
+      "52": {
+        "start": 196,
+        "end": 199
+      },
+      "53": {
+        "start": 200,
+        "end": 203
+      },
+      "54": {
+        "start": 204,
+        "end": 206
+      },
+      "55": {
+        "start": 207,
+        "end": 210
+      },
+      "56": {
+        "start": 211,
+        "end": 213
+      },
+      "57": {
+        "start": 214,
+        "end": 218
+      },
+      "58": {
+        "start": 219,
+        "end": 222
+      },
+      "59": {
+        "start": 223,
+        "end": 226
+      },
+      "60": {
+        "start": 227,
+        "end": 231
+      },
+      "61": {
+        "start": 232,
+        "end": 236
+      },
+      "62": {
+        "start": 237,
+        "end": 242
+      },
+      "63": {
+        "start": 243,
+        "end": 248
+      },
+      "64": {
+        "start": 249,
+        "end": 254
+      },
+      "65": {
+        "start": 255,
+        "end": 266
+      },
+      "67": {
+        "start": 267,
+        "end": 276
+      },
+      "69": {
+        "start": 277,
+        "end": 295
+      },
+      "72": {
+        "start": 296,
+        "end": 299
+      },
+      "73": {
+        "start": 300,
+        "end": 305
+      },
+      "74": {
+        "start": 306,
+        "end": 309
+      },
+      "75": {
+        "start": 310,
+        "end": 311
+      },
+      "76": {
+        "start": 312,
+        "end": 320
+      },
+      "79": {
+        "start": 321,
+        "end": null
+      }
+    },
+    "region_hints": {
+      "concept": {
+        "y_min": 0.11976189749581473,
+        "y_max": 0.7890476226806641
+      },
+      "passage": {
+        "y_min": 0.12547618321010046,
+        "y_max": 0.5376190403529576
+      },
+      "problem": {
+        "y_min": 0.09904761178152902,
+        "y_max": 0.7904762050083706
+      }
+    },
+    "region_text_examples": {
+      "concept": [
+        "많다. 그러므로 • 율 격, 시행, 연 등의 요소가 시의 주제나 화자의 정서를",
+        "• 비 유, 상징, 역설, 반어, 대구, 반복, 설의, 영탄, 도치,",
+        "•재미를 느끼고 웃게 하거나 반대로 슬픈 감정을 환기하게",
+        "•시의 형식은 문화적으로 형성된 시 고유의 체계와 관습에",
+        "• 시 의 주제나 화자의 정서를 형상화하는 데 기여하는",
+        "•화자의 사고나 감정, 상황 등을 강조하거나 부각함.",
+        "•상식적인 생각을 뒤집거나 깨뜨림으로써 지적 충격을",
+        "•일상적인 표현에 변화를 가하여 말의 묘미를 느끼게",
+        "태나 구조를 가리킴. 크게 고정된 형식과 자유로운",
+        "•시어의 함축성을 높여 의미를 풍부하게 함.",
+        "•어떤 대상을 감각적으로 연상하게 함.",
+        "(2) 시적 표현의 여러 가지 효과",
+        "•음악적인 리듬이 느껴지게 함.",
+        "(1) 시의 형식의 개념과 특성",
+        "(1) 시적 표현의 개념",
+        "의 표현 기법이 있음.",
+        "윤리적 덕목과 같",
+        "뜻한다. 문학에",
+        "말의 의미는 그",
+        "별도의 개념으로"
+      ],
+      "passage": [
+        "해야, 고운 해야. 늬가 오면 늬가사 오면, 나는 나는 청산이 좋아라.",
+        "산 넘어서 밤새도록 어둠을 살라 먹고, 이글이글 앳된 얼굴 고운 해야",
+        "달밤이 싫어, 달밤이 싫어, 눈물 같은 골짜기에 달밤이 싫어, 아무도",
+        "해야 솟아라. 해야 솟아라. 말갛게 씻은 얼굴 고운 해야 솟아라.",
+        "사슴을 따라, 사슴을 따라, 양지로 양지로 사슴을 따라 사슴을",
+        "[01~03] 다음 글을 읽고 물음에 답하시오.",
+        "청산이 있으면 홀로래도 좋아라."
+      ],
+      "problem": [
+        "(2) 2연의 ‘-어’: 대상에 대해 부정적 태도를 지니는지에 대한",
+        "(1) 1연의 ‘-아라’: 대상에게 모습을 드러내라는 명령의 뜻을",
+        "윗글의 각 연에 쓰인 종결 어미의 기능에 대한 이해로 적절하면",
+        "어이 모두 불러 한자리 앉아 앳되고 고운 날을 누려 보리라.",
+        "칡범을 따라 칡범을 따라 칡범을 만나면 칡범과 놀고,",
+        "해야, 고운 해야. 해야 솟아라. 꿈이 아니래도 너를",
+        "[25001-0002]",
+        "[25001-0003]",
+        "시하시오."
+      ]
+    },
+    "region_image_examples": {
+      "concept": [
+        {
+          "page": 8,
+          "bbox": [
+            293,
+            167,
+            1075,
+            615
+          ],
+          "label": "concept",
+          "image_path": "C:\\Users\\user\\Desktop\\jeomgeuli-suneung-helper\\backend\\data\\templates\\images\\literature_ebs_수능특강_literature_2026\\concept_p08_2.png"
+        },
+        {
+          "page": 8,
+          "bbox": [
+            287,
+            610,
+            1085,
+            1104
+          ],
+          "label": "concept",
+          "image_path": "C:\\Users\\user\\Desktop\\jeomgeuli-suneung-helper\\backend\\data\\templates\\images\\literature_ebs_수능특강_literature_2026\\concept_p08_2.png"
+        }
+      ],
+      "passage": [
+        {
+          "page": 9,
+          "bbox": [
+            218,
+            175,
+            1069,
+            752
+          ],
+          "label": "passage",
+          "image_path": "C:\\Users\\user\\Desktop\\jeomgeuli-suneung-helper\\backend\\data\\templates\\images\\literature_ebs_수능특강_literature_2026\\passage_p09_2.png"
+        }
+      ],
+      "problem": [
+        {
+          "page": 9,
+          "bbox": [
+            155,
+            779,
+            959,
+            1106
+          ],
+          "label": "problem",
+          "image_path": "C:\\Users\\user\\Desktop\\jeomgeuli-suneung-helper\\backend\\data\\templates\\images\\literature_ebs_수능특강_literature_2026\\problem_p09_2.png"
+        },
+        {
+          "page": 10,
+          "bbox": [
+            111,
+            138,
+            1055,
+            474
+          ],
+          "label": "problem",
+          "image_path": "C:\\Users\\user\\Desktop\\jeomgeuli-suneung-helper\\backend\\data\\templates\\images\\literature_ebs_수능특강_literature_2026\\problem_p10_2.png"
+        },
+        {
+          "page": 10,
+          "bbox": [
+            122,
+            688,
+            1034,
+            1068
+          ],
+          "label": "problem",
+          "image_path": "C:\\Users\\user\\Desktop\\jeomgeuli-suneung-helper\\backend\\data\\templates\\images\\literature_ebs_수능특강_literature_2026\\problem_p10_2.png"
+        }
+      ]
+    },
+    "toc_text": "\n1강 | 시의 표현과 형식\n해 (박두진) 009\n2강 | 시의 내용\n매화 옛 등걸에 ~ (매화)\n녹양이 천만사인들 ~ (이원익)\n사랑 사랑 고고히 맺힌 사랑 ~ (작자 미상) 012\n3강 | 소설의 서술상 특징\n장마 (윤흥길) 015\n4강 | 소설의 내용 구성 요소\n전우치전 (작자 미상) 019\n5강 | 극의 특성과 극 문학의 구성 요소\n고목 (함세덕) 024\n6강 | 교술 문학의 특성과 구성 요소\n차마설 (이곡) 029\n7강 | 작품의 작가 및 독자 맥락\n사랑손님과 어머니 (주요섭) 032\n8강 | 작품의 문학사적, 상호 텍스트적 맥락\n놀부전 (이근삼) 036\n9강 | 작품의 사회·문화적, 역사적 맥락\n당신을 보았습니다 (한용운) 041\n>>> 고전 시가\n10강 모죽지랑가 (득오) / 화왕가 (이익) 044\n11강 정과정곡 (정서) / 소악부 중 <제6장> (민사평) 046\n12강 귀거래 귀거래 말뿐이오 ~ (이현보)\n강산 좋은 경을 ~ (김천택)\n공명을 헤아리니 ~ (작자 미상) 049\n13강 사 우가 중 <제2수> (이신의)\n거문고 술 꽂아 놓고 ~ (김창업)\n어화 세상 벗님네야 ~ (작자 미상) 051\n14강 오륜가 (박선장) 053\n15강 북천가 (김진형) 056\n16강 용부가 (작자 미상) 060\n17강 동유가 (홍정유) 064\n18강 나물 캐는 노래 (작자 미상)\n사랑을 찬찬 얽동여 ~ (작자 미상)\n모시를 이리저리 삼아 ~ (작자 미상) 067\n19강 초한가 (작자 미상) / 장진주사 (정철) 070\n20강 잠령민정 (임제) / 우국가 (이덕일) 074\n>>> 현대시\n21강 그날이 오면 (심훈) / 산상의 노래 (조지훈) 077\n22강 황혼 (이육사) / 성에꽃 (최두석) 080\n23강 불사조 (정지용) / 꽃씨 (문병란) 083\n24강 달·포도·잎사귀 (장만영) / 아침 시 (최하림) 086\n25강 생명의 서·일장 (유치환)\n희망의 거처 (이정록) 089\n26강 역사 (신석정) / 지리산 뻐꾹새 (송수권) 092\n27강 전라도 가시내 (이용악) / 나목 (신경림) 095\n28강 병원 (윤동주) / 벽 (김기택) 098\n29강 눈물 (김현승) / 강우 (김춘수) 100\n30강 파밭 가에서 (김수영) / 들국 (김용택) 103\n31강 흙 (문정희) / 느티나무로부터 (복효근) 106\n>>> 고전 산문\n32강 남백월 이성 노힐부득과 달달박박 (작자 미상) 109\n33강 채생기우 (이현기) 113\n34강 김진옥전 (작자 미상) 117\n35강 숙향전 (작자 미상) 121\n36강 정진사전 (작자 미상) 125\n37강 강도몽유록 (작자 미상) 129\n38강 옥소전 (작자 미상) 133\n39강 천수석 (작자 미상) 137\n40강 수궁가 (작자 미상) 141\n41강 심청전 (작자 미상) 146\n42강 지봉전 (작자 미상) 151\n>>> 현대 소설\n43강 무정 (이광수) 155\n44강 날개 (이상) 159\n45강 태평천하 (채만식) 163\n45강 사수 (전광용) 167\n46강 판문점 (이호철) 171\n47강 차나 한잔 (김승옥) 175\n48강 황홀한 실종 (이청준) 179\n49강 당제 (송기숙) 184\n50강 방울새 (양귀자) 188\n51강 새를 찾아서 (김주영) 192\n52강 새의 선물 (은희경) 196\n>>> 극 · 수필\n53강 강령 탈춤의 특징 / 강령 탈춤 (작자 미상) 200\n54강 계축일기 (작자 미상) 204\n55강 해유록 (신유한) 207\n56강 야뇌당기 (이덕무) / 아암기 (이용휴) 211\n57강 산불 (차범석) 214\n58강 쥬라기의 사람들 (이강백) 219\n59강 동주 (신연식) 223\n60강 우리들의 블루스 (노희경) 227\n>>> 갈래 복합\n61강 한계사의 노스님에게 (이규보) / 소화사 (이인상)\n찰밥 (윤오영) 232\n62강 임계탄 (작자 미상) / 절비자설 (박전) 237\n63강 새장 속의 학 (이매창) / 선상탄 (박인로)\n오윤겸과 설생의 재회 (작자 미상) 243\n64강 몽천요 (윤선도) / 구운몽 (김만중) 249\n65강 화전가 (작자 미상) / 의유당관북유람일기 (의유당)\n병에서 일어난 후 (박죽서) 255\n66강 남신의주 유동 박시봉방 (백석)\n내 영혼의 북가시나무 (최승호)\n수오재기 (정약용) 262\n67강 경사 (박목월) / 겨울나무를 보며 (박재삼)\n낙치설 (김창흡) 267\n68강 감나무 그늘 아래 (고재종)\n수묵 정원 9 - 번짐 (장석남)\n창해옹의 산수 여행 (강이천) 272\n69강 광화문, 겨울, 불꽃, 나무 (이문재) / 화단 (이태준)\n애물의 (김시습) 277\n70강 현대 소설에서 신빙성 없는 서술자의 특성과 효과\n동백꽃 (김유정)\n내 그물로 오는 가시고기 (조세희) 283\n71강 메밀꽃 필 무렵 (이효석)\n메밀꽃 필 무렵 (이효석 원작, 동희선·홍윤정 각색)\n289\n72강 실전학습1 회 [ 0 1~04] 청백운 (작자 미상) 296\n73강 실전학습1 회 [05~1 0] 출새곡 (조우인) / 망설 (홍성민) 300\n74강 실전학습1 회 [ 1 1 ~ 1 4] 도둑맞은 가난 (박완서) 306\n75강 실전학습1 회 [ 1 5~ 1 7] 그 복숭아나무 곁으로 (나희덕)\n가재미 (문태준) 310\n76강 실전학습 2 회 [ 0 1~04] 호질 (박지원) 312\n78강 실전학습 2 회 [05~1 0] 여수 (오장환)\n방울소리 (이수익)\n먼 곳에의 그리움 (전혜린) 317\n79강 실전학습 2 회 [ 1 1 ~ 1 4] 삼대 (염상섭) 321\n80강 실전학습 2 회 [ 1 5~ 1 7] 장육당육가 (이별) / 영언십이장 (신지)\n326",
+    "toc_lecture_list": [
+      {
+        "lecture_id": 1,
+        "title": "시의 표현과 형식",
+        "start_page": 9,
+        "source": "toc_text",
+        "end_page": 14
+      },
+      {
+        "lecture_id": 2,
+        "title": "시의 내용",
+        "start_page": null,
+        "source": "toc_text"
+      },
+      {
+        "lecture_id": 3,
+        "title": "소설의 서술상 특징",
+        "start_page": 15,
+        "source": "toc_text",
+        "end_page": 18
+      },
+      {
+        "lecture_id": 4,
+        "title": "소설의 내용 구성 요소",
+        "start_page": 19,
+        "source": "toc_text",
+        "end_page": 23
+      },
+      {
+        "lecture_id": 5,
+        "title": "극의 특성과 극 문학의 구성 요소",
+        "start_page": 24,
+        "source": "toc_text",
+        "end_page": 28
+      },
+      {
+        "lecture_id": 6,
+        "title": "교술 문학의 특성과 구성 요소",
+        "start_page": 29,
+        "source": "toc_text",
+        "end_page": 31
+      },
+      {
+        "lecture_id": 7,
+        "title": "작품의 작가 및 독자 맥락",
+        "start_page": 32,
+        "source": "toc_text",
+        "end_page": 35
+      },
+      {
+        "lecture_id": 8,
+        "title": "작품의 문학사적, 상호 텍스트적 맥락",
+        "start_page": 36,
+        "source": "toc_text",
+        "end_page": 40
+      },
+      {
+        "lecture_id": 9,
+        "title": "작품의 사회·문화적, 역사적 맥락",
+        "start_page": 41,
+        "source": "toc_text",
+        "end_page": 43
+      },
+      {
+        "lecture_id": 10,
+        "title": "모죽지랑가 (득오) / 화왕가 (이익)",
+        "start_page": 44,
+        "source": "toc_text",
+        "end_page": 45
+      },
+      {
+        "lecture_id": 11,
+        "title": "정과정곡 (정서) / 소악부 중 <제6장> (민사평)",
+        "start_page": 46,
+        "source": "toc_text",
+        "end_page": 52
+      },
+      {
+        "lecture_id": 12,
+        "title": "귀거래 귀거래 말뿐이오 ~ (이현보)",
+        "start_page": null,
+        "source": "toc_text"
+      },
+      {
+        "lecture_id": 13,
+        "title": "사 우가 중 <제2수> (이신의)",
+        "start_page": null,
+        "source": "toc_text"
+      },
+      {
+        "lecture_id": 14,
+        "title": "오륜가 (박선장)",
+        "start_page": 53,
+        "source": "toc_text",
+        "end_page": 55
+      },
+      {
+        "lecture_id": 15,
+        "title": "북천가 (김진형)",
+        "start_page": 56,
+        "source": "toc_text",
+        "end_page": 59
+      },
+      {
+        "lecture_id": 16,
+        "title": "용부가 (작자 미상)",
+        "start_page": 60,
+        "source": "toc_text",
+        "end_page": 63
+      },
+      {
+        "lecture_id": 17,
+        "title": "동유가 (홍정유)",
+        "start_page": 64,
+        "source": "toc_text",
+        "end_page": 69
+      },
+      {
+        "lecture_id": 18,
+        "title": "나물 캐는 노래 (작자 미상)",
+        "start_page": null,
+        "source": "toc_text"
+      },
+      {
+        "lecture_id": 19,
+        "title": "초한가 (작자 미상) / 장진주사 (정철)",
+        "start_page": 70,
+        "source": "toc_text",
+        "end_page": 73
+      },
+      {
+        "lecture_id": 20,
+        "title": "잠령민정 (임제) / 우국가 (이덕일)",
+        "start_page": 74,
+        "source": "toc_text",
+        "end_page": 76
+      },
+      {
+        "lecture_id": 21,
+        "title": "그날이 오면 (심훈) / 산상의 노래 (조지훈)",
+        "start_page": 77,
+        "source": "toc_text",
+        "end_page": 79
+      },
+      {
+        "lecture_id": 22,
+        "title": "황혼 (이육사) / 성에꽃 (최두석)",
+        "start_page": 80,
+        "source": "toc_text",
+        "end_page": 82
+      },
+      {
+        "lecture_id": 23,
+        "title": "불사조 (정지용) / 꽃씨 (문병란)",
+        "start_page": 83,
+        "source": "toc_text",
+        "end_page": 85
+      },
+      {
+        "lecture_id": 24,
+        "title": "달·포도·잎사귀 (장만영) / 아침 시 (최하림)",
+        "start_page": 86,
+        "source": "toc_text",
+        "end_page": 88
+      },
+      {
+        "lecture_id": 25,
+        "title": "생명의 서·일장 (유치환)",
+        "start_page": 89,
+        "source": "toc_text",
+        "end_page": 91
+      },
+      {
+        "lecture_id": 26,
+        "title": "역사 (신석정) / 지리산 뻐꾹새 (송수권)",
+        "start_page": 92,
+        "source": "toc_text",
+        "end_page": 94
+      },
+      {
+        "lecture_id": 27,
+        "title": "전라도 가시내 (이용악) / 나목 (신경림)",
+        "start_page": 95,
+        "source": "toc_text",
+        "end_page": 97
+      },
+      {
+        "lecture_id": 28,
+        "title": "병원 (윤동주) / 벽 (김기택)",
+        "start_page": 98,
+        "source": "toc_text",
+        "end_page": 99
+      },
+      {
+        "lecture_id": 29,
+        "title": "눈물 (김현승) / 강우 (김춘수)",
+        "start_page": 100,
+        "source": "toc_text",
+        "end_page": 102
+      },
+      {
+        "lecture_id": 30,
+        "title": "파밭 가에서 (김수영) / 들국 (김용택)",
+        "start_page": 103,
+        "source": "toc_text",
+        "end_page": 105
+      },
+      {
+        "lecture_id": 31,
+        "title": "흙 (문정희) / 느티나무로부터 (복효근)",
+        "start_page": 106,
+        "source": "toc_text",
+        "end_page": 108
+      },
+      {
+        "lecture_id": 32,
+        "title": "남백월 이성 노힐부득과 달달박박 (작자 미상)",
+        "start_page": 109,
+        "source": "toc_text",
+        "end_page": 112
+      },
+      {
+        "lecture_id": 33,
+        "title": "채생기우 (이현기)",
+        "start_page": 113,
+        "source": "toc_text",
+        "end_page": 116
+      },
+      {
+        "lecture_id": 34,
+        "title": "김진옥전 (작자 미상)",
+        "start_page": 117,
+        "source": "toc_text",
+        "end_page": 120
+      },
+      {
+        "lecture_id": 35,
+        "title": "숙향전 (작자 미상)",
+        "start_page": 121,
+        "source": "toc_text",
+        "end_page": 124
+      },
+      {
+        "lecture_id": 36,
+        "title": "정진사전 (작자 미상)",
+        "start_page": 125,
+        "source": "toc_text",
+        "end_page": 128
+      },
+      {
+        "lecture_id": 37,
+        "title": "강도몽유록 (작자 미상)",
+        "start_page": 129,
+        "source": "toc_text",
+        "end_page": 132
+      },
+      {
+        "lecture_id": 38,
+        "title": "옥소전 (작자 미상)",
+        "start_page": 133,
+        "source": "toc_text",
+        "end_page": 136
+      },
+      {
+        "lecture_id": 39,
+        "title": "천수석 (작자 미상)",
+        "start_page": 137,
+        "source": "toc_text",
+        "end_page": 140
+      },
+      {
+        "lecture_id": 40,
+        "title": "수궁가 (작자 미상)",
+        "start_page": 141,
+        "source": "toc_text",
+        "end_page": 145
+      },
+      {
+        "lecture_id": 41,
+        "title": "심청전 (작자 미상)",
+        "start_page": 146,
+        "source": "toc_text",
+        "end_page": 150
+      },
+      {
+        "lecture_id": 42,
+        "title": "지봉전 (작자 미상)",
+        "start_page": 151,
+        "source": "toc_text",
+        "end_page": 154
+      },
+      {
+        "lecture_id": 43,
+        "title": "무정 (이광수)",
+        "start_page": 155,
+        "source": "toc_text",
+        "end_page": 158
+      },
+      {
+        "lecture_id": 44,
+        "title": "날개 (이상)",
+        "start_page": 159,
+        "source": "toc_text",
+        "end_page": 162
+      },
+      {
+        "lecture_id": 45,
+        "title": "태평천하 (채만식)",
+        "start_page": 163,
+        "source": "toc_text",
+        "end_page": 170
+      },
+      {
+        "lecture_id": 46,
+        "title": "판문점 (이호철)",
+        "start_page": 171,
+        "source": "toc_text",
+        "end_page": 174
+      },
+      {
+        "lecture_id": 47,
+        "title": "차나 한잔 (김승옥)",
+        "start_page": 175,
+        "source": "toc_text",
+        "end_page": 178
+      },
+      {
+        "lecture_id": 48,
+        "title": "황홀한 실종 (이청준)",
+        "start_page": 179,
+        "source": "toc_text",
+        "end_page": 183
+      },
+      {
+        "lecture_id": 49,
+        "title": "당제 (송기숙)",
+        "start_page": 184,
+        "source": "toc_text",
+        "end_page": 187
+      },
+      {
+        "lecture_id": 50,
+        "title": "방울새 (양귀자)",
+        "start_page": 188,
+        "source": "toc_text",
+        "end_page": 191
+      },
+      {
+        "lecture_id": 51,
+        "title": "새를 찾아서 (김주영)",
+        "start_page": 192,
+        "source": "toc_text",
+        "end_page": 195
+      },
+      {
+        "lecture_id": 52,
+        "title": "새의 선물 (은희경)",
+        "start_page": 196,
+        "source": "toc_text",
+        "end_page": 199
+      },
+      {
+        "lecture_id": 53,
+        "title": "강령 탈춤의 특징 / 강령 탈춤 (작자 미상)",
+        "start_page": 200,
+        "source": "toc_text",
+        "end_page": 203
+      },
+      {
+        "lecture_id": 54,
+        "title": "계축일기 (작자 미상)",
+        "start_page": 204,
+        "source": "toc_text",
+        "end_page": 206
+      },
+      {
+        "lecture_id": 55,
+        "title": "해유록 (신유한)",
+        "start_page": 207,
+        "source": "toc_text",
+        "end_page": 210
+      },
+      {
+        "lecture_id": 56,
+        "title": "야뇌당기 (이덕무) / 아암기 (이용휴)",
+        "start_page": 211,
+        "source": "toc_text",
+        "end_page": 213
+      },
+      {
+        "lecture_id": 57,
+        "title": "산불 (차범석)",
+        "start_page": 214,
+        "source": "toc_text",
+        "end_page": 218
+      },
+      {
+        "lecture_id": 58,
+        "title": "쥬라기의 사람들 (이강백)",
+        "start_page": 219,
+        "source": "toc_text",
+        "end_page": 222
+      },
+      {
+        "lecture_id": 59,
+        "title": "동주 (신연식)",
+        "start_page": 223,
+        "source": "toc_text",
+        "end_page": 226
+      },
+      {
+        "lecture_id": 60,
+        "title": "우리들의 블루스 (노희경)",
+        "start_page": 227,
+        "source": "toc_text",
+        "end_page": 231
+      },
+      {
+        "lecture_id": 61,
+        "title": "한계사의 노스님에게 (이규보) / 소화사 (이인상)",
+        "start_page": 232,
+        "source": "toc_text",
+        "end_page": 236
+      },
+      {
+        "lecture_id": 62,
+        "title": "임계탄 (작자 미상) / 절비자설 (박전)",
+        "start_page": 237,
+        "source": "toc_text",
+        "end_page": 242
+      },
+      {
+        "lecture_id": 63,
+        "title": "새장 속의 학 (이매창) / 선상탄 (박인로)",
+        "start_page": 243,
+        "source": "toc_text",
+        "end_page": 248
+      },
+      {
+        "lecture_id": 64,
+        "title": "몽천요 (윤선도) / 구운몽 (김만중)",
+        "start_page": 249,
+        "source": "toc_text",
+        "end_page": 254
+      },
+      {
+        "lecture_id": 65,
+        "title": "화전가 (작자 미상) / 의유당관북유람일기 (의유당)",
+        "start_page": 255,
+        "source": "toc_text",
+        "end_page": 266
+      },
+      {
+        "lecture_id": 66,
+        "title": "남신의주 유동 박시봉방 (백석)",
+        "start_page": null,
+        "source": "toc_text"
+      },
+      {
+        "lecture_id": 67,
+        "title": "경사 (박목월) / 겨울나무를 보며 (박재삼)",
+        "start_page": 267,
+        "source": "toc_text",
+        "end_page": 276
+      },
+      {
+        "lecture_id": 68,
+        "title": "감나무 그늘 아래 (고재종)",
+        "start_page": null,
+        "source": "toc_text"
+      },
+      {
+        "lecture_id": 69,
+        "title": "광화문, 겨울, 불꽃, 나무 (이문재) / 화단 (이태준)",
+        "start_page": 277,
+        "source": "toc_text",
+        "end_page": 295
+      },
+      {
+        "lecture_id": 70,
+        "title": "현대 소설에서 신빙성 없는 서술자의 특성과 효과",
+        "start_page": null,
+        "source": "toc_text"
+      },
+      {
+        "lecture_id": 71,
+        "title": "메밀꽃 필 무렵 (이효석)",
+        "start_page": null,
+        "source": "toc_text"
+      },
+      {
+        "lecture_id": 72,
+        "title": "실전학습1 회 [ 0 1~04] 청백운 (작자 미상)",
+        "start_page": 296,
+        "source": "toc_text",
+        "end_page": 299
+      },
+      {
+        "lecture_id": 73,
+        "title": "실전학습1 회 [05~1 0] 출새곡 (조우인) / 망설 (홍성민)",
+        "start_page": 300,
+        "source": "toc_text",
+        "end_page": 305
+      },
+      {
+        "lecture_id": 74,
+        "title": "실전학습1 회 [ 1 1 ~ 1 4] 도둑맞은 가난 (박완서)",
+        "start_page": 306,
+        "source": "toc_text",
+        "end_page": 309
+      },
+      {
+        "lecture_id": 75,
+        "title": "실전학습1 회 [ 1 5~ 1 7] 그 복숭아나무 곁으로 (나희덕)",
+        "start_page": 310,
+        "source": "toc_text",
+        "end_page": 311
+      },
+      {
+        "lecture_id": 76,
+        "title": "실전학습 2 회 [ 0 1~04] 호질 (박지원)",
+        "start_page": 312,
+        "source": "toc_text",
+        "end_page": 320
+      },
+      {
+        "lecture_id": 78,
+        "title": "실전학습 2 회 [05~1 0] 여수 (오장환)",
+        "start_page": null,
+        "source": "toc_text"
+      },
+      {
+        "lecture_id": 79,
+        "title": "실전학습 2 회 [ 1 1 ~ 1 4] 삼대 (염상섭)",
+        "start_page": 321,
+        "source": "toc_text",
+        "end_page": null
+      },
+      {
+        "lecture_id": 80,
+        "title": "실전학습 2 회 [ 1 5~ 1 7] 장육당육가 (이별) / 영언십이장 (신지)",
+        "start_page": null,
+        "source": "toc_text"
+      }
+    ]
+  },
+  "confidence": 0.85,
+  "sample_texts": [
+    "1강 | 시의 표현과 형식",
+    "해 (박두진) 009",
+    "2강 | 시의 내용",
+    "매화 옛 등걸에 ~ (매화)",
+    "녹양이 천만사인들 ~ (이원익)",
+    "사랑 사랑 고고히 맺힌 사랑 ~ (작자 미상) 012",
+    "3강 | 소설의 서술상 특징",
+    "장마 (윤흥길) 015",
+    "4강 | 소설의 내용 구성 요소",
+    "전우치전 (작자 미상) 019",
+    "5강 | 극의 특성과 극 문학의 구성 요소",
+    "고목 (함세덕) 024",
+    "6강 | 교술 문학의 특성과 구성 요소",
+    "차마설 (이곡) 029",
+    "7강 | 작품의 작가 및 독자 맥락",
+    "사랑손님과 어머니 (주요섭) 032",
+    "8강 | 작품의 문학사적, 상호 텍스트적 맥락",
+    "놀부전 (이근삼) 036",
+    "9강 | 작품의 사회·문화적, 역사적 맥락",
+    "당신을 보았습니다 (한용운) 041",
+    ">>> 고전 시가",
+    "10강 모죽지랑가 (득오) / 화왕가 (이익) 044",
+    "11강 정과정곡 (정서) / 소악부 중 <제6장> (민사평) 046",
+    "12강 귀거래 귀거래 말뿐이오 ~ (이현보)",
+    "강산 좋은 경을 ~ (김천택)",
+    "공명을 헤아리니 ~ (작자 미상) 049",
+    "13강 사 우가 중 <제2수> (이신의)",
+    "거문고 술 꽂아 놓고 ~ (김창업)",
+    "어화 세상 벗님네야 ~ (작자 미상) 051",
+    "14강 오륜가 (박선장) 053"
+  ],
+  "created_at": "2026-01-25T19:51:24.105773",
+  "updated_at": "2026-01-25T19:51:24.105773",
+  "stats": {
+    "total_lectures": 79,
+    "lectures_with_pages": 69,
+    "total_patterns": 7,
+    "has_region_hints": true,
+    "has_region_text_examples": true,
+    "has_region_image_examples": true,
+    "toc_text_length": 2718
+  }
+}

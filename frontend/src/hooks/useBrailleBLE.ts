@@ -202,8 +202,10 @@ export function useBrailleBLE(config: BrailleBLEConfig = {}) {
     if (!text.trim()) return;
 
     try {
-      // API를 통해 점자 변환 (또는 로컬 변환)
-      const response = await fetch('/api/braille/convert', {
+      // API 베이스: 배포 시 백엔드 호스트 사용 (프론트와 분리된 경우 대비)
+      const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/api\/v1\/?$/, '') || '';
+      const url = base ? `${base}/api/braille/convert` : '/api/braille/convert';
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })

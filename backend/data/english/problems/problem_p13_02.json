@@ -1,0 +1,16 @@
+{
+  "problem_id": "02",
+  "page": 13,
+  "source": "25005-0003",
+  "question": "다음 글의 목적으로 가장 적절한 것은?",
+  "question_text": "다음 글의 목적으로 가장 적절한 것은?",
+  "choices": {
+    "1": "소파 다리의 교체를 요청하려고",
+    "2": "구매한 소파의 배송 지연을 항의하려고",
+    "3": "부서진 소파의 수거 및 환불을 요구하려고",
+    "4": "구매한 제품의 교환이 가능한지 문의하려고",
+    "5": "소비자 보호원에 불만을 제기했음을 알리려고"
+  },
+  "correct_answer": "3",
+  "passage": "Dear Mr. Smith,\n\nI purchased a sofa from your website on October 1st and paid $650 on my credit card. The sofa was delivered on October 10th. Unfortunately, the product has not performed well. One of the legs broke off on October 30th, making the sofa unsteady and rocks whenever I sit on it. This makes it very uncomfortable to use. I have not used the sofa in a way that would cause this kind of damage.\n\nI reported this problem on your Customer Service page on November 5th and again on November 7th, but I have received no response from your company. To resolve this problem, I would like you to pick up this sofa with no charge and refund the $650 I paid. I have enclosed copies of my records, including my receipt, delivery invoice, and photos of the broken sofa.\n\nI expect to hear from you soon and will wait until December 12 before I contact the Consumer Protection Office to get help.\n\nSincerely,\nEmily Johnson"
+}

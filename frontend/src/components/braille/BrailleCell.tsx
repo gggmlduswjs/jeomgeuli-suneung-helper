@@ -44,35 +44,32 @@ export function BrailleCell({
   }, [keyword, pattern, active]);
 
   return (
-    <div className={`flex flex-col items-center space-y-2 ${className}`}>
-      {/* 점자 셀 시각화 (표준 2x3, column-major) - 크기 축소 */}
+    <div className={`flex flex-col items-center ${className}`}>
+      {/* 점자 셀 시각화 (표준 2x3, column-major) */}
       <div
-        className="grid grid-cols-2 grid-rows-3 grid-flow-col gap-0.5 p-1.5 bg-white border border-slate-300 rounded shadow-sm"
+        className={`grid grid-cols-2 grid-rows-3 gap-1.5 p-2.5 rounded-md ${
+          active 
+            ? 'bg-background border-2 border-foreground/20 shadow-inner' 
+            : 'bg-muted border border-border/50'
+        }`}
         role="group"
         aria-label={keyword ? `점자 셀: ${keyword}` : "점자 셀"}
+        style={{ width: '48px', height: '72px' }}
       >
         {braillePattern.map((dot, index) => (
           <div
             key={index}
-            className={`w-2 h-2 rounded-full border border-slate-400 ${
-              dot ? "bg-slate-800" : "bg-white"
+            className={`w-3 h-3 rounded-full transition-all ${
+              dot 
+                ? active 
+                  ? "bg-foreground shadow-sm" 
+                  : "bg-muted-foreground/40"
+                : "bg-transparent border border-border/30"
             }`}
             aria-hidden={true}
           />
         ))}
       </div>
-
-      {/* 키워드 표시 */}
-      {keyword && (
-        <div className="text-center">
-          <div className="text-sm font-medium text-slate-700">
-            {active ? keyword : "대기 중"}
-          </div>
-          <div className="text-xs text-slate-500">
-            {active ? "출력 중" : "정지됨"}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

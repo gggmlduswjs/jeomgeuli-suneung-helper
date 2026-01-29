@@ -4,6 +4,8 @@
  */
 import { useEffect } from 'react';
 import type { Unit } from '../../types/unit';
+import TextSearch from './TextSearch';
+import RAGRecommendationCard from '../ai/RAGRecommendationCard';
 
 interface WorkViewerProps {
   unit: Unit;
@@ -29,42 +31,26 @@ export default function WorkViewer({ unit, onSpeak }: WorkViewerProps) {
     }
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="bg-accent/10 border border-accent rounded-lg p-4">
-        <h3 className="text-xl font-bold mb-2">{unit.title}</h3>
-      </div>
+  // 검색 가능한 텍스트 (content_text 또는 braille_text)
+  const searchableText = unit.content_text || unit.braille_text || '';
 
-      {/* 전체 작품 듣기 버튼 */}
-      {unit.braille_text && onSpeak && (
-        <div className="flex justify-center">
-          <button
-            onClick={handlePlayFullWork}
-            className="px-6 py-3 bg-accent text-white rounded-lg font-semibold
-                     hover:bg-accent/90 transition-all duration-300
-                     shadow-md hover:shadow-lg hover:scale-105
-                     flex items-center gap-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                clipRule="evenodd"
-              />
-            </svg>
-            전체 작품 듣기
-          </button>
-        </div>
+  return (
+    <div className="space-y-2" data-search-content>
+      {/* 텍스트 검색 기능 (Ctrl+F) */}
+      {searchableText && (
+        <TextSearch
+          content={searchableText}
+          onSearchResult={(index, total) => {
+            if (onSpeak) {
+              onSpeak(`${total}개 중 ${index + 1}번째 결과입니다.`);
+            }
+          }}
+        />
       )}
 
       {/* 이미지 표시 - 로딩 최적화 */}
       {imagePaths.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-2">
           {imagePaths.map((imagePath, index) => {
             // 이미지 경로 정규화 (상대 경로 처리)
             const normalizedPath = imagePath.startsWith('/') 
@@ -76,12 +62,12 @@ export default function WorkViewer({ unit, onSpeak }: WorkViewerProps) {
             return (
               <div
                 key={index}
-                className="relative border border-border/50 rounded-lg overflow-hidden shadow-sm bg-muted/30 min-h-[200px]"
+                className="relative border border-border/50 rounded-lg overflow-hidden shadow-sm bg-muted/30"
               >
                 <img
                   src={normalizedPath}
                   alt={`${unit.title} 이미지 ${index + 1}`}
-                  className="w-full h-auto"
+                  className="w-full h-auto object-contain"
                   loading="eager" // 즉시 로드 (중요한 컨텐츠)
                   decoding="async" // 비동기 디코딩
                   onLoad={(e) => {
@@ -96,7 +82,7 @@ export default function WorkViewer({ unit, onSpeak }: WorkViewerProps) {
                     const placeholder = (e.target as HTMLImageElement).nextElementSibling as HTMLElement;
                     if (placeholder) placeholder.style.display = 'flex';
                   }}
-                  style={{ opacity: 0, transition: 'opacity 0.3s' }}
+                  style={{ opacity: 0, transition: 'opacity 0.3s', maxWidth: '100%', height: 'auto' }}
                 />
                 {/* 로딩 플레이스홀더 */}
                 <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
@@ -116,6 +102,24 @@ export default function WorkViewer({ unit, onSpeak }: WorkViewerProps) {
           </div>
         </div>
       )} */}
+
+      {/* RAG 기반 유사 콘텐츠 추천 */}
+      {searchableText && (
+        <RAGRecommendationCard
+          query={searchableText.substring(0, 200)} // 처음 200자만 사용
+          unitId={unit.unit_id}
+          lessonId={unit.lesson_id}
+          contentType="passage"
+          onSelect={(rec) => {
+            // 추천된 콘텐츠로 이동하는 로직
+            if (rec.metadata.unit_id && onSpeak) {
+              onSpeak(`유사한 본문으로 이동합니다. ${rec.metadata.title || rec.text.substring(0, 50)}`);
+              // TODO: 네비게이션 구현
+              // navigate(`/unit/${rec.metadata.unit_id}`);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

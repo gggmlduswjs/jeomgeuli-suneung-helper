@@ -52,6 +52,7 @@ class UnifiedPipeline:
         start_page: Optional[int] = None,
         end_page: Optional[int] = None,
         auto_sample_pages: int = 5,
+        template_name: Optional[str] = None,
         **extractor_kwargs
     ):
         """
@@ -64,8 +65,14 @@ class UnifiedPipeline:
             book_id: 교재 ID (None이면 과목별, 지정하면 교재별 분리)
             start_page: 시작 페이지 번호 (1부터 시작, None이면 처음부터)
             end_page: 종료 페이지 번호 (None이면 끝까지)
+            template_name: 명시적으로 지정할 템플릿 이름 (지정 시 매칭 스킵)
             **extractor_kwargs: 추출기 추가 옵션
         """
+        # 로거 레벨 설정 (백그라운드 작업에서도 로그가 출력되도록)
+        from app.infrastructure.pdf.logging_config import setup_pdf_logging
+        setup_pdf_logging()
+        logger.info("[UnifiedPipeline] 로거 레벨을 INFO로 설정")
+
         self.subject = subject
         self.config_path = config_path
         self.save_results = save_results
@@ -73,6 +80,7 @@ class UnifiedPipeline:
         self.book_id = book_id
         self.start_page = start_page
         self.end_page = end_page
+        self.template_name = template_name  # 명시적 템플릿 지정
         self.progress_callback = None  # OCR 진행률 업데이트 콜백
         self.auto_sample_pages = max(1, int(auto_sample_pages or 5))
 
@@ -108,7 +116,7 @@ class UnifiedPipeline:
         self.parser = None  # process 메서드에서 동적으로 선택
         self.config_path = config_path
         self.hybrid_router = HybridRouter(
-            template_threshold=0.85,
+            template_threshold=0.65,  # 0.85 → 0.65로 낮춤 (목차 페이지 67% 매칭 고려)
             enable_ai_parsing=True  # Phase 2에서 활성화될 예정
         )
         
@@ -196,12 +204,8 @@ class UnifiedPipeline:
 
         try:
             # 1. 텍스트 추출
-            logger.info("="*50)
-            logger.info("1. 텍스트 추출 시작")
-            logger.info(f"   추출기: {type(self.extractor).__name__}")
-            logger.info(f"   OCR 사용: {isinstance(self.extractor, OCRExtractor)}")
-            logger.info(f"   PDF 경로: {pdf_path}")
-            logger.info("="*50)
+            extractor_name = type(self.extractor).__name__
+            logger.info(f"1. 텍스트 추출 시작 (추출기: {extractor_name})")
 
             # 템플릿 기반 페이지 범위 최적화 (템플릿이 있고 페이지 정보가 있으면)
             # 원래 값 보존을 위해 로컬 변수 사용
@@ -216,143 +220,146 @@ class UnifiedPipeline:
                     effective_end_page = template_end
                     logger.info(f"   📋 템플릿 기반 페이지 범위 적용: {effective_start_page}~{effective_end_page or '끝'}")
 
-            # auto 모드: 먼저 pdfplumber로 샘플 검사 후 필요 시 OCR로 전환
+            # auto 모드: 샘플 검사 후 OCR 전환 여부 결정
             if self.extraction_mode == "auto":
                 sample_first = effective_start_page or 1
-                sample_last = sample_first + self.auto_sample_pages - 1
-                if effective_end_page:
-                    sample_last = min(sample_last, effective_end_page)
+                sample_last = min(sample_first + self.auto_sample_pages - 1, effective_end_page or float('inf'))
 
-                logger.info(
-                    f"[Pipeline] auto 모드: pdfplumber 샘플 추출로 텍스트 레이어 검사 "
-                    f"(페이지 {sample_first}-{sample_last})"
-                )
+                logger.info(f"   Auto 모드: 샘플 검사 (페이지 {sample_first}-{sample_last})")
 
-                sample_data = self._pdf_extractor.extract(
-                    pdf_path,
-                    first_page=sample_first,
-                    last_page=sample_last
-                )
+                sample_data = self._pdf_extractor.extract(pdf_path, first_page=sample_first, last_page=sample_last)
 
                 if self._should_switch_to_ocr(sample_data):
-                    logger.info("[AUTO 모드] 텍스트 레이어 부족/깨짐 감지 → OCR로 자동 전환")
+                    logger.info("   텍스트 레이어 부족 → OCR 전환")
                     self.extractor = self._create_ocr_extractor()
                 else:
-                    logger.info("[AUTO 모드] 텍스트 레이어 양호 → pdfplumber 유지")
+                    logger.info("   텍스트 레이어 양호 → pdfplumber 사용")
                     self.extractor = self._pdf_extractor
             
+            extraction_mode_used = 'ocr' if isinstance(self.extractor, OCRExtractor) else 'pdfplumber'
+            first_page = effective_start_page or 1
+            use_two_stage = not isinstance(self.extractor, OCRExtractor)
+            sample_ocr: List[OCRPageData] = []
+            ocr_data: List[OCRPageData] = []
+
             if isinstance(self.extractor, OCRExtractor):
-                # OCR 사용 시: PDF를 이미지로 변환 후 추출
-                logger.info("   OCR 모드: PDF를 이미지로 변환 중...")
+                # OCR 모드: 전체 추출 후 파서 선택
                 from pdf2image import convert_from_path
                 try:
-                    # 페이지 범위 설정
-                    convert_kwargs = {'dpi': self.extractor.dpi}
-
-                    # Poppler 경로 (자동 감지 또는 환경 변수)
+                    convert_kwargs = {
+                        'dpi': self.extractor.dpi,
+                        'first_page': first_page,
+                        'last_page': effective_end_page
+                    }
                     if settings.POPPLER_PATH:
                         convert_kwargs['poppler_path'] = settings.POPPLER_PATH
-                        logger.debug(f"   Poppler 경로: {settings.POPPLER_PATH}")
-                    else:
-                        logger.warning("   Poppler 경로 없음 - 자동 감지 시도")
 
-                    first_page = effective_start_page or 1
-                    convert_kwargs['first_page'] = first_page
-                    if effective_end_page:
-                        convert_kwargs['last_page'] = effective_end_page
-
-                    logger.info(f"   페이지 범위: {first_page} ~ {effective_end_page or '끝'}")
+                    logger.info(f"   OCR 모드: 이미지 변환 중 (페이지 {first_page}~{effective_end_page or '끝'})")
                     page_images = convert_from_path(pdf_path, **convert_kwargs)
-                    logger.info(f"   이미지 변환 완료: {len(page_images)}개 페이지")
-                    
-                    # OCR 진행률 콜백 설정
+                    logger.info(f"   변환 완료: {len(page_images)}개 페이지")
+
                     if self.progress_callback and hasattr(self.extractor, 'set_progress_callback'):
                         self.extractor.set_progress_callback(self.progress_callback)
-                    
-                    ocr_data = self.extractor.extract(page_images)
 
-                    # 페이지 번호 조정 (배치 처리 시)
+                    ocr_data = self.extractor.extract(page_images)
                     if effective_start_page and effective_start_page > 1:
                         page_offset = effective_start_page - 1
                         for page_data in ocr_data:
                             page_data['page_num'] += page_offset
-                        logger.info(f"   페이지 번호 조정: +{page_offset}")
+                    logger.info(f"   추출 완료: {len(ocr_data)}개 페이지")
                 except Exception as e:
-                    logger.error(f"   PDF→이미지 변환 실패: {e}")
+                    logger.error(f"   이미지 변환 실패: {e}")
                     raise
             else:
-                # PdfplumberExtractor 사용 시: PDF 경로 직접 전달
-                logger.info("   pdfplumber 모드: 텍스트 추출 중...")
+                # pdfplumber 모드: 2단계 추출 (샘플 → 파서 선택 → 나머지)
                 try:
-                    first_page = effective_start_page or 1
-                    ocr_data = self.extractor.extract(
+                    end_sentinel = effective_end_page if effective_end_page is not None else 999999
+                    sample_last = min(first_page + self.auto_sample_pages - 1, end_sentinel)
+                    logger.info(f"   pdfplumber 2단계: 샘플 추출 (페이지 {first_page}~{sample_last})")
+                    sample_ocr = self.extractor.extract(
                         pdf_path,
                         first_page=first_page,
-                        last_page=effective_end_page
+                        last_page=sample_last
                     )
-                    logger.info(f"   pdfplumber 추출 완료: {len(ocr_data)}개 페이지")
+                    if not sample_ocr:
+                        raise ExtractionError(
+                            "샘플 추출 실패.",
+                            details={"pdf_path": str(pdf_path)}
+                        )
                 except Exception as e:
-                    logger.error(f"   pdfplumber 추출 실패: {e}")
-                    logger.exception(e)
+                    logger.error(f"   추출 실패: {e}")
                     raise
-            
-            if not ocr_data:
+
+            # 2. 파서 선택 (pdfplumber: 샘플만 사용 / OCR: 전체 사용)
+            logger.info("2. 파서 선택 중...")
+            ocr_for_select = sample_ocr if use_two_stage and sample_ocr else ocr_data
+            try:
+                parser, strategy, metadata = self.hybrid_router.select_parser(
+                    subject=self.subject,
+                    ocr_data=ocr_for_select,
+                    config_path=self.config_path,
+                    book_id=self.book_id,
+                    pdf_path=pdf_path,
+                    template_name=self.template_name
+                )
+                self.parser = parser
+                log_msg = f"   전략: {strategy}"
+                if metadata.get('template_name'):
+                    log_msg += f", 템플릿: {metadata['template_name']} (신뢰도: {metadata.get('confidence', 0):.2f})"
+                logger.info(log_msg)
+            except Exception as e:
+                logger.warning(f"   파서 선택 실패, 기본 파서 사용: {e}")
+                self.parser = self._get_parser(self.subject, self.config_path)
+                strategy = 'fallback'
+                metadata = {'error': str(e)}
+
+            # pdfplumber 2단계: 나머지 추출 후 병합
+            if use_two_stage and sample_ocr:
+                remainder_first = first_page + len(sample_ocr)
+                end_sentinel = effective_end_page if effective_end_page is not None else 999999
+                if remainder_first <= end_sentinel:
+                    try:
+                        logger.info(f"   pdfplumber 2단계: 나머지 추출 (페이지 {remainder_first}~{effective_end_page or '끝'})")
+                        remainder_ocr = self.extractor.extract(
+                            pdf_path,
+                            first_page=remainder_first,
+                            last_page=effective_end_page
+                        )
+                        ocr_data = sample_ocr + remainder_ocr
+                    except Exception as e:
+                        logger.warning(f"   나머지 추출 실패, 샘플만 사용: {e}")
+                        ocr_data = sample_ocr
+                else:
+                    ocr_data = sample_ocr
+                logger.info(f"   추출 완료: {len(ocr_data)}개 페이지")
+            elif not ocr_data:
                 raise ExtractionError(
                     "텍스트 추출 실패: OCR 데이터가 비어있습니다.",
                     details={"pdf_path": str(pdf_path), "extraction_mode": extraction_mode_used}
                 )
-            
-            logger.info(f"   추출 완료: {len(ocr_data)}개 페이지")
-
-            # 추출 모드 기록
-            extraction_mode_used = 'ocr' if isinstance(self.extractor, OCRExtractor) else 'pdfplumber'
-
-            # 2. 하이브리드 라우터를 통한 파서 선택
-            logger.info("2. 파서 선택 중...")
-            # 템플릿 재로드 (새로 생성된 템플릿 감지)
-            logger.info("   템플릿 재로드 중...")
-            self.hybrid_router.template_manager.reload_templates()
-            logger.info(f"   로드된 템플릿: {len(self.hybrid_router.template_manager.templates)}개")
-            try:
-                parser, strategy, metadata = self.hybrid_router.select_parser(
-                    subject=self.subject,
-                    ocr_data=ocr_data,
-                    config_path=self.config_path,
-                    book_id=self.book_id,
-                    pdf_path=pdf_path
-                )
-                self.parser = parser
-                logger.info(f"   선택된 전략: {strategy}")
-                if metadata.get('template_name'):
-                    logger.info(f"   사용된 템플릿: {metadata['template_name']} (신뢰도: {metadata.get('confidence', 0):.2f})")
-                logger.info(f"   처리 시간: {metadata.get('processing_time', 0):.2f}초")
-            except Exception as e:
-                logger.warning(f"   하이브리드 라우터 실패, 기본 파서 사용: {e}")
-                # 폴백: 기본 파서 사용
-                self.parser = self._get_parser(self.subject, self.config_path)
 
             # 3. 파싱
-            logger.info("3. 파싱 중...")
-            logger.info(f"   파서 타입: {type(self.parser).__name__}")
+            logger.info(f"3. 파싱 중 (파서: {type(self.parser).__name__})")
             try:
                 result = self.parser.parse(ocr_data)
                 lectures = result.get('lectures', [])
                 problems = result.get('problems', [])
-                
-                # 메타데이터에 파싱 전략 추가
+
+                # 메타데이터 업데이트
                 if 'metadata' not in result:
                     result['metadata'] = {}
-                result['metadata']['parsing_strategy'] = strategy
-                result['metadata']['extraction_mode'] = extraction_mode_used
-                result['metadata']['requested_extraction_mode'] = self.extraction_mode
-                result['metadata'].update(metadata)
-                
-                logger.info(f"   파싱 완료: {len(lectures)}개 강의, {len(problems)}개 문제")
+                result['metadata'].update({
+                    'parsing_strategy': strategy,
+                    'extraction_mode': extraction_mode_used,
+                    'requested_extraction_mode': self.extraction_mode,
+                    **metadata
+                })
+
+                logger.info(f"   완료: {len(lectures)}개 강의, {len(problems)}개 문제")
             except ParsingError:
-                raise  # 파싱 관련 예외는 그대로 전파
+                raise
             except Exception as e:
                 logger.error(f"   파싱 실패: {e}")
-                logger.exception(e)
                 raise ParsingError(
                     f"파싱 중 오류 발생: {e}",
                     details={"subject": self.subject, "strategy": strategy},
@@ -362,28 +369,21 @@ class UnifiedPipeline:
             # 4. 강의 콘텐츠 추출
             logger.info("4. 강의 콘텐츠 추출 중...")
             try:
-                # parser를 직접 전달 (processing 모듈의 파서 사용)
                 lecture_contents = self.lecture_extractor.extract(ocr_data, lectures, self.parser)
-                logger.info(f"   강의 콘텐츠 추출 완료: {len(lecture_contents)}개")
+                logger.info(f"   완료: {len(lecture_contents)}개")
             except ParsingError:
-                raise  # 파싱 관련 예외는 그대로 전파
+                raise
             except Exception as e:
-                logger.error(f"   강의 콘텐츠 추출 실패: {e}")
-                logger.exception(e)
+                logger.error(f"   실패: {e}")
                 raise ParsingError(
                     f"강의 콘텐츠 추출 중 오류 발생: {e}",
                     details={"lecture_count": len(lectures)},
                     original_error=e
                 ) from e
 
-            # 5. 개념/본문/문제 이미지 크롭 및 저장 (옵션)
-            # - 기존: OCR 모드에서만 저장
-            # - 개선: pdfplumber 모드에서도 필요한 페이지를 렌더링하여 bbox 기반 크롭 가능
+            # 5. 이미지 저장 (옵션)
             if self.save_images:
-                # 이미지 캐시 생성 (페이지별 재사용으로 성능 최적화)
                 image_cache = ImageCache(render_page_fn=self._render_page_from_pdf)
-                
-                # ImageSaver 인스턴스 생성 (캐시 사용)
                 image_saver = ImageSaver(
                     pdf_path=pdf_path,
                     subject=self.subject,
@@ -391,67 +391,66 @@ class UnifiedPipeline:
                     render_page_fn=self._render_page_from_pdf,
                     image_cache=image_cache
                 )
-                
-                # 5-1. 개념 이미지 저장
+
+                # 개념 이미지
                 if lecture_contents:
-                    logger.info("5. 개념 이미지 크롭 및 저장 중...")
+                    logger.info("5. 개념 이미지 저장 중...")
                     try:
                         concept_count = image_saver.save_concept_images(lecture_contents, ocr_data)
-                        logger.info(f"   개념 이미지 저장 완료: {concept_count}개")
+                        logger.info(f"   완료: {concept_count}개")
                     except Exception as e:
-                        logger.warning(f"   개념 이미지 저장 실패 (계속 진행): {e}")
-                        logger.exception(e)
+                        logger.warning(f"   실패 (계속 진행): {e}")
 
-                # 5-2. 본문 이미지 저장
+                # 본문 이미지
                 if lecture_contents:
-                    logger.info("6. 본문 이미지 크롭 및 저장 중...")
+                    logger.info("6. 본문 이미지 저장 중...")
                     try:
                         content_count = image_saver.save_content_images(lecture_contents, ocr_data)
-                        logger.info(f"   본문 이미지 저장 완료: {content_count}개")
+                        logger.info(f"   완료: {content_count}개")
                     except Exception as e:
-                        logger.warning(f"   본문 이미지 저장 실패 (계속 진행): {e}")
-                        logger.exception(e)
+                        logger.warning(f"   실패 (계속 진행): {e}")
 
-                # 5-3. 문제 이미지 저장
+                # 문제 이미지
                 if problems:
-                    logger.info("7. 문제 이미지 크롭 및 저장 중...")
+                    logger.info("7. 문제 이미지 저장 중...")
                     try:
                         problem_count = image_saver.save_problem_images(problems, ocr_data)
-                        logger.info(f"   문제 이미지 저장 완료: {problem_count}개")
+                        logger.info(f"   완료: {problem_count}개")
                     except Exception as e:
-                        logger.warning(f"   문제 이미지 저장 실패 (계속 진행): {e}")
-                        logger.exception(e)
-                
-                # 이미지 캐시 통계 로깅
+                        logger.warning(f"   실패 (계속 진행): {e}")
+
+                # 캐시 통계
                 cache_stats = image_cache.get_stats()
                 logger.info(
-                    f"[ImageCache] 캐시 통계: "
-                    f"크기={cache_stats['cache_size']}, "
-                    f"히트={cache_stats['cache_hits']}, "
+                    f"   캐시: 히트={cache_stats['cache_hits']}, "
                     f"미스={cache_stats['cache_misses']}, "
-                    f"히트율={cache_stats['hit_rate']:.2%}"
+                    f"히트율={cache_stats['hit_rate']:.1%}"
                 )
 
-            # 6. 결과 저장 (선택적)
+            # 6. 결과 저장
             if self.result_saver:
-                logger.info("8. 기존 데이터 삭제 중...")
+                logger.info("8. 결과 저장 중...")
                 self.result_saver.clear()
-                logger.info("   기존 데이터 삭제 완료")
-
-                logger.info("9. 결과 저장 중...")
-                # lecture_contents에 이미 섹션별 content가 매칭되어 있음
                 self.result_saver.save(lectures, lecture_contents, problems)
-                logger.info("   저장 완료")
+
+                # OCR 데이터 저장 (페이지별 JSON 파일)
+                logger.info("9. OCR 데이터 저장 중...")
+                self.result_saver.save_ocr_data(ocr_data)
+
+                # 원본 PDF 복사
+                logger.info("10. 원본 PDF 복사 중...")
+                self.result_saver.copy_original_pdf(pdf_path)
+
+                logger.info("   완료")
 
             # 결과 반환
             result['lecture_contents'] = lecture_contents
             return result
             
-        except ParsingError:
-            raise  # 파싱 관련 예외는 그대로 전파
+        except (ParsingError, ExtractionError, ConfigurationError):
+            raise
         except Exception as e:
-            logger.error(f"UnifiedPipeline 실행 중 예상치 못한 오류 발생: {e}")
-            logger.exception(e)
+            logger.error(f"파이프라인 실행 중 예상치 못한 오류: {e}")
             raise ParsingError(
                 f"파이프라인 실행 중 오류 발생: {e}",
                 details={"pdf_path": str(pdf_path), "subject": self.subject},

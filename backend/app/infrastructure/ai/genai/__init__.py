@@ -21,16 +21,44 @@ from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 import time
 
-# Conditional imports
-try:
+# Lazy imports to avoid Python 3.12 + Pydantic v1 compatibility issues
+# Import only when actually used, not at module level
+GENAI_AVAILABLE = None  # Will be checked lazily
+
+def _check_genai_available():
+    """Lazy check if GenAI modules are available (without actually importing)"""
+    global GENAI_AVAILABLE
+    if GENAI_AVAILABLE is not None:
+        return GENAI_AVAILABLE
+    
+    # Just check if langchain packages are installed, don't import them
+    # This avoids the Python 3.12 + Pydantic v1 compatibility issue
+    try:
+        import importlib.util
+        spec = importlib.util.find_spec("langchain_openai")
+        GENAI_AVAILABLE = spec is not None
+    except Exception:
+        GENAI_AVAILABLE = False
+    
+    if not GENAI_AVAILABLE:
+        print("[GenAI] LangChain not available. Install with: pip install langchain-openai langchain-core")
+    
+    return GENAI_AVAILABLE
+
+def _lazy_import_metadata_enricher():
+    """Lazy import metadata enricher (only when actually used)"""
     from .metadata_enricher import LLMMetadataEnricher, EnrichmentResult
+    return LLMMetadataEnricher, EnrichmentResult
+
+def _lazy_import_explanation_generator():
+    """Lazy import explanation generator (only when actually used)"""
     from .explanation_generator import ConceptExplanationGenerator, EducationLevel, Explanation
+    return ConceptExplanationGenerator, EducationLevel, Explanation
+
+def _lazy_import_rag_recommender():
+    """Lazy import RAG recommender (only when actually used)"""
     from .rag_recommender import RAGContentRecommender, RecommendationResult, build_recommendation_system
-    GENAI_AVAILABLE = True
-except ImportError as e:
-    GENAI_AVAILABLE = False
-    print(f"[GenAI] Some features not available: {e}")
-    print("[GenAI] Install with: pip install langchain openai sentence-transformers")
+    return RAGContentRecommender, RecommendationResult, build_recommendation_system
 
 
 @dataclass
@@ -55,7 +83,7 @@ class GenAIProcessor:
 
     특징:
     - OpenAI API 기반 (GPT-3.5/GPT-4)
-    - LangChain으로 프롬프트 체인 구성
+    - LangChain ChatPromptTemplate으로 Few-shot 프롬프트 구성
     - Zero-shot / Few-shot Learning
     - Vector DB 기반 Semantic Search
     - 캐싱으로 API 비용 최적화
@@ -92,10 +120,10 @@ class GenAIProcessor:
             education_level: 교육 수준 (elementary/middle/high/university)
             vector_db_path: Vector DB 저장 경로 (추천 시스템용)
         """
-        if not GENAI_AVAILABLE:
+        if not _check_genai_available():
             raise RuntimeError(
                 "GenAI features not available. "
-                "Install with: pip install langchain openai sentence-transformers"
+                "Install with: pip install langchain-openai langchain-core"
             )
 
         self.api_key = api_key
@@ -109,18 +137,19 @@ class GenAIProcessor:
         self.enable_recommendations = enable_recommendations
 
         # Components (lazy initialization)
-        self._metadata_enricher: Optional[LLMMetadataEnricher] = None
-        self._explanation_generator: Optional[ConceptExplanationGenerator] = None
-        self._rag_recommender: Optional[RAGContentRecommender] = None
+        self._metadata_enricher = None
+        self._explanation_generator = None
+        self._rag_recommender = None
 
         print(f"[GenAIProcessor] Initialized with model: {model_name}")
         print(f"[GenAIProcessor] Features: metadata={enable_metadata_enrichment}, "
               f"explanations={enable_explanations}, recommendations={enable_recommendations}")
 
     @property
-    def metadata_enricher(self) -> LLMMetadataEnricher:
+    def metadata_enricher(self):
         """Lazy load metadata enricher"""
         if self._metadata_enricher is None:
+            LLMMetadataEnricher, _ = _lazy_import_metadata_enricher()
             self._metadata_enricher = LLMMetadataEnricher(
                 model_name=self.model_name,
                 api_key=self.api_key,
@@ -129,9 +158,10 @@ class GenAIProcessor:
         return self._metadata_enricher
 
     @property
-    def explanation_generator(self) -> ConceptExplanationGenerator:
+    def explanation_generator(self):
         """Lazy load explanation generator"""
         if self._explanation_generator is None:
+            ConceptExplanationGenerator, _, _ = _lazy_import_explanation_generator()
             self._explanation_generator = ConceptExplanationGenerator(
                 model_name=self.model_name,
                 api_key=self.api_key
@@ -139,9 +169,10 @@ class GenAIProcessor:
         return self._explanation_generator
 
     @property
-    def rag_recommender(self) -> RAGContentRecommender:
+    def rag_recommender(self):
         """Lazy load RAG recommender"""
         if self._rag_recommender is None:
+            RAGContentRecommender, _, _ = _lazy_import_rag_recommender()
             self._rag_recommender = RAGContentRecommender(
                 vector_db_type="faiss",
                 embedding_type="sentence_transformers"
@@ -260,6 +291,7 @@ class GenAIProcessor:
         if verbose:
             print("\n[2/3] Concept Explanation Generation")
 
+        _, EducationLevel, _ = _lazy_import_explanation_generator()
         level = EducationLevel[self.education_level.upper()]
         generated_count = 0
 
@@ -333,7 +365,7 @@ class GenAIProcessor:
         self,
         problem_text: str,
         top_k: int = 5
-    ) -> RecommendationResult:
+    ):
         """유사 문제 찾기"""
         if not self.enable_recommendations:
             raise RuntimeError("Recommendations not enabled")
@@ -344,7 +376,7 @@ class GenAIProcessor:
         self,
         concept_text: str,
         top_k: int = 5
-    ) -> RecommendationResult:
+    ):
         """유사 개념 찾기"""
         if not self.enable_recommendations:
             raise RuntimeError("Recommendations not enabled")
@@ -356,13 +388,5 @@ class GenAIProcessor:
 __all__ = [
     "GenAIProcessor",
     "GenAIStats",
-    "LLMMetadataEnricher",
-    "ConceptExplanationGenerator",
-    "RAGContentRecommender",
-    "EducationLevel",
-    "EnrichmentResult",
-    "Explanation",
-    "RecommendationResult",
-    "build_recommendation_system",
-    "GENAI_AVAILABLE"
+    "GENAI_AVAILABLE",
 ]

@@ -1,7 +1,7 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 sqlalchemy==2.0.23
-pydantic==2.5.0
+pydantic>=2.7.4
 pydantic-settings==2.1.0
 python-multipart==0.0.6
 python-dotenv==1.0.0
@@ -12,10 +12,15 @@ Pillow>=10.0.0
 olefile>=0.46
 
 # LangChain 및 LLM 통합
-langchain>=0.1.0
-langchain-openai>=0.0.5
-langchain-community>=0.0.20
+langchain>=0.2.0
+langchain-core>=0.2.38
+langchain-openai>=0.1.0
+langchain-community>=0.2.0
 pymongo>=4.6.0
+
+# RAG 추천 시스템 (Vector DB 및 임베딩)
+sentence-transformers>=2.2.0
+faiss-cpu>=1.7.4  # FAISS 벡터 DB (CPU 버전)
 
 # AI/ML PDF 추출 기능 (선택적)
 # Enhanced OCR
@@ -33,6 +38,9 @@ opencv-python>=4.8.0
 # Math OCR (선택적)
 # mathpix-python>=3.7.0
 # paddleocr>=2.7.0
+
+# 표준 한글 점자 변환 (한글점자규정)
+hgtk>=0.1.0
 
 # Testing
 pytest>=9.0.0

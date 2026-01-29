@@ -1,80 +1,80 @@
 /**
- * 문학 강의 상세 페이지
- * 강의 정보, 개념 설명, 작품 본문을 표시
+ * 문학 강의 상세 페이지 (UnitSwipe 방식)
+ * 개념 → 본문 → 문제 순서로 Unit 단위로 순차 표시
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppShellMobile from '../components/ui/AppShellMobile';
 import SpeechBar from '../components/input/SpeechBar';
 import ToastA11y from '../components/system/ToastA11y';
 import { usePageBase } from '../hooks/usePageBase';
-import { literatureAPI } from '../services/literature';
-import { createModuleLogger } from '../utils/logger';
+import { useLiteratureUnitData } from '../hooks/useLiteratureUnitData';
 import { useLiteratureProgressStore } from '../store/literatureProgressStore';
+import { useLastLectureStore } from '../store/lastLectureStore';
+import UnitCardSwiper from '../components/unit/UnitCardSwiper';
+import UnitViewer from '../components/unit/UnitViewer';
+import AnswerInput from '../components/question/AnswerInput';
+import AnswerResultComponent from '../components/question/AnswerResult';
+import AIExplanationCard from '../components/unit/AIExplanationCard';
+import AIQuestionInput from '../components/ai/AIQuestionInput';
+import UnitListSidebar from '../components/unit/UnitListSidebar';
+import BrailleKeywordsPanel from '../components/braille/BrailleKeywordsPanel';
+import { useKeyboardShortcuts } from '../contexts/KeyboardContext';
+import { useExtractKeywords } from '../hooks/useExtractKeywords';
+import { useToast } from '../hooks/useToast';
+import useTTS from '../hooks/useTTS';
+import useSTT from '../hooks/useSTT';
+import useVoiceCommands from '../hooks/useVoiceCommands';
+import useBrailleBLE from '../hooks/useBrailleBLE';
+import { useUnitAI } from '../hooks/useUnitAI';
+import { getUnitTypeLabel, getUnitNumber, getTotalUnits } from '../utils/unitHelpers';
+import { createModuleLogger } from '../utils/logger';
+import { DEFAULT_USER_ID, MAX_ANSWER_CHOICES, TOAST_DURATION } from '../constants';
+import type { Unit } from '../types/unit';
 
 const logger = createModuleLogger('LiteratureLectureDetail');
-
-// 강의 상세 타입 확장
-interface LectureWork {
-  work_id: string;
-  title: string;
-  author: string;
-  genre: string;
-  year?: number;
-  content: string[];
-  themes?: string[];
-  analysis?: {
-    형식?: string;
-    운율?: string;
-    이미지?: string;
-    표현법?: string;
-    주제?: string;
-  };
-  key_points?: string[];
-}
-
-interface LectureConcept {
-  concept_id: string;
-  title: string;
-  content: string[];
-}
-
-interface LectureProblem {
-  problem_id: string;
-  problem_number: number;
-  question_text: string;
-  passage_required: boolean;
-  reference?: string;
-  choices: Record<string, string>;
-  correct_answer: string;
-  explanation: string;
-  difficulty: string;
-  points: number;
-}
-
-interface LectureDetailData {
-  lecture_id: number;
-  title: string;
-  subject: string;
-  description: string;
-  concepts: LectureConcept[];
-  works: LectureWork[];
-  problems: LectureProblem[];
-  keywords: string[];
-  learning_objectives?: string[];
-  estimated_time?: number;
-  difficulty?: string;
-}
 
 export default function LiteratureLectureDetail() {
   const { lectureId } = useParams<{ lectureId: string }>();
   const navigate = useNavigate();
-  const [lecture, setLecture] = useState<LectureDetailData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
-  const [showAnswers, setShowAnswers] = useState<Record<string, boolean>>({});
+  
+  // 문학 Unit 데이터 로드
+  const {
+    unit,
+    allUnits,
+    lectureTitle,
+    loading,
+    error,
+    loadLecture,
+    loadUnit,
+  } = useLiteratureUnitData();
+
+  // 현재 Unit 인덱스
+  const [currentUnitIndex, setCurrentUnitIndex] = useState(0);
+
+  // TTS/STT
+  const { speak, stop: stopTTS } = useTTS();
+  const { stop: stopSTT, isListening, transcript } = useSTT();
+  const { showToast, toastMessage, setShowToast, showToastMessage } = useToast();
+
+  // 점자
+  const { sendText } = useBrailleBLE();
+
+  // AI 설명
+  const {
+    aiExplanation,
+    isAiLoading,
+    loadAIExplanation,
+    reset: resetAI
+  } = useUnitAI(speak, sendText);
+
+  // 답안 상태
+  const [userAnswer, setUserAnswer] = useState<number | null>(null);
+  const [answerResult, setAnswerResult] = useState<{ is_correct: boolean; correct_answer: number; explanation?: string } | null>(null);
+  const [showUnitList, setShowUnitList] = useState(false);
+  const [showBrailleKeywords, setShowBrailleKeywords] = useState(false);
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const { extractKeywords, isLoading: isExtractingKeywords } = useExtractKeywords();
 
   // 진도 관리
   const {
@@ -84,21 +84,19 @@ export default function LiteratureLectureDetail() {
     saveProblemResult,
     addStudyTime,
   } = useLiteratureProgressStore();
+  const setLastLectureGlobal = useLastLectureStore((s) => s.setLastLecture);
 
   const [studyStartTime] = useState(Date.now());
 
+  // AI 설명 자동 로드를 위한 ref
+  const loadAIExplanationRef = useRef(loadAIExplanation);
+  loadAIExplanationRef.current = loadAIExplanation;
+
   const {
-    speak,
-    stopTTS,
-    stopSTT,
-    isListening,
-    transcript,
-    showToast,
-    toastMessage,
-    setShowToast,
-    showToastMessage,
+    stopTTS: stopTTSCallback,
+    stopSTT: stopSTTCallback,
   } = usePageBase({
-    autoAnnounce: lecture ? `${lecture.title}. ${lecture.description}` : '강의를 불러오는 중입니다.',
+    autoAnnounce: lectureTitle ? `${lectureTitle} 학습을 시작합니다.` : '강의를 불러오는 중입니다.',
     voiceCommands: {
       home: () => {
         stopTTS();
@@ -117,14 +115,26 @@ export default function LiteratureLectureDetail() {
     },
   });
 
-  // 강의 상세 로드
+  // 강의 로드
   useEffect(() => {
     if (lectureId) {
       const id = parseInt(lectureId);
-      loadLectureDetail(id);
+      loadLecture(id);
       setLastLecture(id);
     }
-  }, [lectureId]);
+  }, [lectureId, loadLecture, setLastLecture]);
+
+  // 마지막 강의 저장 (홈 "진행 중인 학습"용)
+  useEffect(() => {
+    if (lectureId && lectureTitle && unit) {
+      setLastLectureGlobal({
+        subject: 'literature',
+        lectureId: parseInt(lectureId),
+        lectureTitle,
+        unitId: unit.unit_id,
+      });
+    }
+  }, [lectureId, lectureTitle, unit, setLastLectureGlobal]);
 
   // 페이지 나가기 전 학습 시간 저장
   useEffect(() => {
@@ -132,105 +142,171 @@ export default function LiteratureLectureDetail() {
       const studyTime = Math.floor((Date.now() - studyStartTime) / 1000);
       addStudyTime(studyTime);
     };
-  }, [studyStartTime]);
+  }, [studyStartTime, addStudyTime]);
 
-  const loadLectureDetail = async (id: number) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await literatureAPI.getLecture(id) as any;
-      setLecture(data);
-      logger.log(`강의 ${id} 로드 완료`);
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : '강의를 불러오지 못했습니다.';
-      setError(errorMsg);
-      logger.error('강의 로드 실패:', err);
-      showToastMessage(errorMsg);
-      speak(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 섹션 토글
-  const toggleSection = (sectionId: string) => {
-    setExpandedSection(expandedSection === sectionId ? null : sectionId);
-  };
-
-  // 텍스트 읽기
-  const readText = (text: string | string[]) => {
-    const content = Array.isArray(text) ? text.join(' ') : text;
-    speak(content);
-  };
-
-  // 개념 읽기
-  const readConcept = (concept: LectureConcept) => {
-    const text = `${concept.title}. ${concept.content.join(' ')}`;
-    speak(text);
-  };
-
-  // 작품 읽기
-  const readWork = (work: LectureWork) => {
-    const text = `${work.title}, ${work.author}. ${work.content.join(' ')}`;
-    speak(text);
-  };
-
-  // 답안 선택
-  const handleAnswerSelect = (problemId: string, answer: string) => {
-    setSelectedAnswers((prev) => ({
-      ...prev,
-      [problemId]: answer,
-    }));
-    showToastMessage(`${answer}번 선택`);
-  };
-
-  // 정답 확인
-  const handleCheckAnswer = (problem: LectureProblem) => {
-    const selected = selectedAnswers[problem.problem_id];
-    if (!selected) {
-      showToastMessage('답을 선택해주세요.');
-      speak('답을 선택해주세요.');
-      return;
-    }
-
-    const isCorrect = selected === problem.correct_answer;
-    setShowAnswers((prev) => ({
-      ...prev,
-      [problem.problem_id]: true,
-    }));
-
-    // 문제 결과 저장
-    saveProblemResult(problem.problem_id, selected, isCorrect);
-
-    if (isCorrect) {
-      showToastMessage('정답입니다!');
-      speak(`정답입니다! ${problem.explanation}`);
-    } else {
-      showToastMessage(`오답입니다. 정답은 ${problem.correct_answer}번입니다.`);
-      speak(`오답입니다. 정답은 ${problem.correct_answer}번입니다. ${problem.explanation}`);
-    }
-
-    // 모든 문제를 풀었으면 강의 완료 처리
-    if (lecture) {
-      const allProblemsAnswered = lecture.problems.every(
-        (p) => showAnswers[p.problem_id] || p.problem_id === problem.problem_id
-      );
-      if (allProblemsAnswered && !isLectureCompleted(lecture.lecture_id)) {
-        completeLecture(lecture.lecture_id);
-        showToastMessage('강의를 완료했습니다!');
-        speak('모든 문제를 풀었습니다. 강의를 완료했습니다!');
+  // 현재 Unit ID로 인덱스 계산
+  useEffect(() => {
+    if (unit && allUnits.length > 0) {
+      const index = allUnits.findIndex(u => u.unit_id === unit.unit_id);
+      if (index !== -1) {
+        setCurrentUnitIndex(index);
       }
     }
+  }, [unit, allUnits]);
+
+  // 인덱스 변경 시 Unit 변경
+  const handleIndexChange = useCallback((newIndex: number) => {
+    if (newIndex < 0 || newIndex >= allUnits.length) return;
+
+    const newUnit = allUnits[newIndex];
+    if (newUnit && newUnit.unit_id !== unit?.unit_id) {
+      loadUnit(newUnit.unit_id);
+      // 답안 상태 초기화
+      setUserAnswer(null);
+      setAnswerResult(null);
+      resetAI();
+    }
+  }, [allUnits, unit, loadUnit, resetAI]);
+
+  // 답안 제출
+  const handleAnswer = useCallback(async (answer: number) => {
+    if (!unit || unit.type !== 'QUESTION' || !unit.question) return;
+
+    setUserAnswer(answer);
+
+    // 정답 확인
+    const isCorrect = unit.question.answer === answer;
+
+    // 문제 결과 저장
+    if (unit.unit_id.includes('problem')) {
+      const problemId = unit.unit_id.split('_').pop() || '';
+      saveProblemResult(problemId, answer.toString(), isCorrect);
+    }
+
+    // 결과 표시
+    setAnswerResult({
+      is_correct: isCorrect,
+      correct_answer: unit.question!.answer || 0,
+      explanation: isCorrect ? '정답입니다!' : '오답입니다.',
+    });
+
+    // 오답 시 AI 설명 자동 로드
+    if (!isCorrect && loadAIExplanationRef.current) {
+      loadAIExplanationRef.current(unit.unit_id);
+    }
+  }, [unit, saveProblemResult]);
+
+  // Unit 정보 계산
+  const unitNumber = getUnitNumber(unit, allUnits);
+  const totalUnits = getTotalUnits(unit, allUnits);
+  const unitTypeLabel = getUnitTypeLabel(unit);
+
+  // 다음 Unit으로 이동
+  const handleNextUnit = useCallback(() => {
+    if (currentUnitIndex < allUnits.length - 1) {
+      handleIndexChange(currentUnitIndex + 1);
+    } else {
+      // 마지막 Unit이면 강의 완료 처리
+      if (lectureId && !isLectureCompleted(parseInt(lectureId))) {
+        completeLecture(parseInt(lectureId));
+        showToastMessage('강의를 완료했습니다!');
+        speak('모든 학습을 완료했습니다. 강의를 완료했습니다!');
+      }
+      navigate('/literature/lectures');
+    }
+  }, [currentUnitIndex, allUnits.length, handleIndexChange, lectureId, isLectureCompleted, completeLecture, navigate, showToastMessage, speak]);
+
+  // 이전 Unit으로 이동
+  const handlePrevUnit = useCallback(() => {
+    if (currentUnitIndex > 0) {
+      handleIndexChange(currentUnitIndex - 1);
+    } else {
+      showToastMessage('첫 번째 학습 단위입니다.');
+    }
+  }, [currentUnitIndex, handleIndexChange, showToastMessage]);
+
+  // Enter 키 처리
+  const handleEnterKey = useCallback(() => {
+    if (answerResult) {
+      handleNextUnit();
+    } else if (userAnswer !== null && unit?.type === 'QUESTION') {
+      handleAnswer(userAnswer);
+    } else {
+      handleNextUnit();
+    }
+  }, [answerResult, userAnswer, unit, handleAnswer, handleNextUnit]);
+
+  // Keyboard shortcuts
+  const shortcuts: Record<string, () => void> = {
+    enter: handleEnterKey,
+    tab: () => {
+      if (unit?.unit_id && loadAIExplanationRef.current) {
+        loadAIExplanationRef.current(unit.unit_id);
+      }
+    },
+    arrowleft: handlePrevUnit,
+    arrowright: handleNextUnit,
+    m: () => setShowUnitList(prev => !prev),
+    q: () => navigate('/literature/lectures'),
+    r: () => {
+      if (unit?.unit_id && loadAIExplanationRef.current) {
+        resetAI();
+        loadAIExplanationRef.current(unit.unit_id);
+      }
+    },
   };
 
-  // 문제 읽기
-  const readProblem = (problem: LectureProblem) => {
-    const choicesText = Object.entries(problem.choices)
-      .map(([num, text]) => `${num}번. ${text}`)
-      .join('. ');
-    const text = `문제 ${problem.problem_number}. ${problem.question_text}. 선택지. ${choicesText}`;
-    speak(text);
-  };;
+  // 답안 선택 단축키 (1-5)
+  if (unit?.type === 'QUESTION' && !answerResult) {
+    for (let i = 1; i <= MAX_ANSWER_CHOICES; i++) {
+      shortcuts[i.toString()] = () => {
+        if (unit?.question?.choices && i <= unit.question.choices.length) {
+          setUserAnswer(i);
+          showToastMessage(`${i}번 선택`);
+        }
+      };
+    }
+  }
+
+  useKeyboardShortcuts(shortcuts, [unit, userAnswer, answerResult, allUnits, handleEnterKey, handlePrevUnit, handleNextUnit]);
+
+  // 음성 명령어
+  const { onSpeech } = useVoiceCommands({
+    home: () => {
+      stopTTS();
+      navigate('/');
+      stopSTT();
+    },
+    back: () => {
+      navigate('/literature/lectures');
+    },
+  });
+
+  useEffect(() => {
+    if (!transcript) return;
+    onSpeech(transcript);
+  }, [transcript, onSpeech]);
+
+  // Unit 타입 아이콘
+  const getUnitIcon = (unitType: string) => {
+    const icons: Record<string, string> = {
+      'CONCEPT_CORE': '📖',
+      'CONCEPT_FORM': '📖',
+      'CONCEPT_CONTENT': '📖',
+      'CONCEPT_SUMMARY': '📖',
+      'PASSAGE': '📚',
+      'QUESTION': '✏️'
+    };
+    return icons[unitType] || '📄';
+  };
+
+  // Unit 타입별 배경색
+  const getUnitTypeColor = (unitType: string) => {
+    if (unitType.includes('CONCEPT')) return 'border-l-4 border-blue-500';
+    if (unitType === 'PASSAGE') return 'border-l-4 border-green-500';
+    if (unitType === 'QUESTION') return 'border-l-4 border-orange-500';
+    return 'border-l-4 border-gray-500';
+  };
 
   if (loading) {
     return (
@@ -244,7 +320,7 @@ export default function LiteratureLectureDetail() {
     );
   }
 
-  if (error || !lecture) {
+  if (error || !unit || allUnits.length === 0) {
     return (
       <AppShellMobile title="강의 상세" className="relative h-screen flex flex-col">
         <div className="flex items-center justify-center flex-1 px-4">
@@ -265,367 +341,213 @@ export default function LiteratureLectureDetail() {
   }
 
   return (
-    <AppShellMobile title={lecture.title} className="relative h-screen flex flex-col">
-      <div className="mb-2">
-        <SpeechBar isListening={isListening} transcript={transcript} />
-      </div>
-
-      <div className="px-2 py-1 space-y-3 flex-1 overflow-y-auto min-h-0">
-        {/* 강의 헤더 */}
-        <div className="bg-card border border-border rounded-lg p-4">
-          <div className="flex items-start justify-between mb-2">
-            <h2 className="text-xl font-bold">{lecture.title}</h2>
+    <AppShellMobile title={lectureTitle} className="relative h-screen flex flex-col bg-background">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="px-4 pt-4 pb-2 border-b border-border bg-background">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('/')}
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
+                aria-label="홈으로"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </button>
+              <span className="text-sm text-muted-foreground">{unitNumber} / {totalUnits}</span>
+            </div>
             <button
-              onClick={() => readText(lecture.description)}
-              className="ml-2 px-3 py-1 text-xs bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors"
-              aria-label="강의 소개 읽기"
+              onClick={() => setShowUnitList(true)}
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
+              aria-label="Unit 목록"
             >
-              읽기
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
           </div>
-          <p className="text-sm text-muted mb-3">{lecture.description}</p>
 
-          {/* 메타 정보 */}
-          <div className="flex flex-wrap gap-2 text-xs">
-            {lecture.estimated_time && (
-              <span className="px-2 py-1 bg-secondary/50 text-secondary-foreground rounded">
-                ⏱️ {lecture.estimated_time}분
-              </span>
-            )}
-            {lecture.difficulty && (
-              <span className="px-2 py-1 bg-secondary/50 text-secondary-foreground rounded">
-                📊 난이도: {lecture.difficulty}
-              </span>
-            )}
-            {lecture.keywords && lecture.keywords.map((keyword, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-1 bg-primary/10 text-primary rounded"
-              >
-                #{keyword}
-              </span>
-            ))}
-          </div>
+          <SpeechBar isListening={isListening} transcript={transcript} />
         </div>
 
-        {/* 학습 목표 */}
-        {lecture.learning_objectives && lecture.learning_objectives.length > 0 && (
-          <div className="bg-card border border-border rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-2">📚 학습 목표</h3>
-            <ul className="space-y-1 text-sm">
-              {lecture.learning_objectives.map((objective, idx) => (
-                <li key={idx} className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>{objective}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {/* 점자 키워드 패널 */}
+        {showBrailleKeywords && (
+          <BrailleKeywordsPanel
+            keywords={keywords}
+            unitTitle={unit?.title}
+            onClose={() => setShowBrailleKeywords(false)}
+          />
         )}
 
-        {/* 개념 설명 */}
-        {lecture.concepts && lecture.concepts.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold px-2">💡 개념 설명</h3>
-            {lecture.concepts.map((concept) => (
-              <div
-                key={concept.concept_id}
-                className="bg-card border border-border rounded-lg overflow-hidden"
-              >
-                <button
-                  onClick={() => toggleSection(concept.concept_id)}
-                  className="w-full p-4 text-left flex items-center justify-between hover:bg-accent/50 transition-colors"
-                  aria-expanded={expandedSection === concept.concept_id}
-                  aria-label={`${concept.title} 개념 설명`}
-                >
-                  <span className="font-semibold">{concept.title}</span>
-                  <div className="flex items-center gap-2">
-                    <div
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        readConcept(concept);
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          readConcept(concept);
-                        }
-                      }}
-                      className="px-3 py-1 text-xs bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      aria-label={`${concept.title} 읽기`}
-                    >
-                      읽기
-                    </div>
-                    <span className="text-xl">
-                      {expandedSection === concept.concept_id ? '▼' : '▶'}
-                    </span>
-                  </div>
-                </button>
-                {expandedSection === concept.concept_id && (
-                  <div className="px-4 pb-4 space-y-2">
-                    {concept.content.map((line, idx) => (
-                      <p key={idx} className="text-sm">
-                        {line}
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+        {/* 학습 단위 목록 사이드바 */}
+        {showUnitList && (
+          <UnitListSidebar
+            units={allUnits}
+            currentUnitId={unit?.unit_id || null}
+            lessonTitle={lectureTitle}
+            onClose={() => setShowUnitList(false)}
+            getUnitTypeLabel={getUnitTypeLabel}
+          />
         )}
 
-        {/* 문제 풀이 */}
-        {lecture.problems && lecture.problems.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold px-2">✏️ 문제 풀이</h3>
-            {lecture.problems.map((problem) => {
-              const selected = selectedAnswers[problem.problem_id];
-              const showAnswer = showAnswers[problem.problem_id];
-              const isCorrect = selected === problem.correct_answer;
-
-              return (
-                <div
-                  key={problem.problem_id}
-                  className="bg-card border border-border rounded-lg p-4 space-y-3"
-                >
-                  {/* 문제 헤더 */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-bold text-primary">
-                          {problem.problem_number}번
-                        </span>
-                        <span className="text-xs px-2 py-0.5 bg-secondary/50 rounded">
-                          {problem.difficulty}
-                        </span>
-                        <span className="text-xs px-2 py-0.5 bg-secondary/50 rounded">
-                          {problem.points}점
-                        </span>
-                      </div>
-                      <p className="font-medium mb-2">{problem.question_text}</p>
-                    </div>
-                    <button
-                      onClick={() => readProblem(problem)}
-                      className="ml-2 px-3 py-1 text-xs bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors"
-                      aria-label="문제 읽기"
-                    >
-                      읽기
-                    </button>
+        {/* Content with Card Swiper */}
+        {!loading && !error && unit && allUnits.length > 0 && (
+          <UnitCardSwiper
+            currentIndex={currentUnitIndex}
+            totalUnits={allUnits.length}
+            onIndexChange={handleIndexChange}
+            className="flex-1 flex flex-col"
+          >
+            {/* Unit 카드 */}
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              <div className={`unit-card ${getUnitTypeColor(unit.type)} bg-card rounded-xl shadow-sm p-4 space-y-3`}>
+                {/* Unit 타입 아이콘 및 제목 */}
+                <div className="flex items-start gap-2">
+                  <div className="text-3xl flex-shrink-0">
+                    {getUnitIcon(unit.type)}
                   </div>
-
-                  {/* 보기 (있는 경우) */}
-                  {problem.reference && (
-                    <div className="bg-muted/30 rounded p-3 text-sm" style={{ whiteSpace: 'pre-wrap' }}>
-                      <p className="font-medium mb-1">&lt;보기&gt;</p>
-                      {problem.reference}
+                  <div className="flex-1">
+                    <div className="text-xs text-muted-foreground mb-0.5">
+                      {unitTypeLabel}
                     </div>
-                  )}
-
-                  {/* 선택지 */}
-                  <div className="space-y-2">
-                    {Object.entries(problem.choices).map(([num, text]) => {
-                      const isSelected = selected === num;
-                      const isCorrectChoice = num === problem.correct_answer;
-
-                      return (
-                        <button
-                          key={num}
-                          onClick={() => handleAnswerSelect(problem.problem_id, num)}
-                          disabled={showAnswer}
-                          className={`w-full text-left p-3 rounded border transition-colors ${
-                            showAnswer
-                              ? isCorrectChoice
-                                ? 'bg-success/10 border-success'
-                                : isSelected
-                                ? 'bg-destructive/10 border-destructive'
-                                : 'bg-muted/30 border-border/50'
-                              : isSelected
-                              ? 'bg-primary/10 border-primary'
-                              : 'bg-muted/10 border-border hover:border-primary/50'
-                          }`}
-                          aria-label={`${num}번 선택지`}
-                          aria-pressed={isSelected}
-                        >
-                          <div className="flex items-start">
-                            <span className="font-semibold min-w-[24px]">{num}.</span>
-                            <span className="ml-2">{text}</span>
-                            {showAnswer && isCorrectChoice && (
-                              <span className="ml-auto text-success font-bold">✓</span>
-                            )}
-                            {showAnswer && isSelected && !isCorrectChoice && (
-                              <span className="ml-auto text-destructive font-bold">✗</span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
+                    <h2 className="text-xl font-bold text-fg">{unit.title}</h2>
                   </div>
-
-                  {/* 정답 확인 버튼 */}
-                  {!showAnswer && (
-                    <button
-                      onClick={() => handleCheckAnswer(problem)}
-                      className="w-full px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors font-semibold"
-                      aria-label="정답 확인"
-                    >
-                      정답 확인
-                    </button>
-                  )}
-
-                  {/* 해설 */}
-                  {showAnswer && (
-                    <div className={`p-3 rounded ${
-                      isCorrect ? 'bg-success/10' : 'bg-muted/30'
-                    }`}>
-                      <p className="font-semibold mb-1">
-                        {isCorrect ? '✅ 정답입니다!' : `❌ 오답입니다. 정답: ${problem.correct_answer}번`}
-                      </p>
-                      <p className="text-sm">{problem.explanation}</p>
-                    </div>
-                  )}
                 </div>
-              );
-            })}
-          </div>
-        )}
 
-        {/* 작품 본문 */}
-        {lecture.works && lecture.works.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold px-2">📖 작품</h3>
-            {lecture.works.map((work) => (
-              <div
-                key={work.work_id}
-                className="bg-card border border-border rounded-lg overflow-hidden"
-              >
-                <button
-                  onClick={() => toggleSection(work.work_id)}
-                  className="w-full p-4 text-left flex items-center justify-between hover:bg-accent/50 transition-colors"
-                  aria-expanded={expandedSection === work.work_id}
-                  aria-label={`${work.title} 작품 본문`}
-                >
-                  <div>
-                    <span className="font-semibold">{work.title}</span>
-                    <span className="text-sm text-muted ml-2">- {work.author}</span>
-                    {work.year && (
-                      <span className="text-xs text-muted ml-2">({work.year})</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        readWork(work);
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          readWork(work);
-                        }
-                      }}
-                      className="px-3 py-1 text-xs bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      aria-label={`${work.title} 읽기`}
-                    >
-                      읽기
-                    </div>
-                    <span className="text-xl">
-                      {expandedSection === work.work_id ? '▼' : '▶'}
-                    </span>
-                  </div>
-                </button>
-                {expandedSection === work.work_id && (
-                  <div className="px-4 pb-4 space-y-4">
-                    {/* 작품 본문 */}
-                    <div className="bg-muted/30 rounded-lg p-3 space-y-1">
-                      {work.content.map((line, idx) => (
-                        <p key={idx} className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>
-                          {line}
-                        </p>
-                      ))}
-                    </div>
+                {/* Unit 내용 */}
+                <UnitViewer unit={unit} onSpeak={speak} />
 
-                    {/* 작품 분석 */}
-                    {work.analysis && (
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-sm">📝 작품 분석</h4>
-                        <div className="grid grid-cols-1 gap-2 text-sm">
-                          {Object.entries(work.analysis).map(([key, value]) => (
-                            <div key={key} className="flex">
-                              <span className="font-medium min-w-[60px]">{key}:</span>
-                              <span className="text-muted">{value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {/* AI 설명 */}
+                <AIExplanationCard
+                  sectionType={unit?.type === 'CONCEPT_CORE' ? 'concept' : (unit?.type === 'PASSAGE' ? 'content' : 'problem')}
+                  aiExplanation={aiExplanation}
+                  loadingAI={isAiLoading}
+                  onSpeak={async (text: string) => {
+                    speak(text);
+                    try {
+                      await sendText(text);
+                    } catch (err) {
+                      logger.error('점자 출력 실패:', err);
+                    }
+                  }}
+                  onLoadExplanation={() => {
+                    if (unit.unit_id && unit) {
+                      resetAI();
+                      loadAIExplanation(unit.unit_id, unit);
+                    }
+                  }}
+                />
 
-                    {/* 핵심 포인트 */}
-                    {work.key_points && work.key_points.length > 0 && (
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-sm">✨ 핵심 포인트</h4>
-                        <ul className="space-y-1 text-sm">
-                          {work.key_points.map((point, idx) => (
-                            <li key={idx} className="flex items-start">
-                              <span className="mr-2">•</span>
-                              <span>{point}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                {/* AI 질문 입력 (개념/본문인 경우) */}
+                {unit && (unit.type === 'CONCEPT_CORE' || unit.type === 'PASSAGE') && (
+                  <AIQuestionInput
+                    unitId={unit.unit_id}
+                    lessonId={unit.lesson_id}
+                    onAnswer={(answer) => {
+                      logger.log('AI 답변:', answer);
+                    }}
+                  />
+                )}
 
-                    {/* 주제 */}
-                    {work.themes && work.themes.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {work.themes.map((theme, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-1 text-xs bg-accent/50 text-accent-foreground rounded"
-                          >
-                            {theme}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                {/* 문제인 경우 답안 입력 */}
+                {unit.type === 'QUESTION' && unit.question && !answerResult && (
+                  <AnswerInput
+                    maxChoice={unit.question.choices?.length || 5}
+                    onAnswer={handleAnswer}
+                    onSpeak={speak}
+                  />
+                )}
+
+                {/* 답안 결과 */}
+                {answerResult && userAnswer !== null && (
+                  <AnswerResultComponent
+                    result={answerResult}
+                    userAnswer={userAnswer}
+                    onSpeak={speak}
+                  />
                 )}
               </div>
-            ))}
-          </div>
+            </div>
+          </UnitCardSwiper>
         )}
-      </div>
 
-      {/* 하단 네비게이션 */}
-      <div className="border-t border-border p-2 bg-background">
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate('/literature/lectures')}
-            className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors font-semibold"
-            aria-label="강의 목록으로"
-          >
-            강의 목록
-          </button>
-          <button
-            onClick={() => navigate('/')}
-            className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors font-semibold"
-            aria-label="홈으로"
-          >
-            홈으로
-          </button>
+        {/* Footer - Navigation and shortcuts */}
+        <div className="px-4 py-3 border-t border-border bg-background">
+          <div className="flex items-center justify-between mb-2">
+            <button
+              onClick={handlePrevUnit}
+              disabled={currentUnitIndex === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-accent rounded-lg hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-sm font-medium">이전</span>
+            </button>
+
+            <button
+              onClick={async () => {
+                if (unit) {
+                  const extracted = await extractKeywords(unit);
+                  setKeywords(extracted);
+                  setShowBrailleKeywords(true);
+                }
+              }}
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
+              aria-label="점자 모듈 - 핵심 키워드"
+              disabled={!unit || isExtractingKeywords}
+            >
+              {/* 점자 아이콘 (6점 점자 패턴) */}
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-label="점자">
+                {/* 점자 패턴: 2x3 그리드 */}
+                <circle cx="6" cy="6" r="2" />
+                <circle cx="18" cy="6" r="2" />
+                <circle cx="6" cy="12" r="2" />
+                <circle cx="18" cy="12" r="2" />
+                <circle cx="6" cy="18" r="2" />
+                <circle cx="18" cy="18" r="2" />
+              </svg>
+            </button>
+
+            <button
+              onClick={handleNextUnit}
+              disabled={
+                currentUnitIndex === allUnits.length - 1 &&
+                unit?.type === 'QUESTION' &&
+                !answerResult &&
+                (unit?.question?.choices?.length ?? 0) > 0
+              }
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <span className="text-sm font-medium">
+                {answerResult ? '다음' : (unit?.type === 'QUESTION' && userAnswer ? '제출' : '다음')}
+              </span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Keyboard shortcuts */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="space-x-2">
+              <span>[Enter] {answerResult ? '다음' : (unit?.type === 'QUESTION' ? '제출' : '다음')}</span>
+              <span>[←→] 이동</span>
+            </div>
+            <div className="space-x-2">
+              <span>[M] 목록</span>
+              <span>[Q] 종료</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <ToastA11y
         message={toastMessage}
         isVisible={showToast}
-        duration={3000}
+        duration={TOAST_DURATION}
         onClose={() => setShowToast(false)}
       />
     </AppShellMobile>
